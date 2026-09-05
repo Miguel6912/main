@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cosy Village</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="game-root">
+    <canvas id="game-canvas"></canvas>
+
+    <div id="hud-top">
+      <div id="hud-date">Day 1</div>
+      <div id="hud-time-controls">
+        <button id="btn-pause" title="Pause/Resume">⏸</button>
+        <button id="btn-speed1" class="active" title="Normal speed">1x</button>
+        <button id="btn-speed2" title="Double speed">2x</button>
+        <button id="btn-speed4" title="Quadruple speed">4x</button>
+        <button id="btn-skip" title="Skip to next time of day">⏭</button>
+      </div>
+      <div id="hud-coins">🪙 <span id="coins-value">0</span></div>
+      <div id="hud-buttons">
+        <button id="btn-bag" title="Bag">🎒</button>
+        <button id="btn-journal" title="Village Almanac">📖</button>
+        <button id="btn-save" title="Save game">💾</button>
+        <button id="btn-load" title="Load game">📂</button>
+        <button id="btn-sound" title="Toggle sound">🔈</button>
+      </div>
+    </div>
+
+    <div id="interact-prompt" class="hidden"></div>
+    <div id="toast-container"></div>
+
+    <div id="dialogue-box" class="hidden panel">
+      <div id="dialogue-speaker"></div>
+      <div id="dialogue-text"></div>
+      <div id="dialogue-options"></div>
+    </div>
+
+    <div id="shop-panel" class="hidden panel">
+      <h2 id="shop-title"></h2>
+      <div id="shop-coins" class="panel-subtitle"></div>
+      <div class="shop-columns">
+        <div class="shop-col">
+          <h3>Buy</h3>
+          <div id="shop-buy-list"></div>
+        </div>
+        <div class="shop-col">
+          <h3>Sell</h3>
+          <div id="shop-sell-list"></div>
+        </div>
+      </div>
+      <button id="shop-close" class="panel-close">Close</button>
+    </div>
+
+    <div id="property-panel" class="hidden panel">
+      <h2 id="property-title"></h2>
+      <p id="property-desc"></p>
+      <div id="property-income" class="panel-subtitle"></div>
+      <div id="property-actions" class="panel-actions"></div>
+      <button id="property-close" class="panel-close">Close</button>
+    </div>
+
+    <div id="journal-panel" class="hidden panel">
+      <h2>Village Almanac</h2>
+      <div class="journal-tabs">
+        <button id="journal-tab-witnessed" class="active">Witnessed</button>
+        <button id="journal-tab-rumors">Rumours Heard</button>
+      </div>
+      <div id="journal-list" class="scroll-list"></div>
+      <button id="journal-close" class="panel-close">Close</button>
+    </div>
+
+    <div id="bag-panel" class="hidden panel">
+      <h2>Your Bag</h2>
+      <div id="bag-list" class="scroll-list"></div>
+      <button id="bag-close" class="panel-close">Close</button>
+    </div>
+
+    <div id="event-popup" class="hidden panel">
+      <div id="event-popup-title" class="event-title"></div>
+      <div id="event-popup-text"></div>
+      <button id="event-popup-close" class="panel-close">Continue</button>
+    </div>
+
+    <div id="start-overlay" class="panel">
+      <h1>Cosy Village</h1>
+      <p class="tagline">A storybook life between the castle and the enchanted forest.</p>
+      <button id="btn-new-game">New Game</button>
+      <button id="btn-continue-game">Continue</button>
+      <p class="hint">Move: WASD / Arrow Keys &middot; Interact: E &middot; Close menus: Esc</p>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
