@@ -41,6 +41,10 @@ export class UIManager {
       propertyDesc: el('property-desc'),
       propertyIncome: el('property-income'),
       propertyActions: el('property-actions'),
+      ciderPanel: el('cider-panel'),
+      ciderDesc: el('cider-desc'),
+      ciderStatus: el('cider-status'),
+      ciderActions: el('cider-actions'),
       journalPanel: el('journal-panel'),
       journalList: el('journal-list'),
       journalTabWitnessed: el('journal-tab-witnessed'),
@@ -69,6 +73,7 @@ export class UIManager {
     el('btn-sound').addEventListener('click', () => h.onToggleSound());
     el('shop-close').addEventListener('click', () => h.onCloseShop());
     el('property-close').addEventListener('click', () => h.onCloseProperty());
+    el('cider-close').addEventListener('click', () => h.onCloseCider());
     el('journal-close').addEventListener('click', () => h.onCloseJournal());
     el('bag-close').addEventListener('click', () => h.onCloseBag());
     el('event-popup-close').addEventListener('click', () => h.onCloseEventPopup());
@@ -206,6 +211,35 @@ export class UIManager {
     this.dom.propertyPanel.classList.add('hidden');
   }
 
+  // --- Cider press ---
+  openCider({ stage, daysRemaining, requiredApples, appleCount }) {
+    this.dom.ciderPanel.classList.remove('hidden');
+    this.dom.ciderActions.innerHTML = '';
+    if (stage === 'empty') {
+      this.dom.ciderDesc.textContent = 'A sturdy apple press, empty and waiting. Bring apples to start a batch of cider.';
+      this.dom.ciderStatus.textContent = `You have ${appleCount} apple${appleCount === 1 ? '' : 's'} (need ${requiredApples}).`;
+      const startBtn = document.createElement('button');
+      startBtn.textContent = `Press ${requiredApples} Apples`;
+      startBtn.disabled = appleCount < requiredApples;
+      startBtn.addEventListener('click', () => this.handlers.onStartCider());
+      this.dom.ciderActions.appendChild(startBtn);
+    } else if (stage === 'fermenting') {
+      this.dom.ciderDesc.textContent = 'The pressed juice is settling into the barrel, working its way toward cider.';
+      this.dom.ciderStatus.textContent = `${daysRemaining} day${daysRemaining === 1 ? '' : 's'} left to ferment.`;
+    } else {
+      this.dom.ciderDesc.textContent = 'The cider is ready to bottle.';
+      this.dom.ciderStatus.textContent = 'Sweet and a little sharp -- smells about right.';
+      const collectBtn = document.createElement('button');
+      collectBtn.textContent = 'Bottle the Cider';
+      collectBtn.addEventListener('click', () => this.handlers.onCollectCider());
+      this.dom.ciderActions.appendChild(collectBtn);
+    }
+  }
+
+  closeCider() {
+    this.dom.ciderPanel.classList.add('hidden');
+  }
+
   // --- Journal ---
   openJournal({ witnessed, rumors, tab }) {
     this.dom.journalPanel.classList.remove('hidden');
@@ -276,6 +310,7 @@ export class UIManager {
   anyModalOpen() {
     return !this.dom.shopPanel.classList.contains('hidden')
       || !this.dom.propertyPanel.classList.contains('hidden')
+      || !this.dom.ciderPanel.classList.contains('hidden')
       || !this.dom.journalPanel.classList.contains('hidden')
       || !this.dom.bagPanel.classList.contains('hidden')
       || !this.dom.eventPopup.classList.contains('hidden')
@@ -286,6 +321,7 @@ export class UIManager {
   closeAllModals() {
     this.closeShop();
     this.closeProperty();
+    this.closeCider();
     this.closeJournal();
     this.closeBag();
     this.hideEventPopup();

@@ -11,8 +11,14 @@ See `README.md` for how to run it.
 ## 1. What is currently implemented
 
 **World & time**
-- Single continuous village map (1800x1000) between a castle (west) and an
-  enchanted forest (east), connected by a river with one bridge.
+- Single continuous map (2200x1900, up from the original 1800x1000) between
+  a castle (west) and an enchanted forest (east, now deeper, ~320 trees),
+  connected by a river with one bridge. A road leads south from the village
+  well into a new district: an orchard (apple trees around three forage
+  spots) and a still lake, home to the cider press (see "Economy" below).
+  All original village content stayed at its original coordinates -- the
+  world grew outward, nothing that already worked had to move or be
+  re-verified from scratch.
 - Day/night cycle with four visual phases (dawn/day/dusk/night), driving sky
   colour, a night-darkening overlay, stars, and warm window glow on
   buildings at night.
@@ -67,6 +73,15 @@ See `README.md` for how to run it.
   be bought and upgraded through 3 tiers (Market Stall -> Cosy Shopfront ->
   Charming Cottage Business), each with higher passive daily income,
   claimed by visiting the plot.
+- The cider press (`systems/CiderPressSystem.js`, in the southern orchard):
+  a multi-stage activity rather than a menu-instant conversion. Press 4
+  apples to start a batch, then the world simulates fermentation over 3
+  real in-game days -- visiting mid-ferment just shows a days-remaining
+  status, and a toast fires the day it's ready. Bottling rolls a quality
+  (modest/fine/exceptional) that decides how many bottles you get. Modeled
+  on the property system's day-based accrual, but with named stages instead
+  of a continuous number, as the shape for other future "start it, come
+  back later" activities (see section 5).
 
 **Save/Load**
 - Single-slot save to `localStorage`, versioned envelope for future
@@ -190,7 +205,19 @@ that buys you for Phase 2+:
 - **New property tier**: append to `data/properties.js`.
 - **New building/hotspot/forage spot/obstacle**: add to the relevant array
   in `world/MapData.js`; the renderer, collision, and interaction-range
-  code all iterate those arrays rather than hard-coding positions.
+  code all iterate those arrays rather than hard-coding positions. Adding a
+  whole new *district* (as the orchard+lake one was) is the same story at a
+  larger scale: grow `WORLD_WIDTH`/`WORLD_HEIGHT`, add content in the new
+  space, and leave every existing coordinate untouched -- nothing already
+  working has to move or be re-verified.
+- **New NPC/animal look**: pick an existing `outfit` (NPCs) or species case
+  (animals) or add a new one in `Renderer._drawOutfitDetail` /
+  `_drawAnimal` -- every character/critter renders through the same shared
+  pipeline, so there's one place to extend, not one per character.
+- **New multi-stage activity** (a second "start it, ferment/craft/grow it,
+  come back" loop beyond cider): follow `CiderPressSystem`'s shape (a
+  `stage` enum, a day-based `checkProgress`, a quality-roll `collect`) --
+  see section 5 for generalizing this into a shared base once there are two.
 - **EventBus** decouples every system (time, economy, events, UI, audio)
   from every other -- a new system (weather, quests, a companion) can
   listen to `time:newDay`, `event:witnessed`, etc. without editing the
@@ -213,11 +240,12 @@ still outstanding for the larger vision:
   unique reaction cutscenes, NPC-to-NPC social simulation.
 - A weather system with gameplay impact (currently a flavour-only "sudden
   rain" event; no rain mechanically affecting foraging, movement, etc).
-- Farming/crop-growing, animal husbandry, or other production loops beyond
-  foraging + jobs + one shop.
-- More business/property types beyond the single market-stall path.
-- A larger world: traveling beyond this one village (other towns, the
-  castle interior, deeper forest zones).
+- Farming/crop-growing, or other production loops beyond foraging + jobs +
+  one shop + the cider press.
+- More business/property types beyond the single market-stall path, and
+  more multi-stage activities beyond cider (the shape is proven out now --
+  see section 5).
+- Traveling beyond this one map (other towns, the castle interior).
 - More rare magical events beyond the unicorn and dragon; a rarer "epic"
   tier; events that chain into short storylines.
 - Achievements/collections UI beyond the almanac.
@@ -251,3 +279,12 @@ Suggested Phase 2, roughly in priority order:
 6. **Multi-step quest chains** riffing on the job-board pattern (a job that
    unlocks a follow-up job with its own NPC reactions), likely wanting a
    small `QuestSystem` alongside the existing `EconomySystem` job fields.
+7. **Generalize `CiderPressSystem` into a small reusable "multi-stage
+   activity" base** (stage enum + day-based transitions + a quality roll)
+   now that there's one working example, so a second activity (a smokehouse,
+   a loom, a mead barrel) is mostly new data rather than a new state
+   machine.
+8. **An NPC tied to the orchard/cider press** -- right now it's a standalone
+   station with no gatekeeper; a seventh villager (an orchardist?) could
+   sell starter apple saplings, react to the player's cider, or fold cider
+   into the job board.

@@ -1,4 +1,4 @@
-import { WORLD_WIDTH, WORLD_HEIGHT, BUILDINGS, RIVER, HOTSPOTS, FORAGE_SPOTS, OBSTACLES, FENCES, PROPS } from '../world/MapData.js';
+import { WORLD_WIDTH, WORLD_HEIGHT, BUILDINGS, RIVER, HOTSPOTS, FORAGE_SPOTS, OBSTACLES, FENCES, PROPS, ORCHARD, LAKE } from '../world/MapData.js';
 import { getSkyColor, getNightOverlayAlpha, SEASON_PALETTE, FOLIAGE_PALETTE, lerpColor } from './Palette.js';
 import { RNG } from '../core/RNG.js';
 import { PROPERTY_LEVELS } from '../data/properties.js';
@@ -11,7 +11,7 @@ const MEADOW_TILE_MAX_X = 1480; // keep the forest floor clear of open-meadow te
 
 const ROAD_STRIPS = [
   { x: 280, y: 540, w: 1220, h: 46 }, // main street
-  { x: 878, y: 380, w: 46, h: 420 }, // well square spur
+  { x: 878, y: 380, w: 46, h: 1170 }, // well square spur, extended south to the orchard
   { x: 320, y: 490, w: 46, h: 90 }, // watchpost spur
 ];
 
@@ -57,20 +57,41 @@ export class Renderer {
       }
     }
     this.forestTrees = [];
-    for (let i = 0; i < 90; i++) {
-      const x = rng.range(1505, 1795);
-      const y = rng.range(20, 980);
+    for (let i = 0; i < 320; i++) {
+      const x = rng.range(1505, WORLD_WIDTH - 15);
+      const y = rng.range(20, WORLD_HEIGHT - 20);
       if (!tooCloseToAny(x, y, [], 40)) {
         this.forestTrees.push({ x, y, scale: rng.range(0.9, 1.6), depth: rng.next() });
       }
     }
     this.grassPatches = [];
-    for (let i = 0; i < 160; i++) {
+    for (let i = 0; i < 350; i++) {
       this.grassPatches.push({ x: rng.range(0, WORLD_WIDTH), y: rng.range(0, WORLD_HEIGHT), r: rng.range(8, 22) });
     }
     this.castleBushes = [
       { x: 90, y: 610 }, { x: 220, y: 620 }, { x: 150, y: 640 },
     ];
+
+    this.orchardTrees = [];
+    for (let i = 0; i < 26; i++) {
+      const x = rng.range(ORCHARD.x + 20, ORCHARD.x + ORCHARD.w - 20);
+      const y = rng.range(ORCHARD.y + 20, ORCHARD.y + ORCHARD.h - 20);
+      if (!tooCloseToAny(x, y, [], 50)) {
+        this.orchardTrees.push({ x, y, scale: rng.range(0.75, 1.0) });
+      }
+    }
+
+    this.lakeReeds = [];
+    for (let i = 0; i < 18; i++) {
+      const edge = rng.pick(['top', 'bottom', 'left', 'right']);
+      const pad = rng.range(-10, 6);
+      let x, y;
+      if (edge === 'top') { x = rng.range(LAKE.x, LAKE.x + LAKE.w); y = LAKE.y + pad; }
+      else if (edge === 'bottom') { x = rng.range(LAKE.x, LAKE.x + LAKE.w); y = LAKE.y + LAKE.h - pad; }
+      else if (edge === 'left') { x = LAKE.x + pad; y = rng.range(LAKE.y, LAKE.y + LAKE.h); }
+      else { x = LAKE.x + LAKE.w - pad; y = rng.range(LAKE.y, LAKE.y + LAKE.h); }
+      this.lakeReeds.push({ x, y, h: rng.range(10, 18) });
+    }
     this.stars = [];
     for (let i = 0; i < 80; i++) {
       this.stars.push({ x: rng.next(), y: rng.range(0, 0.6), s: rng.range(0.5, 1.8), tw: rng.range(0, Math.PI * 2) });
@@ -140,12 +161,14 @@ export class Renderer {
     this._drawGround(season);
     this._drawCastle();
     this._drawRiver(season);
+    this._drawLake(season);
     this._drawRoads();
     this._drawFences();
     this._drawForestBackdrop(season, 'back');
+    this._drawOrchard(season);
     this._drawDecor(season);
     this._drawTree(HEART_TREE.x, HEART_TREE.y, HEART_TREE.scale, season);
-    this._drawHotspots(propertyLevel, interactTarget);
+    this._drawHotspots(propertyLevel, interactTarget, state.ciderStage);
     this._drawForageSpots(state.economy, time.dayCount, interactTarget);
     this._drawBuildings(time.phase, interactTarget);
     this._drawBuildingSigns();
@@ -345,6 +368,72 @@ export class Renderer {
 
   _drawDecor(season) {
     for (const t of this.villageTrees) this._drawTree(t.x, t.y, t.scale, season);
+  }
+
+  // A still lake south of the village, drawn as a rounded rect matching its
+  // (rectangular) collision bounds so the water's edge is never a step
+  // away from where the player actually stops -- plus a few reeds around
+  // the shore.
+  _drawLake(season) {
+    const { ctx } = this;
+    const pal = SEASON_PALETTE[season];
+    const r = 40;
+    const { x, y, w, h } = LAKE;
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    this._roundRectPath(x - 4, y + 6, w + 8, h, r);
+    ctx.fill();
+    ctx.fillStyle = pal.water;
+    this._roundRectPath(x, y, w, h, r);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.beginPath();
+    ctx.ellipse(x + w * 0.3, y + h * 0.25, w * 0.22, h * 0.12, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#3f6a3a';
+    ctx.lineWidth = 3;
+    for (const reed of this.lakeReeds) {
+      ctx.beginPath();
+      ctx.moveTo(reed.x, reed.y);
+      ctx.lineTo(reed.x - 2, reed.y - reed.h);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(reed.x + 4, reed.y);
+      ctx.lineTo(reed.x + 5, reed.y - reed.h * 0.7);
+      ctx.stroke();
+    }
+  }
+
+  _roundRectPath(x, y, w, h, r) {
+    const { ctx } = this;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // The southern orchard: apple trees (the same baked tree sprite, with a
+  // handful of small red/gold fruit dots layered on so it reads as an
+  // orchard rather than a random tree cluster) around the apple forage
+  // spots defined in MapData.js.
+  _drawOrchard(season) {
+    const fruity = season === 'summer' || season === 'autumn';
+    for (const t of this.orchardTrees) {
+      this._drawTree(t.x, t.y, t.scale, season);
+      if (!fruity) continue;
+      const { ctx } = this;
+      const w = TREE_BASE_WIDTH * t.scale;
+      ctx.fillStyle = season === 'autumn' ? '#c1503f' : '#8fae4a';
+      const fruitPositions = [[-0.2, -0.75], [0.15, -0.65], [-0.05, -0.55], [0.25, -0.8]];
+      for (const [fx, fy] of fruitPositions) {
+        ctx.beginPath();
+        ctx.arc(t.x + fx * w, t.y + fy * w, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
   }
 
   _drawTree(x, y, scale, season) {
@@ -663,7 +752,7 @@ export class Renderer {
     ctx.globalAlpha = 1;
   }
 
-  _drawHotspots(propertyLevel, interactTarget) {
+  _drawHotspots(propertyLevel, interactTarget, ciderStage) {
     const { ctx } = this;
     for (const h of HOTSPOTS) {
       if (h.id === 'property') {
@@ -671,6 +760,8 @@ export class Renderer {
         this._drawPropertyPlot(h.x, h.y, propertyLevel, tier);
       } else if (h.id === 'well') {
         this._drawWell(h.x, h.y);
+      } else if (h.id === 'cider_press') {
+        this._drawCiderPress(h.x, h.y, ciderStage);
       } else if (h.id === 'jobboard') {
         ctx.fillStyle = '#7a5432';
         ctx.fillRect(h.x - 4, h.y - 10, 8, 40);
@@ -682,6 +773,59 @@ export class Renderer {
       }
       if (interactTarget?.type === 'hotspot' && interactTarget.id === h.id) {
         this._drawInteractRing(h.x, h.y, h.radius * 0.7);
+      }
+    }
+  }
+
+  // A wooden apple press with a stage-dependent flourish: nothing extra
+  // while empty, a few rising bubbles while fermenting, three corked
+  // bottles waiting alongside once ready.
+  _drawCiderPress(x, y, stage) {
+    const { ctx } = this;
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 26, 34, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#4a3220';
+    ctx.fillRect(x - 26, y - 6, 6, 32);
+    ctx.fillRect(x + 20, y - 6, 6, 32);
+    ctx.fillRect(x - 28, y - 10, 56, 6);
+
+    ctx.fillStyle = '#8a6a42';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 8, 20, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(58,42,28,0.6)';
+    ctx.lineWidth = 2;
+    for (const oy of [-4, 4, 12]) {
+      ctx.beginPath();
+      ctx.ellipse(x, y + 8 + oy, 20, 5, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#5a3d24';
+    ctx.fillRect(x - 3, y - 18, 6, 14);
+
+    if (stage === 'fermenting') {
+      ctx.fillStyle = 'rgba(230,200,120,0.8)';
+      for (const [bx, by] of [[-6, -4], [4, -10], [0, -16]]) {
+        ctx.beginPath();
+        ctx.arc(x + bx, y + by, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (stage === 'ready') {
+      for (let i = 0; i < 3; i++) {
+        const bx = x + 32 + i * 12;
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.beginPath();
+        ctx.ellipse(bx, y + 26, 5, 2.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#c9a35a';
+        ctx.beginPath();
+        ctx.ellipse(bx, y + 16, 4.5, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#5a3d24';
+        ctx.fillRect(bx - 1.5, y + 8, 3, 4);
       }
     }
   }

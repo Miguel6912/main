@@ -3,8 +3,8 @@
 // renderer, collision, and interaction systems all read from this file
 // rather than hard-coding positions.
 
-export const WORLD_WIDTH = 1800;
-export const WORLD_HEIGHT = 1000;
+export const WORLD_WIDTH = 2200;
+export const WORLD_HEIGHT = 1900;
 
 export const PLAYER_SPAWN = { x: 950, y: 700 };
 
@@ -13,7 +13,9 @@ export const PLAYER_SPAWN = { x: 950, y: 700 };
 export const ZONES = {
   castle: { x: 0, y: 0, w: 300, h: WORLD_HEIGHT },
   village: { x: 300, y: 0, w: 1200, h: WORLD_HEIGHT },
-  forest: { x: 1500, y: 0, w: 300, h: WORLD_HEIGHT },
+  forest: { x: 1500, y: 0, w: WORLD_WIDTH - 1500, h: WORLD_HEIGHT },
+  orchard: { x: 450, y: 1100, w: 550, h: 500 },
+  lake: { x: 1300, y: 1300, w: 420, h: 320 },
 };
 
 // Solid obstacles the player (and NPC schedule paths) cannot walk through.
@@ -25,8 +27,9 @@ export const OBSTACLES = [
   { x: 300, y: 450, w: 100, h: 80, label: 'watchpost' },
   { x: 1400, y: 530, w: 90, h: 80, label: 'cobbs-hut' },
   { x: 1130, y: 0, w: 40, h: 460, label: 'river-north' },
-  { x: 1130, y: 560, w: 40, h: 440, label: 'river-south' },
-  { x: 1760, y: 0, w: 40, h: WORLD_HEIGHT, label: 'deep-forest-edge' },
+  { x: 1130, y: 560, w: 40, h: WORLD_HEIGHT - 560, label: 'river-south' },
+  { x: WORLD_WIDTH - 40, y: 0, w: 40, h: WORLD_HEIGHT, label: 'deep-forest-edge' },
+  { x: 1300, y: 1300, w: 420, h: 320, label: 'lake' },
 ];
 
 // Buildings drawn with a bit of extra art metadata. `thatch`/`stone` give
@@ -73,6 +76,7 @@ export const HOTSPOTS = [
   { id: 'property', x: 760, y: 520, radius: 50, label: 'Empty Plot', prompt: 'Look at the plot' },
   { id: 'jobboard', x: 1000, y: 505, radius: 50, label: 'Notice Board', prompt: 'Read the notice board' },
   { id: 'well', x: 900, y: 520, radius: 45, label: 'The Old Well', prompt: 'Make a wish' },
+  { id: 'cider_press', x: 900, y: 1500, radius: 55, label: 'Cider Press', prompt: 'Use the cider press' },
 ];
 
 export const FORAGE_SPOTS = [
@@ -80,7 +84,21 @@ export const FORAGE_SPOTS = [
   { id: 'forage_mushroom', x: 1620, y: 480, radius: 45, item: 'moon_mushroom', label: 'Mossy Log' },
   { id: 'forage_herb', x: 1540, y: 700, radius: 45, item: 'silverleaf_herb', label: 'Herb Patch' },
   { id: 'forage_root', x: 1680, y: 600, radius: 45, item: 'honey_root', label: 'Root Hollow' },
+  { id: 'forage_deep_mushroom', x: 1980, y: 350, radius: 45, item: 'moon_mushroom', label: 'Shadowed Log' },
+  { id: 'forage_deep_herb', x: 2020, y: 820, radius: 45, item: 'silverleaf_herb', label: 'Deep Herb Patch' },
+  { id: 'forage_apple1', x: 600, y: 1230, radius: 45, item: 'apple', label: 'Apple Tree' },
+  { id: 'forage_apple2', x: 800, y: 1340, radius: 45, item: 'apple', label: 'Apple Tree' },
+  { id: 'forage_apple3', x: 640, y: 1460, radius: 45, item: 'apple', label: 'Apple Tree' },
 ];
+
+// The southern orchard district: a belt of apple trees around the forage
+// spots above, purely decorative dressing (see Renderer._drawOrchard).
+export const ORCHARD = { x: 450, y: 1100, w: 550, h: 500 };
+
+// A still lake south-east of the village -- scenic for Phase 1 (a natural
+// spot for a future fishing activity), collision handled by the 'lake'
+// entry in OBSTACLES above.
+export const LAKE = { x: 1300, y: 1300, w: 420, h: 320 };
 
 export function clampToWorld(x, y, margin = 20) {
   return {

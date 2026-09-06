@@ -17,6 +17,7 @@ import { ITEMS } from './data/shopItems.js';
 import { MemorySystem } from './systems/MemorySystem.js';
 import { EconomySystem } from './systems/EconomySystem.js';
 import { PropertySystem } from './systems/PropertySystem.js';
+import { CiderPressSystem } from './systems/CiderPressSystem.js';
 import { EventSystem } from './systems/EventSystem.js';
 import { DialogueSystem } from './systems/DialogueSystem.js';
 
@@ -51,6 +52,7 @@ const animals = ANIMALS.map((d) => new Animal(d, rng));
 const memory = new MemorySystem(NPCS.map((n) => n.id));
 const economy = new EconomySystem(bus);
 const property = new PropertySystem(bus);
+const ciderPress = new CiderPressSystem(bus);
 const worldFlags = {};
 const eventSystem = new EventSystem({ bus, rng, economy, memory, worldFlags, npcs });
 const dialogue = new DialogueSystem({ memory, time, economy, eventSystem, worldFlags, bus, playerName: player.name });
@@ -74,6 +76,7 @@ function gatherState() {
     memory: memory.serialize(),
     economy: economy.serialize(),
     property: property.serialize(),
+    ciderPress: ciderPress.serialize(),
     eventSystem: eventSystem.serialize(),
     worldFlags: { ...worldFlags },
     audio: audio.serialize(),
@@ -88,6 +91,7 @@ function applyState(data) {
   memory.deserialize(data.memory);
   economy.deserialize(data.economy);
   property.deserialize(data.property);
+  ciderPress.deserialize(data.ciderPress);
   eventSystem.deserialize(data.eventSystem);
   Object.keys(worldFlags).forEach((k) => delete worldFlags[k]);
   Object.assign(worldFlags, data.worldFlags || {});
@@ -103,6 +107,16 @@ function openShopPanel() {
 function openPropertyPanel() {
   const pending = property.pendingEarnings(time.dayCount);
   ui.openProperty({ tier: property.tier, nextTier: property.nextTier, pending, level: property.level });
+}
+
+function openCiderPanel() {
+  ciderPress.checkProgress(time.dayCount);
+  ui.openCider({
+    stage: ciderPress.stage,
+    daysRemaining: ciderPress.daysRemaining(time.dayCount),
+    requiredApples: ciderPress.requiredApples,
+    appleCount: economy.inventory.apple || 0,
+  });
 }
 
 function refreshJournal() {
@@ -186,6 +200,21 @@ const ui = new UIManager({
     else ui.showToast(res.reason === 'cant-afford' ? "You can't afford that yet." : 'Fully upgraded already.', 'info');
     openPropertyPanel();
   },
+  onCloseCider: () => ui.closeCider(),
+  onStartCider: () => {
+    const ok = ciderPress.start(economy, time.dayCount);
+    if (ok) ui.showToast('Cider batch started. Come back in a few days.', 'coin');
+    else ui.showToast("You don't have enough apples yet.", 'info');
+    openCiderPanel();
+  },
+  onCollectCider: () => {
+    const result = ciderPress.collect(economy, rng);
+    if (result) {
+      audio.playCoin();
+      ui.showToast(`Bottled ${result.qty}x cider -- a ${result.label} batch!`, 'coin');
+    }
+    openCiderPanel();
+  },
   onCloseEventPopup: () => ui.hideEventPopup(),
   onDialogueChoose: (idx) => {
     audio.playUiBlip();
@@ -204,6 +233,13 @@ const ui = new UIManager({
 
 bus.on('ui:openShop', openShopPanel);
 bus.on('time:newDay', () => economy.rollDailyJob(rng));
+bus.on('time:newDay', () => {
+  const wasFermenting = ciderPress.stage === 'fermenting';
+  ciderPress.checkProgress(time.dayCount);
+  if (wasFermenting && ciderPress.stage === 'ready') {
+    ui.showToast('The cider press smells ready -- time to bottle it.', 'info');
+  }
+});
 bus.on('time:newSeason', ({ season }) => ui.showToast(`${season[0].toUpperCase()}${season.slice(1)} has arrived.`, 'info'));
 bus.on('event:witnessed', ({ event, location }) => {
   ui.showEventPopup(event.name, event.textWitnessed, !!event.rareVisual);
@@ -248,6 +284,7 @@ function doInteract() {
     if (target.id === 'property') openPropertyPanel();
     else if (target.id === 'jobboard') showJobBoard();
     else if (target.id === 'well') ui.showToast(rng.pick(WISHES), 'friend');
+    else if (target.id === 'cider_press') openCiderPanel();
   } else if (target.type === 'forage') {
     doForage(target.id);
   }
@@ -308,6 +345,7 @@ function render() {
     time,
     economy,
     propertyLevel: property.level,
+    ciderStage: ciderPress.stage,
     particles,
     interactTarget,
     clockT,

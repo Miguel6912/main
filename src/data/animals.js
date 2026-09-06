@@ -13,6 +13,8 @@ export const ANIMALS = [
   { id: 'bird3', type: 'bird', home: { x: 1230, y: 340 }, radius: 130, color: '#5a5a56' },
   { id: 'bird4', type: 'bird', home: { x: 500, y: 620 }, radius: 100, color: '#c9a35a' },
   { id: 'horse1', type: 'horse', home: { x: 200, y: 700 }, radius: 70, color: '#6b4a2e' },
+  { id: 'bird5', type: 'bird', home: { x: 1450, y: 1400 }, radius: 150, color: '#e8dfc8' },
+  { id: 'dog3', type: 'dog', home: { x: 700, y: 1300 }, radius: 120, color: '#9c7a4a' },
 ];
 
 export const ANIMAL_PROFILES = {

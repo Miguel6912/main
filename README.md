@@ -38,12 +38,16 @@ Firefox, Edge, or Safari) and click **New Game**.
 ## What to try first
 
 - Walk around the village and talk to all six villagers -- each has a
-  distinct personality and a daily schedule, so the same NPC looks
-  different at 6am vs 9pm.
-- Cross the bridge into the forest and forage the four gathering spots
-  (each resets once per day).
+  distinct personality, a daily schedule, and a distinct outfit, so the
+  same NPC looks different at 6am vs 9pm. Watch for the cats, dogs, birds,
+  and a horse wandering the village too.
+- Cross the bridge into the forest and forage the gathering spots (each
+  resets once per day) -- the forest runs much deeper than it first looks.
 - Check the notice board near the inn for the day's odd job, and the empty
   plot near the well for a business you can grow.
+- Follow the road south of the well down to the orchard and lake. Forage
+  apples, then bring 4 to the cider press: come back in a few real in-game
+  days to bottle it and sell the batch at the store.
 - Use the speed controls (1x/2x/4x) to fast-forward through a full day/
   night cycle, and through several days to watch the seasons change.
 - Keep an eye out at dawn near the forest edge in spring/summer, and at
@@ -63,11 +67,12 @@ src/
   main.js             wires every system together + the game loop
   core/                EventBus, GameLoop, RNG, SaveManager, Input
   world/               MapData (all world geometry), TimeSystem (calendar)
-  entities/            Player, NPC
+  entities/            Player, NPC, Animal
   systems/             MemorySystem, EconomySystem, PropertySystem,
-                       EventSystem, DialogueSystem
-  data/                npcs, dialogue, events, shopItems, properties, jobs
-                       -- pure content; this is what you edit to add things
+                       CiderPressSystem, EventSystem, DialogueSystem
+  data/                npcs, dialogue, events, shopItems, properties, jobs,
+                       animals -- pure content; this is what you edit to
+                       add things
   render/              Palette, Particles, Renderer (canvas drawing), Assets (image loading)
   audio/               AudioManager (procedural Web Audio)
   ui/                  UIManager (all DOM/HUD glue)

@@ -14,6 +14,7 @@ export const ITEMS = {
   silver_mane_hair: { name: 'Silver Mane Hair', icon: '✨', sellPrice: 45, rare: true },
   dragon_scale: { name: 'Dragon Scale', icon: '\u{1F409}', sellPrice: 60, rare: true },
   apple: { name: 'Apple', icon: '\u{1F34E}', sellPrice: 2 },
+  cider: { name: 'Bottle of Cider', icon: '\u{1F37E}', sellPrice: 14 },
 };
 
 // What the shop offers to sell to the player (buyPrice items only).
@@ -28,6 +29,7 @@ export const SHOP_SELL_LIST = [
   'silverleaf_herb',
   'honey_root',
   'apple',
+  'cider',
   'silver_mane_hair',
   'dragon_scale',
 ];
