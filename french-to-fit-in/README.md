@@ -332,6 +332,17 @@ shape, so the correct silhouette falls out of z-order alone, no clip-paths);
 "Surprise me" random button via `engine/avatar.ts`, and swatch/chip grids per
 option).
 
+The art style is a bold, hand-drawn-cartoon look, not a flat generated icon:
+every silhouette in `svgParts/style.tsx`'s shared helpers gets a thick ink
+outline (`OUTLINE`/`OUTLINE_WIDTH`/`OUTLINE_THIN`) and a flat cel-shading
+shape (one darker solid tone, via `darken()`, not a gradient) suggesting
+form, plus oversized eyes with a clear white sclera ring and a catchlight.
+`inkStroke()` gives linework (eyebrows, mouths, whiskers) its own outline by
+stacking a wider dark stroke behind the colored one. This is a deliberate
+style choice inspired by bold animated-show illustration -- thick lines,
+graphic shading, expressive proportions -- not a reproduction of any
+particular show or character.
+
 Inclusivity was a deliberate design constraint, not an afterthought:
 
 - **10 skin tones**, not a token handful.
