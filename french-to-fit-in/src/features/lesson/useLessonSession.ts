@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { DayDefinition, EvaluationResult, ExerciseDefinition, SessionPhase, SessionState } from '../../types';
+import type {
+  DayDefinition,
+  EvaluationResult,
+  ExerciseDefinition,
+  GamificationOutcome,
+  SessionPhase,
+  SessionState,
+} from '../../types';
 import { getDayByNumber } from '../../content/curriculum';
 import { getAllLedgerItems, ensureLedgerSeeded } from '../../storage/ledgerStore';
 import { selectRetrievalGateItems, toRetrievalGatePrompts } from '../../engine/retrievalScheduler';
@@ -10,6 +17,8 @@ import { getAppMeta, updateAppMeta } from '../../storage/metaStore';
 import { createSessionRecord, updateSessionRecord } from '../../storage/sessionStore';
 import { recordPilotEvent } from '../../storage/pilotStore';
 import { exercisesForPhase } from './dayExercises';
+import { xpForClassification, SESSION_COMPLETION_XP } from '../../engine/gamification';
+import { applyGamificationForSession } from '../gamification/gamificationService';
 
 function newId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -30,6 +39,8 @@ export interface UseLessonSessionResult {
   submitExerciseAnswer: (exercise: ExerciseDefinition, answer: string) => Promise<void>;
   resolveRemediation: (itemId: string, answer: string) => Promise<void>;
   finishSession: () => Promise<void>;
+  xpPopup: { amount: number; key: number } | null;
+  gamificationOutcome: GamificationOutcome | null;
 }
 
 export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): UseLessonSessionResult {
@@ -40,6 +51,19 @@ export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): 
   const gateStartRef = useRef<number>(0);
   const exerciseStartRef = useRef<number>(0);
   const sessionIdRef = useRef<string>(newId('session'));
+  const sessionXPRef = useRef<number>(0);
+  const xpPopKeyRef = useRef<number>(0);
+  const [xpPopup, setXpPopup] = useState<{ amount: number; key: number } | null>(null);
+  const [gamificationOutcome, setGamificationOutcome] = useState<GamificationOutcome | null>(null);
+
+  const awardXP = useCallback((classification: EvaluationResult['classification']) => {
+    const amount = xpForClassification(classification);
+    if (amount > 0) {
+      sessionXPRef.current += amount;
+      xpPopKeyRef.current += 1;
+      setXpPopup({ amount, key: xpPopKeyRef.current });
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,6 +119,7 @@ export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): 
         pilotModeEnabled,
         responseLatencyMs: latencyMs,
       });
+      awardXP(evaluation.classification);
 
       const nextState = sessionReducer(state, {
         type: 'RETRIEVAL_RESPONSE_SUBMITTED',
@@ -121,7 +146,7 @@ export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): 
         setState(nextState);
       }
     },
-    [state, day, dayNumber, pilotModeEnabled],
+    [state, day, dayNumber, pilotModeEnabled, awardXP],
   );
 
   const acknowledgeDiagnosis = useCallback(() => {
@@ -149,6 +174,7 @@ export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): 
         learnerResponse: answer,
       });
       setLatestEvaluation(evaluation);
+      awardXP(evaluation.classification);
 
       const isNewContext = NEW_CONTEXT_PHASES.includes(state.phase);
       for (const itemId of exercise.usesItemIds) {
@@ -170,7 +196,7 @@ export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): 
         setState(next);
       }
     },
-    [state, day, dayNumber, pilotModeEnabled],
+    [state, day, dayNumber, pilotModeEnabled, awardXP],
   );
 
   const resolveRemediation = useCallback(
@@ -187,6 +213,7 @@ export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): 
         learnerResponse: answer,
       });
       setLatestEvaluation(evaluation);
+      awardXP(evaluation.classification);
       await recordRetrieval(itemId, evaluation.retrievalOutcome, { dayNumber, pilotModeEnabled });
       if (pilotModeEnabled) {
         await recordPilotEvent({
@@ -202,7 +229,7 @@ export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): 
         setState(sessionReducer(state, { type: 'REMEDIATION_RESOLVED', itemId }));
       }
     },
-    [state, day, dayNumber, pilotModeEnabled],
+    [state, day, dayNumber, pilotModeEnabled, awardXP],
   );
 
   const finishSession = useCallback(async () => {
@@ -229,6 +256,11 @@ export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): 
         dayNumber,
       });
     }
+
+    const xpEarned = sessionXPRef.current + SESSION_COMPLETION_XP;
+    const outcome = await applyGamificationForSession(xpEarned, dayNumber);
+    setGamificationOutcome(outcome);
+
     setState(sessionReducer(state, { type: 'LEDGER_UPDATE_COMMITTED' }));
   }, [state, dayNumber, pilotModeEnabled]);
 
@@ -248,5 +280,7 @@ export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): 
     submitExerciseAnswer,
     resolveRemediation,
     finishSession,
+    xpPopup,
+    gamificationOutcome,
   };
 }

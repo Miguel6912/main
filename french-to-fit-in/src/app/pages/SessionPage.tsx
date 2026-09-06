@@ -66,7 +66,12 @@ export function SessionPage() {
       {state.phase === 'SCORE_DIAGNOSE' && <DiagnosisScreen state={state} onContinue={session.acknowledgeDiagnosis} />}
 
       {state.phase === 'REMEDIATION' && (
-        <RemediationScreen state={state} latestEvaluation={session.latestEvaluation} onSubmit={session.resolveRemediation} />
+        <RemediationScreen
+          state={state}
+          latestEvaluation={session.latestEvaluation}
+          xpPopup={session.xpPopup}
+          onSubmit={session.resolveRemediation}
+        />
       )}
 
       {state.phase === 'NEW_CAPABILITY_TEACHING' && (
@@ -82,6 +87,7 @@ export function SessionPage() {
             phase={state.phase}
             positionLabel={`${state.currentExerciseIndex + 1} of ${session.currentPhaseExercises.length}`}
             latestEvaluation={session.latestEvaluation}
+            xpPopup={session.xpPopup}
             onSubmit={session.submitExerciseAnswer}
           />
         ) : (
@@ -90,7 +96,9 @@ export function SessionPage() {
 
       {state.phase === 'LEDGER_UPDATE' && <p>Saving progress...</p>}
 
-      {state.phase === 'SESSION_COMPLETE' && <SessionCompleteScreen day={day} state={state} />}
+      {state.phase === 'SESSION_COMPLETE' && (
+        <SessionCompleteScreen day={day} state={state} gamificationOutcome={session.gamificationOutcome} />
+      )}
     </div>
   );
 }

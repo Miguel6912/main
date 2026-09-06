@@ -19,8 +19,8 @@ export default defineConfig({
         short_name: 'French to Fit In',
         description:
           'A 30-day spoken-French training system built to keep a beginner functional inside a real interaction.',
-        theme_color: '#16324f',
-        background_color: '#faf7f2',
+        theme_color: '#0e6e68',
+        background_color: '#fbf3e6',
         display: 'standalone',
         start_url: '/',
         icons: [

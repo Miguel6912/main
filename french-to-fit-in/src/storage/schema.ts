@@ -20,6 +20,12 @@ export interface AppMeta {
   /** Developer setting: allows browsing days ahead of currentDay. */
   curriculumPreviewEnabled: boolean;
   createdAt: string;
+  /** Gamification state -- see engine/gamification.ts. */
+  totalXP: number;
+  currentStreakDays: number;
+  longestStreakDays: number;
+  lastPracticeDate: string | null;
+  earnedBadgeIds: string[];
 }
 
 export interface FrenchToFitInDB extends DBSchema {

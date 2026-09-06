@@ -56,10 +56,13 @@ export function scoreResponse(input: ScoreResponseInput): EvaluationResult {
   const rawResponse = input.learnerResponse.trim();
 
   if (rawResponse === SKIP_TOKEN) {
+    const reveal = input.acceptableAnswers[0];
     return {
       classification: 'FAILED',
       retrievalOutcome: 'SKIPPED',
-      feedback: 'No problem -- here it is. Try it again once more in a moment.',
+      feedback: reveal
+        ? `It's "${reveal}". Try producing it yourself once more in a moment.`
+        : "No single fixed answer here -- there's nothing to reveal. Try producing something, even imperfect.",
       itemIds: input.itemIds,
       shouldAdvance: false,
     };

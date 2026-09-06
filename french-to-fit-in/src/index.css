@@ -1,38 +1,41 @@
 /* French to Fit In -- design tokens & global styles.
-   Editorial, restrained, premium. No mascots, no gamified chrome. */
+   Warm, charismatic, Provençal-market palette: bone/ivory ground, smokey
+   teal as the structural accent, terracotta and antique gold as warm
+   highlight colors, deep burgundy for emphasis. Still editorial and
+   restrained -- no neon, no candy primaries, no mascots. */
 
 :root {
   color-scheme: light;
 
-  --paper: #faf7f2;
-  --paper-raised: #ffffff;
-  --ink: #1c1a17;
-  --ink-soft: #55504a;
-  --ink-faint: #8b8479;
-  --line: #e4ded3;
-  --line-strong: #cfc6b6;
+  --paper: #fbf3e6;
+  --paper-raised: #fffcf7;
+  --ink: #2a211b;
+  --ink-soft: #5c4f44;
+  --ink-faint: #8c7f71;
+  --line: #e8dcc8;
+  --line-strong: #d3c2a3;
 
-  --accent: #16324f;
-  --accent-soft: #dfe6ec;
+  --accent: #0e6e68;
+  --accent-soft: #dcebe7;
   --accent-contrast: #ffffff;
 
-  --terracotta: #a94a2a;
-  --terracotta-soft: #f3e2da;
+  --terracotta: #c1502f;
+  --terracotta-soft: #f5ded2;
 
-  --sage: #4c6b52;
-  --sage-soft: #e2ebe1;
+  --sage: #5c7a45;
+  --sage-soft: #e6edd7;
 
-  --rose: #8c3b3b;
-  --rose-soft: #f2e1e0;
+  --rose: #9c3b4a;
+  --rose-soft: #f2dee1;
 
-  --gold: #a7822f;
-  --gold-soft: #f1e6cc;
+  --gold: #b8863a;
+  --gold-soft: #f3e7cc;
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
 
-  --shadow-card: 0 1px 2px rgba(28, 26, 23, 0.04), 0 8px 24px -12px rgba(28, 26, 23, 0.18);
+  --shadow-card: 0 1px 2px rgba(42, 33, 27, 0.05), 0 8px 24px -12px rgba(42, 33, 27, 0.2);
 
   --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -43,26 +46,26 @@
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --paper: #171512;
-    --paper-raised: #211e1a;
-    --ink: #f3efe8;
-    --ink-soft: #cbc3b6;
-    --ink-faint: #8f887c;
-    --line: #34302a;
-    --line-strong: #45403838;
+    --paper: #1d1712;
+    --paper-raised: #29211a;
+    --ink: #f3ead9;
+    --ink-soft: #d2c4af;
+    --ink-faint: #9c8d7a;
+    --line: #3a2f24;
+    --line-strong: #4c3e2f;
 
-    --accent: #9fbdd9;
-    --accent-soft: #223143;
-    --accent-contrast: #10202f;
+    --accent: #4fb3aa;
+    --accent-soft: #1e3b37;
+    --accent-contrast: #0b211e;
 
-    --terracotta: #d98a68;
-    --terracotta-soft: #3a2721;
+    --terracotta: #e08760;
+    --terracotta-soft: #3a2620;
 
-    --sage: #9fc0a2;
-    --sage-soft: #233024;
+    --sage: #a3c084;
+    --sage-soft: #2a331f;
 
-    --rose: #d99a9a;
-    --rose-soft: #382423;
+    --rose: #e0949e;
+    --rose-soft: #3a2225;
 
     --gold: #d9bd7a;
     --gold-soft: #362d1c;

@@ -1,23 +1,59 @@
 import { Link } from 'react-router-dom';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
-import type { DayDefinition, SessionState } from '../../types';
+import { Pill } from '../../components/Pill';
+import { StreakFlame } from '../../components/StreakFlame';
+import { Confetti } from '../../components/Confetti';
+import type { DayDefinition, GamificationOutcome, SessionState } from '../../types';
 import './SessionCompleteScreen.css';
 
 interface SessionCompleteScreenProps {
   day: DayDefinition;
   state: SessionState;
+  gamificationOutcome: GamificationOutcome | null;
 }
 
-export function SessionCompleteScreen({ day, state }: SessionCompleteScreenProps) {
+export function SessionCompleteScreen({ day, state, gamificationOutcome }: SessionCompleteScreenProps) {
+  const celebrate = Boolean(
+    gamificationOutcome && (gamificationOutcome.leveledUp || gamificationOutcome.newlyEarnedBadges.length > 0),
+  );
+
   return (
     <Card className="session-complete-card">
+      <Confetti burstKey={celebrate ? 1 : 0} />
       <h2>Session complete</h2>
       <p className="session-complete-title">Day {day.dayNumber} &middot; {day.title}</p>
       <p>{day.learningOutcome}</p>
       <p className="session-complete-stat">
         {state.completedExerciseIds.length} exercises completed &middot; {state.retrievalResponses.length} items retrieved
       </p>
+
+      {gamificationOutcome && (
+        <div className="session-complete-gamification">
+          <div className="session-complete-xp-row">
+            <Pill tone="gold">+{gamificationOutcome.xpEarned} XP</Pill>
+            {gamificationOutcome.streakExtended && <StreakFlame days={gamificationOutcome.streak.currentStreakDays} />}
+          </div>
+
+          {gamificationOutcome.leveledUp && (
+            <p className="session-complete-level-up">
+              Level up! You're now level {gamificationOutcome.levelAfter}.
+            </p>
+          )}
+
+          {gamificationOutcome.newlyEarnedBadges.length > 0 && (
+            <div className="session-complete-badges">
+              {gamificationOutcome.newlyEarnedBadges.map((badge) => (
+                <div key={badge.id} className="session-complete-badge">
+                  <span aria-hidden="true">{badge.icon}</span>
+                  <span>{badge.title}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <Link to="/">
         <Button>Back to home</Button>
       </Link>

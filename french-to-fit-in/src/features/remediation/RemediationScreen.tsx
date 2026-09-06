@@ -3,12 +3,14 @@ import { Card } from '../../components/Card';
 import { AnswerInput } from '../../components/AnswerInput';
 import { FeedbackBanner } from '../../components/FeedbackBanner';
 import { Pill } from '../../components/Pill';
+import { XPPopup } from '../../components/XPPopup';
 import type { EvaluationResult, SessionState } from '../../types';
 import './RemediationScreen.css';
 
 interface RemediationScreenProps {
   state: SessionState;
   latestEvaluation: EvaluationResult | null;
+  xpPopup: { amount: number; key: number } | null;
   onSubmit: (itemId: string, answer: string) => Promise<void>;
 }
 
@@ -16,7 +18,7 @@ interface RemediationScreenProps {
  * Remediation is small and targeted: a failed item never replays the whole
  * lesson, just this one item, via a light recognition/production check.
  */
-export function RemediationScreen({ state, latestEvaluation, onSubmit }: RemediationScreenProps) {
+export function RemediationScreen({ state, latestEvaluation, xpPopup, onSubmit }: RemediationScreenProps) {
   const [value, setValue] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const current = state.remediationQueue.find((r) => !r.resolved);
@@ -39,6 +41,7 @@ export function RemediationScreen({ state, latestEvaluation, onSubmit }: Remedia
       <Pill tone="gold">Quick review &middot; {remainingCount} left</Pill>
       <h2 className="remediation-prompt">{gateItem?.prompt ?? 'How do you say this?'}</h2>
       {latestEvaluation && <FeedbackBanner classification={latestEvaluation.classification} feedback={latestEvaluation.feedback} />}
+      {xpPopup && <XPPopup key={xpPopup.key} amount={xpPopup.amount} />}
       <AnswerInput value={value} onChange={setValue} onSubmit={handleSubmit} disabled={submitting} autoFocus />
     </Card>
   );

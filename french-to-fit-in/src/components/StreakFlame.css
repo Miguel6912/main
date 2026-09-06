@@ -1,0 +1,16 @@
+.streak-flame {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink-faint);
+}
+
+.streak-flame-active {
+  color: var(--terracotta);
+}
+
+.streak-flame-count {
+  font-variant-numeric: tabular-nums;
+}

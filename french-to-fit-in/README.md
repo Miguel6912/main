@@ -29,6 +29,7 @@ content in this repository is explicitly marked `DRAFT`. See
 - [How retrieval scheduling works](#how-retrieval-scheduling-works)
 - [How mastery status works](#how-mastery-status-works)
 - [How field tests work](#how-field-tests-work)
+- [How gamification works](#how-gamification-works)
 - [Running locally](#running-locally)
 - [Installing as a PWA](#installing-as-a-pwa)
 - [Running tests](#running-tests)
@@ -54,10 +55,16 @@ The desired Day-30 transformation is from *"I know some French"* to
   imperfect form is `FUNCTIONAL` and usually advances the learner. Grammar
   accuracy only matters when it changes meaning, blocks comprehension, or
   blocks the interaction goal.
-- **No gamification.** No streak guilt, no XP explosions, no mascots. The
-  visual language is editorial and restrained -- closer to a well-made
-  travel publication or a language notebook than a language-learning app.
 - **Reward staying in the interaction**, not producing a perfect sentence.
+
+> **Note on gamification.** The original design brief for this prototype
+> explicitly avoided gamification (no streaks, no XP, no mascots). At the
+> product owner's explicit request, that call was reversed: the app now has
+> a full XP/level/streak/badge engagement layer with celebratory animations
+> (see [How gamification works](#how-gamification-works)). The rest of the
+> visual language -- palette, typography, layout -- stays editorial and
+> restrained; the gamification layer sits on top of it rather than
+> replacing it with cartoon chrome.
 
 ## Architecture
 
@@ -263,6 +270,44 @@ product brief -- never a bare pass/fail.
 Only the Week 1 field test currently has an authored scenario step; the
 others are `DRAFT` shells (`content/fieldTests.ts`), same as the day
 content.
+
+## How gamification works
+
+`engine/gamification.ts` holds the deterministic XP/level/streak math
+(same spirit as `engine/mastery.ts` -- an auditable formula, not a black
+box); `content/badges.ts` lists the badge definitions; and
+`features/gamification/gamificationService.ts` is the single write path
+that touches XP, level, streak, and badge state (mirrors
+`features/ledger/ledgerService.ts`).
+
+- **XP** is awarded per answer (`engine/gamification.ts`'s
+  `XP_BY_CLASSIFICATION`: CORRECT > FUNCTIONAL > PARTIAL > FAILED=0) plus a
+  flat completion bonus per session, and a score-weighted amount per field
+  test. The learner sees a small `+N XP` flash immediately
+  (`components/XPPopup.tsx`) and the session/field-test result screens
+  total it up.
+- **Levels** use triangular XP thresholds (`xpRequiredForLevel`) -- each
+  level costs a bit more than the last. `components/XPBar.tsx` shows the
+  current level and progress toward the next one.
+- **Streaks** track consecutive calendar days with at least one completed
+  session or field test (`updateStreak`): the same day doesn't inflate it,
+  the very next calendar day extends it, and a gap resets it to 1 while
+  keeping the longest-streak record. Shown via `components/StreakFlame.tsx`.
+- **Badges** (`content/badges.ts`) unlock on milestones -- first session,
+  streak lengths, Week 1 completion, automaticity counts, a justified field
+  test, and level thresholds -- computed in
+  `gamificationService.ts`'s `applyGamification`. All badges (earned and
+  locked) are visible on `/achievements`
+  (`app/pages/AchievementsPage.tsx`), so what's coming next is never
+  hidden.
+- **Celebration**: `components/Confetti.tsx` fires a CSS-based confetti
+  burst on a level-up or a new badge (not on every session, so it stays a
+  real moment rather than background noise), and respects
+  `prefers-reduced-motion` by skipping the animation entirely.
+
+This entire layer was added at the product owner's explicit request,
+reversing the original brief's "no gamification" stance -- see the note in
+[Product philosophy](#product-philosophy).
 
 ## Running locally
 

@@ -3,7 +3,9 @@ import { getFieldTestById } from '../../content/fieldTests';
 import { scoreFieldTest, isProgressionJustified, type FieldTestStepResponse } from '../../engine/fieldTestScoring';
 import { saveFieldTestResult } from '../../storage/fieldTestStore';
 import { recordPilotEvent } from '../../storage/pilotStore';
+import { applyGamificationForFieldTest } from '../gamification/gamificationService';
 import type { FieldTestResult } from '../../types/fieldTest';
+import type { GamificationOutcome } from '../../types/gamification';
 
 function newId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -21,6 +23,7 @@ export function useFieldTest(fieldTestId: string, pilotModeEnabled: boolean) {
   const [stepIndex, setStepIndex] = useState(0);
   const [responses, setResponses] = useState<FieldTestStepResponse[]>([]);
   const [result, setResult] = useState<FieldTestResult | null>(null);
+  const [gamificationOutcome, setGamificationOutcome] = useState<GamificationOutcome | null>(null);
 
   const currentStep = definition?.steps[stepIndex] ?? null;
 
@@ -56,6 +59,8 @@ export function useFieldTest(fieldTestId: string, pilotModeEnabled: boolean) {
           },
         });
       }
+      const outcome = await applyGamificationForFieldTest(dimensionResults, progressionJustified);
+      setGamificationOutcome(outcome);
       setResult(fieldTestResult);
     },
     [definition, fieldTestId, pilotModeEnabled],
@@ -80,6 +85,7 @@ export function useFieldTest(fieldTestId: string, pilotModeEnabled: boolean) {
     currentStep,
     stepIndex,
     result,
+    gamificationOutcome,
     submitStep: submitStepAndMaybeFinish,
   };
 }

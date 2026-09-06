@@ -4,6 +4,7 @@
  * anywhere externally by this app -- purely local file download/upload.
  */
 import { getDB } from './db';
+import { getAppMeta } from './metaStore';
 import type { AppMeta } from './schema';
 import type { LedgerItem } from '../types/ledger';
 import type { PilotEvent } from '../types/pilot';
@@ -25,7 +26,7 @@ export interface LearnerStateExport {
 export async function exportLearnerState(): Promise<LearnerStateExport> {
   const db = await getDB();
   const [meta, ledger, sessions, pilotEvents, fieldTestResults] = await Promise.all([
-    db.get('meta', 'app-meta'),
+    getAppMeta(),
     db.getAll('ledger'),
     db.getAll('sessions'),
     db.getAll('pilotEvents'),
@@ -34,13 +35,7 @@ export async function exportLearnerState(): Promise<LearnerStateExport> {
   return {
     formatVersion: EXPORT_FORMAT_VERSION,
     exportedAt: new Date().toISOString(),
-    meta: meta ?? {
-      key: 'app-meta',
-      currentDay: 1,
-      pilotModeEnabled: false,
-      curriculumPreviewEnabled: false,
-      createdAt: new Date().toISOString(),
-    },
+    meta,
     ledger,
     sessions,
     pilotEvents,

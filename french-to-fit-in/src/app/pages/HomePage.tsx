@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Pill } from '../../components/Pill';
+import { StreakFlame } from '../../components/StreakFlame';
+import { XPBar } from '../../components/XPBar';
 import { useAppMeta } from '../hooks/useAppMeta';
 import { useWorkingKnowledge } from '../hooks/useWorkingKnowledge';
 import { getDayByNumber } from '../../content/curriculum';
@@ -20,6 +22,16 @@ export function HomePage() {
 
   return (
     <div className="home-page">
+      <div className="home-status-row">
+        <StreakFlame days={meta.currentStreakDays} />
+        <Link to="/achievements" className="home-achievements-link">
+          Achievements
+        </Link>
+      </div>
+      <Card className="home-xp-card">
+        <XPBar totalXP={meta.totalXP} />
+      </Card>
+
       <section className="home-hero">
         <p className="home-eyebrow">Day {meta.currentDay} of 30</p>
         <h1>{day ? day.title : 'Course complete'}</h1>

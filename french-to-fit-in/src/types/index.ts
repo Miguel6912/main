@@ -7,3 +7,4 @@ export * from './session';
 export * from './fieldTest';
 export * from './ai';
 export * from './pilot';
+export * from './gamification';

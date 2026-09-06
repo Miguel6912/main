@@ -13,3 +13,42 @@
   color: var(--ink-faint);
   font-size: 0.9rem;
 }
+
+.session-complete-gamification {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  background: var(--accent-soft);
+  border-radius: var(--radius-md);
+}
+
+.session-complete-xp-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.session-complete-level-up {
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0;
+}
+
+.session-complete-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.session-complete-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  background: var(--paper-raised);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}

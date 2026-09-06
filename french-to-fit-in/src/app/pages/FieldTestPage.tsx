@@ -4,6 +4,7 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Pill } from '../../components/Pill';
 import { AnswerInput } from '../../components/AnswerInput';
+import { Confetti } from '../../components/Confetti';
 import { useAppMeta } from '../hooks/useAppMeta';
 import { useFieldTest } from '../../features/fieldTest/useFieldTest';
 import './FieldTestPage.css';
@@ -20,7 +21,10 @@ const SCORE_LABEL = ['Unable', 'Heavily supported', 'Functional', 'Independent']
 export function FieldTestPage() {
   const { fieldTestId = '' } = useParams<{ fieldTestId: string }>();
   const { meta } = useAppMeta();
-  const { definition, currentStep, result, submitStep } = useFieldTest(fieldTestId, meta?.pilotModeEnabled ?? false);
+  const { definition, currentStep, result, gamificationOutcome, submitStep } = useFieldTest(
+    fieldTestId,
+    meta?.pilotModeEnabled ?? false,
+  );
   const [value, setValue] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,6 +55,7 @@ export function FieldTestPage() {
   if (result) {
     return (
       <Card className="field-test-results">
+        <Confetti burstKey={result.progressionJustified ? 1 : 0} />
         <h2>{definition.title} -- results</h2>
         <div className="field-test-dimensions">
           {result.dimensionResults.map((d) => (
@@ -78,6 +83,18 @@ export function FieldTestPage() {
             {result.progressionJustified ? 'Justified' : 'Not yet justified'}
           </Pill>
         </div>
+
+        {gamificationOutcome && (
+          <div className="field-test-gamification">
+            <Pill tone="gold">+{gamificationOutcome.xpEarned} XP</Pill>
+            {gamificationOutcome.leveledUp && <span>Level up! Now level {gamificationOutcome.levelAfter}.</span>}
+            {gamificationOutcome.newlyEarnedBadges.map((badge) => (
+              <span key={badge.id} className="field-test-badge">
+                <span aria-hidden="true">{badge.icon}</span> {badge.title}
+              </span>
+            ))}
+          </div>
+        )}
 
         <Link to="/">
           <Button>Back to home</Button>

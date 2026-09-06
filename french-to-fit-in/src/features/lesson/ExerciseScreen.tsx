@@ -3,6 +3,7 @@ import { Card } from '../../components/Card';
 import { Pill } from '../../components/Pill';
 import { AnswerInput } from '../../components/AnswerInput';
 import { FeedbackBanner } from '../../components/FeedbackBanner';
+import { XPPopup } from '../../components/XPPopup';
 import { audioProvider } from '../../providers/audio';
 import type { EvaluationResult, ExerciseDefinition, SessionPhase } from '../../types';
 import './ExerciseScreen.css';
@@ -24,10 +25,18 @@ interface ExerciseScreenProps {
   phase: SessionPhase;
   positionLabel: string;
   latestEvaluation: EvaluationResult | null;
+  xpPopup: { amount: number; key: number } | null;
   onSubmit: (exercise: ExerciseDefinition, answer: string) => Promise<void>;
 }
 
-export function ExerciseScreen({ exercise, phase, positionLabel, latestEvaluation, onSubmit }: ExerciseScreenProps) {
+export function ExerciseScreen({
+  exercise,
+  phase,
+  positionLabel,
+  latestEvaluation,
+  xpPopup,
+  onSubmit,
+}: ExerciseScreenProps) {
   const [value, setValue] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [lastAttemptFailed, setLastAttemptFailed] = useState(false);
@@ -71,6 +80,8 @@ export function ExerciseScreen({ exercise, phase, positionLabel, latestEvaluatio
       {lastAttemptFailed && latestEvaluation && (
         <FeedbackBanner classification={latestEvaluation.classification} feedback={latestEvaluation.feedback} />
       )}
+
+      {xpPopup && <XPPopup key={xpPopup.key} amount={xpPopup.amount} />}
 
       <AnswerInput value={value} onChange={setValue} onSubmit={handleSubmit} disabled={submitting} autoFocus />
     </Card>
