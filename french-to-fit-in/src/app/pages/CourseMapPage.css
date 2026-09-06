@@ -1,0 +1,57 @@
+.course-map-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.course-map-intro {
+  color: var(--ink-soft);
+}
+
+.course-map-week h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.course-map-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.course-map-day-card {
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.course-map-day-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.course-map-day-number {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  min-width: 3.5rem;
+}
+
+.course-map-day-title {
+  font-weight: 600;
+}
+
+.course-map-locked {
+  opacity: 0.55;
+}
+
+.course-map-locked-label {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+}

@@ -1,0 +1,10 @@
+.remediation-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.remediation-prompt {
+  font-size: 1.3rem;
+  margin: 0.2em 0 0;
+}

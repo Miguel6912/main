@@ -1,0 +1,15 @@
+.session-complete-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.session-complete-title {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.session-complete-stat {
+  color: var(--ink-faint);
+  font-size: 0.9rem;
+}

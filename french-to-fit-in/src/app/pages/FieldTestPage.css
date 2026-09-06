@@ -1,0 +1,45 @@
+.field-test-scenario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.field-test-scenario-text {
+  color: var(--ink-soft);
+}
+
+.field-test-objective {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.field-test-results {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field-test-dimensions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.field-test-dimension-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.field-test-summary h3 {
+  font-size: 0.95rem;
+  margin: 0.75rem 0 0.2rem;
+}
+
+.field-test-summary p {
+  color: var(--ink-soft);
+  margin: 0;
+}

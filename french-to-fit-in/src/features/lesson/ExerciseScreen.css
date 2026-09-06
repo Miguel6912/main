@@ -1,0 +1,35 @@
+.exercise-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.exercise-french-prompt {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin: 0.3em 0 0;
+}
+
+.exercise-english-prompt {
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.exercise-scenario-goal {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  font-style: italic;
+  margin: 0;
+}
+
+.exercise-audio-btn {
+  align-self: flex-start;
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  color: var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 0.5em 1em;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+}
