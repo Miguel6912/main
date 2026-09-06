@@ -10,12 +10,17 @@ import { FieldTestPage } from './app/pages/FieldTestPage';
 import { AchievementsPage } from './app/pages/AchievementsPage';
 import { AvatarPage } from './app/pages/AvatarPage';
 import { ensureLedgerSeeded } from './storage/ledgerStore';
+import { getAppMeta } from './storage/metaStore';
+import { audioProvider } from './providers/audio';
 
 function App() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    ensureLedgerSeeded().then(() => setReady(true));
+    Promise.all([ensureLedgerSeeded(), getAppMeta()]).then(([, meta]) => {
+      audioProvider.setPersona(meta.voicePersona);
+      setReady(true);
+    });
   }, []);
 
   if (!ready) return null;

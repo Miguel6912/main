@@ -3,6 +3,7 @@ import type { LedgerItem } from '../types/ledger';
 import type { PilotEvent } from '../types/pilot';
 import type { FieldTestResult } from '../types/fieldTest';
 import type { AvatarConfig } from '../types/avatar';
+import type { VoicePersona } from '../providers/audio';
 
 export interface SessionRecord {
   id: string;
@@ -30,6 +31,8 @@ export interface AppMeta {
   /** Customizable profile avatar -- see engine/avatar.ts. */
   avatarConfig: AvatarConfig;
   displayName: string;
+  /** Narrator voice for audioProvider.speak() -- see providers/audio. */
+  voicePersona: VoicePersona;
 }
 
 export interface FrenchToFitInDB extends DBSchema {

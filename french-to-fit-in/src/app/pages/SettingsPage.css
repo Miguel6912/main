@@ -37,3 +37,45 @@
   color: var(--accent);
   font-size: 0.9rem;
 }
+
+.settings-voice-options {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.settings-voice-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 140px;
+  text-align: left;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0.75em 1em;
+  min-height: 44px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.settings-voice-option:hover {
+  border-color: var(--accent);
+}
+
+.settings-voice-option-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.settings-voice-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.settings-voice-description {
+  color: var(--ink-faint);
+  font-size: 0.8rem;
+}

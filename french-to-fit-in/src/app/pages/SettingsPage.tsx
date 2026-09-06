@@ -3,6 +3,9 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { useAppMeta } from '../hooks/useAppMeta';
 import { exportLearnerState, downloadLearnerStateAsFile, readLearnerStateFromFile, importLearnerState } from '../../storage/exportImport';
+import { audioProvider } from '../../providers/audio';
+import type { VoicePersona } from '../../providers/audio';
+import { VOICE_PERSONAS } from '../../content/voicePersonas';
 import './SettingsPage.css';
 
 export function SettingsPage() {
@@ -27,9 +30,45 @@ export function SettingsPage() {
     }
   }
 
+  function handleVoiceChange(persona: VoicePersona) {
+    audioProvider.setPersona(persona);
+    patch({ voicePersona: persona });
+  }
+
+  function handlePreviewVoice() {
+    const option = VOICE_PERSONAS.find((p) => p.id === meta!.voicePersona) ?? VOICE_PERSONAS[0];
+    audioProvider.speak(option.sampleText, { difficulty: 'NATURAL' });
+  }
+
   return (
     <div className="settings-page">
       <h1>Settings</h1>
+
+      <Card className="settings-card">
+        <h2>Narrator Voice</h2>
+        <p>
+          Choose who reads example sentences and audio prompts aloud. This uses your device's
+          built-in French voices, so quality varies a little by device.
+        </p>
+        <div className="settings-voice-options" role="radiogroup" aria-label="Narrator voice">
+          {VOICE_PERSONAS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="radio"
+              aria-checked={meta.voicePersona === option.id}
+              className={`settings-voice-option ${meta.voicePersona === option.id ? 'settings-voice-option-selected' : ''}`}
+              onClick={() => handleVoiceChange(option.id)}
+            >
+              <span className="settings-voice-name">{option.name}</span>
+              <span className="settings-voice-description">{option.description}</span>
+            </button>
+          ))}
+        </div>
+        <Button variant="secondary" onClick={handlePreviewVoice}>
+          Preview voice
+        </Button>
+      </Card>
 
       <Card className="settings-card">
         <h2>Pilot / Research Mode</h2>

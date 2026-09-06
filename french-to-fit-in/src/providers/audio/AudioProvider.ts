@@ -6,6 +6,9 @@ export interface SpeakOptions {
   rate?: number;
 }
 
+/** A feminine (Parisian-styled) or masculine (classic) narrator voice. */
+export type VoicePersona = 'feminine' | 'masculine';
+
 /**
  * Pluggable audio abstraction. The MVP implementation uses the browser's
  * SpeechSynthesis API; a premium/native-recording or external-TTS provider
@@ -16,4 +19,6 @@ export interface AudioProvider {
   isSupported(): boolean;
   speak(text: string, options?: SpeakOptions): Promise<void>;
   stop(): void;
+  /** Switches the narrator voice; affects every subsequent speak() call. */
+  setPersona(persona: VoicePersona): void;
 }

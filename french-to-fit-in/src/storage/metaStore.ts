@@ -16,6 +16,7 @@ function defaultMeta(): AppMeta {
     earnedBadgeIds: [],
     avatarConfig: defaultAvatarConfig(),
     displayName: '',
+    voicePersona: 'feminine',
   };
 }
 
