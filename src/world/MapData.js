@@ -3,8 +3,10 @@
 // renderer, collision, and interaction systems all read from this file
 // rather than hard-coding positions.
 
+import { RNG } from '../core/RNG.js';
+
 export const WORLD_WIDTH = 2200;
-export const WORLD_HEIGHT = 1900;
+export const WORLD_HEIGHT = 2980;
 
 export const PLAYER_SPAWN = { x: 950, y: 700 };
 
@@ -16,7 +18,52 @@ export const ZONES = {
   forest: { x: 1500, y: 0, w: WORLD_WIDTH - 1500, h: WORLD_HEIGHT },
   orchard: { x: 450, y: 1100, w: 550, h: 500 },
   lake: { x: 1300, y: 1300, w: 420, h: 320 },
+  neighborhood: { x: 100, y: 1980, w: 2000, h: 920 },
 };
+
+// "Cottage Row": a procedurally-laid-out neighborhood of small homes south
+// of the orchard, generated once from a fixed seed (so it's stable across
+// reloads) rather than hand-placed -- this is what makes housing 100+
+// villagers tractable. Each entry is one house: a door position (used as
+// an NPC's home in data/villagers.js) plus a colour variant for the
+// lightweight cottage renderer (Renderer._drawCottage).
+function generateNeighborhood() {
+  const rng = new RNG(555);
+  const zone = { x: 100, y: 1980, w: 2000, h: 920 };
+  const cell = 118;
+  const cols = Math.floor(zone.w / cell);
+  const rows = Math.floor(zone.h / cell);
+  const houses = [];
+  let n = 0;
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      if (rng.chance(0.03)) continue; // leave gaps for little greens/paths
+      const jitterX = rng.range(-14, 14);
+      const jitterY = rng.range(-14, 14);
+      const cx = zone.x + col * cell + cell / 2 + jitterX;
+      const cy = zone.y + row * cell + cell / 2 + jitterY;
+      houses.push({
+        id: `house_${n++}`,
+        x: cx - 24,
+        y: cy - 22,
+        w: 48,
+        h: 40,
+        doorX: cx,
+        doorY: cy + 18,
+        variant: rng.int(0, 5),
+      });
+    }
+  }
+  return houses;
+}
+
+export const NEIGHBORHOOD_HOUSES = generateNeighborhood();
+
+// The river runs from the northern edge down to roughly where the lake
+// begins, rather than the full world height -- it reads as feeding the
+// lake, and (importantly) means it doesn't cut Cottage Row in half with
+// no second bridge to cross it.
+export const RIVER_END_Y = 1300;
 
 // Solid obstacles the player (and NPC schedule paths) cannot walk through.
 export const OBSTACLES = [
@@ -27,9 +74,10 @@ export const OBSTACLES = [
   { x: 300, y: 450, w: 100, h: 80, label: 'watchpost' },
   { x: 1400, y: 530, w: 90, h: 80, label: 'cobbs-hut' },
   { x: 1130, y: 0, w: 40, h: 460, label: 'river-north' },
-  { x: 1130, y: 560, w: 40, h: WORLD_HEIGHT - 560, label: 'river-south' },
+  { x: 1130, y: 560, w: 40, h: RIVER_END_Y - 560, label: 'river-south' },
   { x: WORLD_WIDTH - 40, y: 0, w: 40, h: WORLD_HEIGHT, label: 'deep-forest-edge' },
   { x: 1300, y: 1300, w: 420, h: 320, label: 'lake' },
+  ...NEIGHBORHOOD_HOUSES.map((h) => ({ x: h.x, y: h.y, w: h.w, h: h.h, label: h.id })),
 ];
 
 // Buildings drawn with a bit of extra art metadata. `thatch`/`stone` give
@@ -47,7 +95,7 @@ export const BUILDINGS = [
 
 // River path, drawn as a ribbon; bridge sits in the gap between the two
 // river obstacle segments (y 460-560).
-export const RIVER = { x: 1130, y: 0, w: 40, h: WORLD_HEIGHT, bridgeY: 460, bridgeH: 100 };
+export const RIVER = { x: 1130, y: 0, w: 40, h: RIVER_END_Y, bridgeY: 460, bridgeH: 100 };
 
 // Decorative fence runs (purely visual, not obstacles -- consistent with
 // how decorative trees already work). Each is a straight line; the

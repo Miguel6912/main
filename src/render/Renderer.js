@@ -1,4 +1,4 @@
-import { WORLD_WIDTH, WORLD_HEIGHT, BUILDINGS, RIVER, HOTSPOTS, FORAGE_SPOTS, OBSTACLES, FENCES, PROPS, ORCHARD, LAKE } from '../world/MapData.js';
+import { WORLD_WIDTH, WORLD_HEIGHT, BUILDINGS, RIVER, HOTSPOTS, FORAGE_SPOTS, OBSTACLES, FENCES, PROPS, ORCHARD, LAKE, NEIGHBORHOOD_HOUSES } from '../world/MapData.js';
 import { getSkyColor, getNightOverlayAlpha, SEASON_PALETTE, FOLIAGE_PALETTE, lerpColor } from './Palette.js';
 import { RNG } from '../core/RNG.js';
 import { PROPERTY_LEVELS } from '../data/properties.js';
@@ -11,8 +11,17 @@ const MEADOW_TILE_MAX_X = 1480; // keep the forest floor clear of open-meadow te
 
 const ROAD_STRIPS = [
   { x: 280, y: 540, w: 1220, h: 46 }, // main street
-  { x: 878, y: 380, w: 46, h: 1170 }, // well square spur, extended south to the orchard
+  { x: 878, y: 380, w: 46, h: 1650 }, // well square spur, extended south through the orchard into Cottage Row
   { x: 320, y: 490, w: 46, h: 90 }, // watchpost spur
+];
+
+const COTTAGE_PALETTE = [
+  { thatch: '#c9a35a', wall: '#e8d9b5' },
+  { thatch: '#b8945a', wall: '#ded0ae' },
+  { thatch: '#a68352', wall: '#d4c6a5' },
+  { thatch: '#8a6f42', wall: '#cbbd9d' },
+  { thatch: '#d4b06a', wall: '#f0e2c2' },
+  { thatch: '#9c7a4a', wall: '#d9cba9' },
 ];
 
 const HEART_TREE = { x: 900, y: 442, scale: 2.15 };
@@ -78,6 +87,15 @@ export class Renderer {
       const y = rng.range(ORCHARD.y + 20, ORCHARD.y + ORCHARD.h - 20);
       if (!tooCloseToAny(x, y, [], 50)) {
         this.orchardTrees.push({ x, y, scale: rng.range(0.75, 1.0) });
+      }
+    }
+
+    this.neighborhoodTrees = [];
+    for (let i = 0; i < 40; i++) {
+      const x = rng.range(120, 2080);
+      const y = rng.range(2000, 2860);
+      if (!tooCloseToAny(x, y, OBSTACLES, 46)) {
+        this.neighborhoodTrees.push({ x, y, scale: rng.range(0.7, 1.05) });
       }
     }
 
@@ -166,6 +184,7 @@ export class Renderer {
     this._drawFences();
     this._drawForestBackdrop(season, 'back');
     this._drawOrchard(season);
+    this._drawNeighborhood(season, time.phase);
     this._drawDecor(season);
     this._drawTree(HEART_TREE.x, HEART_TREE.y, HEART_TREE.scale, season);
     this._drawHotspots(propertyLevel, interactTarget, state.ciderStage);
@@ -344,7 +363,7 @@ export class Renderer {
     const pal = SEASON_PALETTE[season];
     ctx.fillStyle = pal.water;
     ctx.fillRect(RIVER.x, RIVER.y, RIVER.w, RIVER.bridgeY);
-    ctx.fillRect(RIVER.x, RIVER.bridgeY + RIVER.bridgeH, RIVER.w, WORLD_HEIGHT - (RIVER.bridgeY + RIVER.bridgeH));
+    ctx.fillRect(RIVER.x, RIVER.bridgeY + RIVER.bridgeH, RIVER.w, RIVER.h - (RIVER.bridgeY + RIVER.bridgeH));
     // bridge
     ctx.fillStyle = '#a9784a';
     ctx.fillRect(RIVER.x - 6, RIVER.bridgeY, RIVER.w + 12, RIVER.bridgeH);
@@ -434,6 +453,43 @@ export class Renderer {
         ctx.fill();
       }
     }
+  }
+
+  // Cottage Row: ~100 small homes. Each one is deliberately cheap to draw
+  // (about a third of the draw calls a named landmark building costs --
+  // no per-building mottling/thatch-puff pass) since there are so many of
+  // them on screen at once; see DEVELOPMENT.md for the measured frame cost.
+  _drawNeighborhood(season, phase) {
+    for (const house of NEIGHBORHOOD_HOUSES) this._drawCottage(house, phase);
+    for (const t of this.neighborhoodTrees) this._drawTree(t.x, t.y, t.scale, season);
+  }
+
+  _drawCottage(house, phase) {
+    const { ctx } = this;
+    const pal = COTTAGE_PALETTE[house.variant % COTTAGE_PALETTE.length];
+    const nightGlow = phase === 'night' || phase === 'dusk';
+
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(house.x + house.w / 2, house.y + house.h + 5, house.w / 2, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = pal.wall;
+    ctx.fillRect(house.x, house.y + house.h * 0.4, house.w, house.h * 0.6);
+
+    ctx.fillStyle = pal.thatch;
+    ctx.beginPath();
+    ctx.moveTo(house.x - 6, house.y + house.h * 0.45);
+    ctx.lineTo(house.x + house.w / 2, house.y - house.h * 0.35);
+    ctx.lineTo(house.x + house.w + 6, house.y + house.h * 0.45);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#4a3220';
+    ctx.fillRect(house.doorX - 6, house.doorY - 14, 12, 14);
+
+    ctx.fillStyle = nightGlow ? '#ffe9a8' : '#bcd9e8';
+    ctx.fillRect(house.x + 6, house.y + house.h * 0.6, 8, 8);
   }
 
   _drawTree(x, y, scale, season) {
