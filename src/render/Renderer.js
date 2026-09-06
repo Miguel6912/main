@@ -1,5 +1,5 @@
 import { WORLD_WIDTH, WORLD_HEIGHT, BUILDINGS, RIVER, HOTSPOTS, FORAGE_SPOTS, OBSTACLES } from '../world/MapData.js';
-import { getSkyColor, getNightOverlayAlpha, SEASON_PALETTE, FOLIAGE_PALETTE } from './Palette.js';
+import { getSkyColor, getNightOverlayAlpha, SEASON_PALETTE, FOLIAGE_PALETTE, lerpColor } from './Palette.js';
 import { RNG } from '../core/RNG.js';
 import { PROPERTY_LEVELS } from '../data/properties.js';
 import { AssetLoader } from './Assets.js';
@@ -9,9 +9,21 @@ const MEADOW_TILE_SIZE = 240; // on-screen width/height of one tiled meadow patc
 const MEADOW_TILE_SEASONS = new Set(['spring', 'summer']);
 const MEADOW_TILE_MAX_X = 1480; // keep the forest floor clear of open-meadow texture
 
+const ROAD_STRIPS = [
+  { x: 280, y: 540, w: 1220, h: 46 }, // main street
+  { x: 878, y: 380, w: 46, h: 420 }, // well square spur
+  { x: 320, y: 490, w: 46, h: 90 }, // watchpost spur
+];
+
+const HEART_TREE = { x: 900, y: 442, scale: 2.15 };
+
 function clampCamera(target, viewSize, worldSize) {
   if (worldSize <= viewSize) return (worldSize - viewSize) / 2;
   return Math.max(0, Math.min(worldSize - viewSize, target));
+}
+
+function shade(hex, amount) {
+  return lerpColor(hex, amount > 0 ? '#ffffff' : '#000000', Math.min(1, Math.abs(amount)));
 }
 
 function tooCloseToAny(x, y, rects, buffer) {
@@ -63,6 +75,40 @@ export class Renderer {
     for (let i = 0; i < 80; i++) {
       this.stars.push({ x: rng.next(), y: rng.range(0, 0.6), s: rng.range(0.5, 1.8), tw: rng.range(0, Math.PI * 2) });
     }
+
+    this.roadMottles = [];
+    for (const strip of ROAD_STRIPS) {
+      const count = Math.round((strip.w * strip.h) / 260);
+      for (let i = 0; i < count; i++) {
+        this.roadMottles.push({
+          x: strip.x + rng.range(4, strip.w - 4),
+          y: strip.y + rng.range(4, strip.h - 4),
+          r: rng.range(3, 8),
+          dark: rng.chance(0.6),
+        });
+      }
+    }
+
+    const buildingRng = new RNG(77); // separate stream so building texture doesn't shift if decor generation changes
+    this.buildingTextures = {};
+    for (const b of BUILDINGS) {
+      const wallSpots = [];
+      const spotCount = Math.round((b.w * b.h) / 260);
+      for (let i = 0; i < spotCount; i++) {
+        wallSpots.push({
+          fx: buildingRng.range(0.04, 0.96),
+          fy: buildingRng.range(0.08, 0.92),
+          r: buildingRng.range(2.5, 5.5),
+          dark: buildingRng.chance(0.5),
+        });
+      }
+      const bumpCount = Math.max(5, Math.round(b.w / 22));
+      const thatchBumps = [];
+      for (let i = 0; i <= bumpCount; i++) {
+        thatchBumps.push(buildingRng.range(-5, 5));
+      }
+      this.buildingTextures[b.id] = { wallSpots, thatchBumps };
+    }
   }
 
   render(state) {
@@ -88,6 +134,7 @@ export class Renderer {
     this._drawRoads();
     this._drawForestBackdrop(season, 'back');
     this._drawDecor(season);
+    this._drawTree(HEART_TREE.x, HEART_TREE.y, HEART_TREE.scale, season);
     this._drawHotspots(propertyLevel, interactTarget);
     this._drawForageSpots(state.economy, time.dayCount, interactTarget);
     this._drawBuildings(time.phase, interactTarget);
@@ -112,7 +159,23 @@ export class Renderer {
       ctx.fillRect(0, 0, viewW, viewH);
     }
 
+    this._drawVignette(viewW, viewH);
+
     if (state.rareFlourish) this._drawRareFlourishGlow(state.rareFlourish, camX, camY);
+  }
+
+  // Soft edge-darkening for a bit of atmospheric depth, in screen space so
+  // it stays fixed to the viewport rather than the world.
+  _drawVignette(viewW, viewH) {
+    const { ctx } = this;
+    const grad = ctx.createRadialGradient(
+      viewW / 2, viewH / 2, Math.min(viewW, viewH) * 0.38,
+      viewW / 2, viewH / 2, Math.max(viewW, viewH) * 0.72
+    );
+    grad.addColorStop(0, 'rgba(10,8,5,0)');
+    grad.addColorStop(1, 'rgba(10,8,5,0.32)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, viewW, viewH);
   }
 
   _drawStars(t, viewW, viewH, alpha) {
@@ -172,12 +235,28 @@ export class Renderer {
     }
   }
 
+  // A worn dirt path rather than a flat tinted strip: a soft-edged base
+  // tone plus scattered darker/lighter mottling, like foot-trodden earth
+  // with grass creeping at the edges.
   _drawRoads() {
     const { ctx } = this;
-    ctx.fillStyle = 'rgba(217,192,138,0.55)';
-    ctx.fillRect(280, 540, 1220, 46); // main street
-    ctx.fillRect(878, 380, 46, 420); // well square spur
-    ctx.fillRect(320, 490, 46, 90); // watchpost spur
+    for (const strip of ROAD_STRIPS) {
+      const grad = strip.w >= strip.h
+        ? ctx.createLinearGradient(strip.x, strip.y, strip.x, strip.y + strip.h)
+        : ctx.createLinearGradient(strip.x, strip.y, strip.x + strip.w, strip.y);
+      grad.addColorStop(0, 'rgba(191,166,115,0)');
+      grad.addColorStop(0.18, 'rgba(191,166,115,0.7)');
+      grad.addColorStop(0.82, 'rgba(191,166,115,0.7)');
+      grad.addColorStop(1, 'rgba(191,166,115,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(strip.x, strip.y, strip.w, strip.h);
+    }
+    for (const m of this.roadMottles) {
+      ctx.fillStyle = m.dark ? 'rgba(120,98,64,0.35)' : 'rgba(214,196,155,0.4)';
+      ctx.beginPath();
+      ctx.ellipse(m.x, m.y, m.r, m.r * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   _drawCastle() {
@@ -292,45 +371,167 @@ export class Renderer {
     const { ctx } = this;
     const nightGlow = phase === 'night' || phase === 'dusk';
     for (const b of BUILDINGS) {
+      const tex = this.buildingTextures[b.id];
       ctx.fillStyle = 'rgba(0,0,0,0.15)';
       ctx.beginPath();
       ctx.ellipse(b.x + b.w / 2, b.y + b.h + 8, b.w / 2, 10, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = b.wall;
-      ctx.fillRect(b.x, b.y + b.h * 0.35, b.w, b.h * 0.65);
+      this._drawStoneWall(b, tex);
+      this._drawThatchRoof(b, tex);
 
-      ctx.fillStyle = b.roof;
-      ctx.beginPath();
-      ctx.moveTo(b.x - 10, b.y + b.h * 0.4);
-      ctx.lineTo(b.x + b.w / 2, b.y - b.h * 0.25);
-      ctx.lineTo(b.x + b.w + 10, b.y + b.h * 0.4);
-      ctx.closePath();
-      ctx.fill();
-
-      // door
-      ctx.fillStyle = '#5a3d24';
+      // door: dark planked wood with an accent-coloured frame
+      ctx.fillStyle = '#3d2a1a';
       ctx.fillRect(b.doorX - 14, b.doorY - 28, 28, 28);
-      // window(s), glowing at night/dusk
-      ctx.fillStyle = nightGlow ? '#ffe9a8' : '#bcd9e8';
-      if (nightGlow) {
-        ctx.save();
-        ctx.shadowColor = '#ffe9a8';
-        ctx.shadowBlur = 14;
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+      ctx.lineWidth = 1;
+      for (let i = 1; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(b.doorX - 14 + i * 9, b.doorY - 28);
+        ctx.lineTo(b.doorX - 14 + i * 9, b.doorY);
+        ctx.stroke();
       }
-      ctx.fillRect(b.x + 14, b.y + b.h * 0.55, 18, 18);
-      ctx.fillRect(b.x + b.w - 32, b.y + b.h * 0.55, 18, 18);
-      if (nightGlow) ctx.restore();
+      ctx.strokeStyle = b.accent;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(b.doorX - 14, b.doorY - 28, 28, 28);
 
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      // windows with mullions and accent-coloured shutters
+      const winY = b.y + b.h * 0.55;
+      for (const wx of [b.x + 14, b.x + b.w - 32]) {
+        ctx.fillStyle = nightGlow ? '#ffe9a8' : '#bcd9e8';
+        if (nightGlow) {
+          ctx.save();
+          ctx.shadowColor = '#ffe9a8';
+          ctx.shadowBlur = 14;
+        }
+        ctx.fillRect(wx, winY, 18, 18);
+        if (nightGlow) ctx.restore();
+        ctx.strokeStyle = 'rgba(60,45,30,0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(wx, winY, 18, 18);
+        ctx.beginPath();
+        ctx.moveTo(wx + 9, winY);
+        ctx.lineTo(wx + 9, winY + 18);
+        ctx.moveTo(wx, winY + 9);
+        ctx.lineTo(wx + 18, winY + 9);
+        ctx.stroke();
+        ctx.fillStyle = b.accent;
+        ctx.fillRect(wx - 6, winY, 5, 18);
+        ctx.fillRect(wx + 19, winY, 5, 18);
+      }
+
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
       ctx.font = '13px Georgia, serif';
       ctx.textAlign = 'center';
-      ctx.fillText(b.label, b.x + b.w / 2, b.y - b.h * 0.32);
+      ctx.fillText(b.label, b.x + b.w / 2, b.y - b.h * 0.3 - 30);
 
       if (interactTarget?.type === 'building' && interactTarget.id === b.id) {
         this._drawInteractRing(b.x + b.w / 2, b.y + b.h + 8, Math.max(b.w, b.h) * 0.6);
       }
     }
+  }
+
+  // Rough-plastered stone rather than a flat paint fill: a base tone,
+  // scattered light/dark mottling, faint coursing lines, a dark foundation
+  // strip, and exposed dark timber corner posts + a header beam under the
+  // eave (Tudor-style framing), echoing the reference village's material feel.
+  _drawStoneWall(b, tex) {
+    const { ctx } = this;
+    const wallY = b.y + b.h * 0.35;
+    const wallH = b.h * 0.65;
+
+    ctx.fillStyle = b.stone;
+    ctx.fillRect(b.x, wallY, b.w, wallH);
+
+    for (const s of tex.wallSpots) {
+      ctx.fillStyle = s.dark ? 'rgba(70,60,50,0.18)' : 'rgba(255,255,255,0.22)';
+      ctx.beginPath();
+      ctx.ellipse(b.x + s.fx * b.w, wallY + s.fy * wallH, s.r, s.r * 0.75, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.strokeStyle = 'rgba(70,60,50,0.15)';
+    ctx.lineWidth = 1;
+    const rows = Math.max(2, Math.round(wallH / 14));
+    for (let r = 1; r < rows; r++) {
+      const ly = wallY + (wallH / rows) * r;
+      ctx.beginPath();
+      ctx.moveTo(b.x + 2, ly);
+      ctx.lineTo(b.x + b.w - 2, ly);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = 'rgba(58,50,42,0.55)';
+    ctx.fillRect(b.x, wallY + wallH - 5, b.w, 5);
+
+    const postW = 7;
+    ctx.fillStyle = '#4a3220';
+    ctx.fillRect(b.x + 1, wallY, postW, wallH);
+    ctx.fillRect(b.x + b.w - 1 - postW, wallY, postW, wallH);
+    ctx.fillRect(b.x, wallY, b.w, 5);
+  }
+
+  // A rounded, bundled thatch silhouette instead of a sharp painted
+  // triangle: a solid "skirt" row hugging the eave (so it always meets the
+  // wall with no gap) topped by a peaked hump row, then one darker depth
+  // patch and one lighter ridge highlight layered on top -- the same
+  // three-tone recipe the baked tree canopy uses, for a consistent
+  // hand-made look. Finished with a few curved bundle-row strokes.
+  _drawThatchRoof(b, tex) {
+    const { ctx } = this;
+    const eaveY = b.y + b.h * 0.4;
+    const ridgeY = b.y - b.h * 0.3;
+    const cx = b.x + b.w / 2;
+    const halfW = b.w / 2 + 14;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.14)';
+    ctx.beginPath();
+    ctx.ellipse(cx, eaveY + 3, halfW * 0.85, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = b.thatch;
+    const skirtCount = Math.max(6, Math.round(b.w / 16));
+    for (let i = 0; i <= skirtCount; i++) {
+      const x = b.x - 12 + (i / skirtCount) * (b.w + 24);
+      ctx.beginPath();
+      ctx.arc(x, eaveY - 4, 15, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const bumps = tex.thatchBumps;
+    const n = bumps.length;
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1);
+      const x = b.x - 6 + t * (b.w + 12);
+      const heightFactor = Math.sin(t * Math.PI);
+      const y = eaveY - 8 - heightFactor * (eaveY - 8 - ridgeY) + bumps[i] * 0.35;
+      const r = 13 + heightFactor * 9 + Math.abs(bumps[i]) * 0.25;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = shade(b.thatch, -0.16);
+    ctx.beginPath();
+    ctx.ellipse(b.x + b.w * 0.24, eaveY - (eaveY - ridgeY) * 0.4, halfW * 0.34, halfW * 0.26, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = shade(b.thatch, 0.15);
+    ctx.beginPath();
+    ctx.ellipse(cx + b.w * 0.06, ridgeY + 7, halfW * 0.28, halfW * 0.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = shade(b.thatch, -0.22);
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.4;
+    for (let row = 0; row < 3; row++) {
+      const rowY = eaveY - 10 - row * 10;
+      ctx.beginPath();
+      ctx.moveTo(cx - halfW * 0.65, rowY);
+      ctx.quadraticCurveTo(cx, rowY - 6, cx + halfW * 0.65, rowY);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
   }
 
   _drawHotspots(propertyLevel, interactTarget) {

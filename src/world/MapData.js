@@ -29,13 +29,17 @@ export const OBSTACLES = [
   { x: 1760, y: 0, w: 40, h: WORLD_HEIGHT, label: 'deep-forest-edge' },
 ];
 
-// Buildings drawn with a bit of extra art metadata (roof colour etc.).
+// Buildings drawn with a bit of extra art metadata. `thatch`/`stone` give
+// each roof/wall a slightly different earthy tone (rustic, not painted);
+// `accent` is the one saturated colour per building (shutters, door trim)
+// that keeps them tellable apart at a glance despite the shared material
+// palette -- it carries the building's old, more storybook-flat colour.
 export const BUILDINGS = [
-  { id: 'bakery', x: 600, y: 380, w: 120, h: 90, roof: '#c1503f', wall: '#f2d9b8', doorX: 660, doorY: 470, label: "Mira's Bakery" },
-  { id: 'inn', x: 1000, y: 390, w: 140, h: 100, roof: '#5b7a55', wall: '#e8c99b', doorX: 1060, doorY: 490, label: 'The Goodbarrel Inn' },
-  { id: 'store', x: 775, y: 585, w: 110, h: 85, roof: '#8a5fae', wall: '#efe2c8', doorX: 830, doorY: 670, label: "Bramble's General Store" },
-  { id: 'watchpost', x: 300, y: 450, w: 100, h: 80, roof: '#6b7280', wall: '#d8ccb8', doorX: 350, doorY: 530, label: 'Village Watchpost' },
-  { id: 'cobbs-hut', x: 1400, y: 530, w: 90, h: 80, roof: '#4b5d3a', wall: '#cbb995', doorX: 1445, doorY: 610, label: "Old Cobb's Hut" },
+  { id: 'bakery', x: 600, y: 380, w: 120, h: 90, thatch: '#c9a35a', stone: '#b9ad98', accent: '#c1503f', doorX: 660, doorY: 470, label: "Mira's Bakery" },
+  { id: 'inn', x: 1000, y: 390, w: 140, h: 100, thatch: '#b8945a', stone: '#a9a293', accent: '#5b7a55', doorX: 1060, doorY: 490, label: 'The Goodbarrel Inn' },
+  { id: 'store', x: 775, y: 585, w: 110, h: 85, thatch: '#d4b06a', stone: '#c2b6a0', accent: '#8a5fae', doorX: 830, doorY: 670, label: "Bramble's General Store" },
+  { id: 'watchpost', x: 300, y: 450, w: 100, h: 80, thatch: '#a68352', stone: '#9c9686', accent: '#6b7280', doorX: 350, doorY: 530, label: 'Village Watchpost' },
+  { id: 'cobbs-hut', x: 1400, y: 530, w: 90, h: 80, thatch: '#8a6f42', stone: '#8f8a76', accent: '#4b5d3a', doorX: 1445, doorY: 610, label: "Old Cobb's Hut" },
 ];
 
 // River path, drawn as a ribbon; bridge sits in the gap between the two

@@ -79,12 +79,17 @@ See `README.md` for how to run it.
   per browser autoplay policy; mutable from the HUD.
 
 **Rendering & atmosphere**
-- Canvas 2D scene: a castle silhouette, a dense forest edge, five distinct
-  cottages, a river + bridge, all built from flat vector shapes. Decorative
-  trees and the meadow ground texture are real baked sprites (see "Art
-  assets" below); everything else (buildings, NPCs, player, particles,
-  UI rings) stays procedural vector art, generated once from a fixed seed
-  where relevant so decoration is stable across reloads.
+- Canvas 2D scene, styled after a warm rustic-village reference image: rough
+  stone building walls (mottled tone + faint coursing lines + a dark
+  foundation strip), exposed dark timber corner posts and header beams,
+  rounded hand-bundled thatch roofs (a layered-puff technique, not a flat
+  triangle) in place of the original flat-painted cottages, a worn dirt
+  road with soft mottling instead of a flat tinted strip, a large landmark
+  tree over the village well, and a soft screen-space vignette for depth.
+  Decorative trees and the meadow ground texture are real baked sprites
+  (see "Art assets" below); castle, river, NPCs, player, particles, and UI
+  rings stay procedural vector art, generated once from a fixed seed where
+  relevant so decoration is stable across reloads.
 - Comic/warm tone in dialogue and event text (Sir Reginald's exaggerated
   bravado, Mira's temperamental oven, Wren's wide-eyed belief in magic)
   aiming for Fable-style charm without borrowing any of its content.
