@@ -1,0 +1,93 @@
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.home-hero {
+  padding: 1rem 0 0.5rem;
+}
+
+.home-eyebrow {
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+  margin: 0 0 0.5rem;
+}
+
+.home-hero h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 2rem;
+  margin-bottom: 0.3rem;
+}
+
+.home-hero-icon {
+  font-size: 1.7rem;
+}
+
+.home-capability {
+  color: var(--ink-soft);
+  margin-bottom: 1.25rem;
+}
+
+.home-draft-note {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.home-section-title {
+  font-size: 1.05rem;
+  margin-bottom: 0.9rem;
+}
+
+.home-knowledge-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.home-stat-number {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.home-stat-label {
+  color: var(--ink-faint);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 0.3rem;
+}
+
+.home-weak-points-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.home-weak-points-list li {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.5rem;
+}
+
+.home-weak-points-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.home-weak-french {
+  font-family: var(--font-display);
+}
+
+.home-weak-meaning {
+  color: var(--ink-faint);
+}

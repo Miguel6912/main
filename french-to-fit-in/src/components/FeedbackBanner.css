@@ -1,0 +1,22 @@
+.feedback-banner {
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.feedback-sage {
+  background: var(--sage-soft);
+  color: var(--sage);
+}
+
+.feedback-gold {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.feedback-rose {
+  background: var(--rose-soft);
+  color: var(--rose);
+}

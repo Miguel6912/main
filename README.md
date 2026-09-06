@@ -4,6 +4,12 @@ A storybook life between the castle and the enchanted forest. Phase 1 of an
 incrementally-built village life-sim -- see `DEVELOPMENT.md` for what's
 implemented, known rough edges, and where it's headed next.
 
+> This repository also contains a second, unrelated project:
+> [`french-to-fit-in/`](./french-to-fit-in/README.md), a 30-day spoken-French
+> training prototype (React/TypeScript/Vite). See its own README for setup
+> and architecture -- it does not share any code or dependencies with Cosy
+> Village.
+
 ## Running it
 
 This is a dependency-free, build-free project: plain HTML/CSS/JS (ES

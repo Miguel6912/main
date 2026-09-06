@@ -1,0 +1,13 @@
+.session-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-page-eyebrow {
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.78rem;
+  margin: 0;
+}

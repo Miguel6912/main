@@ -1,0 +1,87 @@
+.field-test-scenario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.field-test-scenario-text {
+  color: var(--ink-soft);
+}
+
+.field-test-objective {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.field-test-results {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field-test-dimensions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.field-test-dimension-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.field-test-summary h3 {
+  font-size: 0.95rem;
+  margin: 0.75rem 0 0.2rem;
+}
+
+.field-test-summary p {
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.field-test-gamification {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 1rem;
+  background: var(--accent-soft);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+}
+
+.field-test-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.field-test-badge-accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.field-test-badge-terracotta {
+  background: var(--terracotta-soft);
+  color: var(--terracotta);
+}
+.field-test-badge-gold {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+.field-test-badge-sage {
+  background: var(--sage-soft);
+  color: var(--sage);
+}
+.field-test-badge-rose {
+  background: var(--rose-soft);
+  color: var(--rose);
+}

@@ -1,0 +1,37 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.25em 0.75em;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pill-neutral {
+  background: var(--line);
+  color: var(--ink-soft);
+}
+
+.pill-accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.pill-sage {
+  background: var(--sage-soft);
+  color: var(--sage);
+}
+
+.pill-gold {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.pill-rose {
+  background: var(--rose-soft);
+  color: var(--rose);
+}

@@ -1,0 +1,74 @@
+.session-complete-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.session-complete-title {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.session-complete-stat {
+  color: var(--ink-faint);
+  font-size: 0.9rem;
+}
+
+.session-complete-gamification {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  background: var(--accent-soft);
+  border-radius: var(--radius-md);
+}
+
+.session-complete-xp-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.session-complete-level-up {
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0;
+}
+
+.session-complete-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.session-complete-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.session-complete-badge-accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.session-complete-badge-terracotta {
+  background: var(--terracotta-soft);
+  color: var(--terracotta);
+}
+.session-complete-badge-gold {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+.session-complete-badge-sage {
+  background: var(--sage-soft);
+  color: var(--sage);
+}
+.session-complete-badge-rose {
+  background: var(--rose-soft);
+  color: var(--rose);
+}
