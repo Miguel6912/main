@@ -8,3 +8,4 @@ export * from './fieldTest';
 export * from './ai';
 export * from './pilot';
 export * from './gamification';
+export * from './avatar';

@@ -1,0 +1,38 @@
+.avatar-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.avatar-page-intro {
+  color: var(--ink-soft);
+  margin: -0.75rem 0 0;
+}
+
+.avatar-page-name-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.avatar-page-name-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.avatar-page-name-input {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.7em 0.9em;
+  font-size: 1rem;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 44px;
+}
+
+.avatar-page-name-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

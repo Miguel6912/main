@@ -1,4 +1,5 @@
 import { getDB } from './db';
+import { defaultAvatarConfig } from '../engine/avatar';
 import type { AppMeta } from './schema';
 
 function defaultMeta(): AppMeta {
@@ -13,6 +14,8 @@ function defaultMeta(): AppMeta {
     longestStreakDays: 0,
     lastPracticeDate: null,
     earnedBadgeIds: [],
+    avatarConfig: defaultAvatarConfig(),
+    displayName: '',
   };
 }
 

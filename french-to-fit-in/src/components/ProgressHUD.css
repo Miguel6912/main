@@ -32,3 +32,34 @@
 .progress-hud-link:hover {
   text-decoration: underline;
 }
+
+.progress-hud-avatar-link {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  border-radius: 50%;
+  line-height: 0;
+}
+
+.progress-hud-avatar-link:hover {
+  filter: brightness(1.03);
+}
+
+.progress-hud-avatar-level {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: 2px solid var(--paper-raised);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

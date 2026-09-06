@@ -22,7 +22,12 @@ export function HomePage() {
 
   return (
     <div className="home-page">
-      <ProgressHUD totalXP={meta.totalXP} currentStreakDays={meta.currentStreakDays} showAchievementsLink />
+      <ProgressHUD
+        totalXP={meta.totalXP}
+        currentStreakDays={meta.currentStreakDays}
+        avatarConfig={meta.avatarConfig}
+        showAchievementsLink
+      />
 
       <section className="home-hero">
         <p className="home-eyebrow">Day {meta.currentDay} of 30</p>

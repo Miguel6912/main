@@ -8,6 +8,7 @@ import { SettingsPage } from './app/pages/SettingsPage';
 import { PilotDashboardPage } from './app/pages/PilotDashboardPage';
 import { FieldTestPage } from './app/pages/FieldTestPage';
 import { AchievementsPage } from './app/pages/AchievementsPage';
+import { AvatarPage } from './app/pages/AvatarPage';
 import { ensureLedgerSeeded } from './storage/ledgerStore';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="/field-test/:fieldTestId" element={<FieldTestPage />} />
           <Route path="/course-map" element={<CourseMapPage />} />
           <Route path="/achievements" element={<AchievementsPage />} />
+          <Route path="/avatar" element={<AvatarPage />} />
           <Route path="/pilot" element={<PilotDashboardPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>

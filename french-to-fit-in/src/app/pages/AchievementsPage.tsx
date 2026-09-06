@@ -15,7 +15,7 @@ export function AchievementsPage() {
     <div className="achievements-page">
       <h1>Achievements</h1>
 
-      <ProgressHUD totalXP={meta.totalXP} currentStreakDays={meta.currentStreakDays} />
+      <ProgressHUD totalXP={meta.totalXP} currentStreakDays={meta.currentStreakDays} avatarConfig={meta.avatarConfig} />
 
       <p className="achievements-longest-streak-note">
         Longest streak: <strong>{meta.longestStreakDays}</strong> day{meta.longestStreakDays === 1 ? '' : 's'}

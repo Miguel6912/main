@@ -2,6 +2,7 @@ import type { DBSchema } from 'idb';
 import type { LedgerItem } from '../types/ledger';
 import type { PilotEvent } from '../types/pilot';
 import type { FieldTestResult } from '../types/fieldTest';
+import type { AvatarConfig } from '../types/avatar';
 
 export interface SessionRecord {
   id: string;
@@ -26,6 +27,9 @@ export interface AppMeta {
   longestStreakDays: number;
   lastPracticeDate: string | null;
   earnedBadgeIds: string[];
+  /** Customizable profile avatar -- see engine/avatar.ts. */
+  avatarConfig: AvatarConfig;
+  displayName: string;
 }
 
 export interface FrenchToFitInDB extends DBSchema {

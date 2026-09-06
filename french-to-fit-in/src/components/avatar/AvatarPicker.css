@@ -1,0 +1,142 @@
+.avatar-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.avatar-picker-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.avatar-picker-preview svg {
+  border-radius: 50%;
+}
+
+.avatar-picker-preview-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.avatar-picker-kind-toggle {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 0.35rem;
+}
+
+.avatar-kind-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.6em 1em;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: 44px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.avatar-kind-tab:hover {
+  color: var(--ink);
+}
+
+.avatar-kind-tab-active {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.avatar-picker-field {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem 1rem;
+  margin: 0;
+  background: var(--paper-raised);
+}
+
+.avatar-picker-field legend {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  padding: 0 0.3em;
+}
+
+.avatar-swatch-grid,
+.avatar-option-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.avatar-swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--line-strong);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.05s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.avatar-swatch:hover {
+  transform: scale(1.08);
+}
+
+.avatar-swatch-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.avatar-option-chip {
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 0.5em 1em;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 40px;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.avatar-option-chip:hover {
+  border-color: var(--accent);
+}
+
+.avatar-option-chip-selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.avatar-freckles-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 600;
+  color: var(--ink-soft);
+  padding: 0.25rem 0.1rem;
+}
+
+.avatar-freckles-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}

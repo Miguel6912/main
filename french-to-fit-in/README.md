@@ -30,6 +30,7 @@ content in this repository is explicitly marked `DRAFT`. See
 - [How mastery status works](#how-mastery-status-works)
 - [How field tests work](#how-field-tests-work)
 - [How gamification works](#how-gamification-works)
+- [How the avatar system works](#how-the-avatar-system-works)
 - [Running locally](#running-locally)
 - [Installing as a PWA](#installing-as-a-pwa)
 - [Running tests](#running-tests)
@@ -308,6 +309,39 @@ that touches XP, level, streak, and badge state (mirrors
 This entire layer was added at the product owner's explicit request,
 reversing the original brief's "no gamification" stance -- see the note in
 [Product philosophy](#product-philosophy).
+
+## How the avatar system works
+
+`/avatar` (linked from the avatar/level badge in `components/ProgressHUD.tsx`)
+lets the learner build a profile avatar -- entirely parametric SVG, no image
+assets -- and set a display name. State lives in `AppMeta.avatarConfig` /
+`AppMeta.displayName` (`storage/schema.ts`), backfilled for existing
+databases the same way the gamification fields were.
+
+`types/avatar.ts` defines a discriminated union: `HumanAvatarConfig` (skin
+tone, hair style/color, eye shape/color, mouth, headwear, glasses, facial
+hair, freckles) or `AnimalAvatarConfig` (species + fur color + glasses) --
+picking "Animal" isn't a reskin, it's a real alternative to a human likeness.
+`content/avatarOptions.ts` holds the actual option data;
+`components/avatar/svgParts/{humanParts,animalParts}.tsx` render each part as
+SVG primitives (hair/headwear are drawn behind and larger than the face
+shape, so the correct silhouette falls out of z-order alone, no clip-paths);
+`components/avatar/AvatarSvg.tsx` composes a config into one `<svg>`;
+`components/avatar/AvatarPicker.tsx` is the picker UI (live preview,
+"Surprise me" random button via `engine/avatar.ts`, and swatch/chip grids per
+option).
+
+Inclusivity was a deliberate design constraint, not an afterthought:
+
+- **10 skin tones**, not a token handful.
+- **12 hair styles** spanning straight, wavy, curly, coily, and braided
+  textures, plus a headscarf as its own headwear option.
+- **3 eye shapes** including monolid, which off-the-shelf avatar kits
+  routinely omit.
+- **Facial hair is not gender-locked** to either avatar path -- it's a free
+  toggle independent of every other choice.
+- **6 animal species** (fox, deer, owl, rabbit, bear, cat) for anyone who'd
+  rather not pick a human likeness at all.
 
 ## Running locally
 
