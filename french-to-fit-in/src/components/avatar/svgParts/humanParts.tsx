@@ -1,21 +1,23 @@
 import type { ReactNode } from 'react';
 import type { EyeShape, FacialHair, Glasses, HairStyle, Headwear, Mouth } from '../../../types/avatar';
-import { OUTLINE, OUTLINE_THIN, OUTLINE_WIDTH, darken, inkStroke } from './style';
+import { OUTLINE, OUTLINE_THIN, OUTLINE_WIDTH, RIM, darken, inkStroke } from './style';
 
 /**
  * All human-avatar shapes on a shared 200x200 canvas. Drawing order (see
- * AvatarSvg.tsx): hair (back) -> ears -> face -> features -> facial hair ->
- * glasses -> headwear. Hair/headwear shapes are drawn larger than the face
- * ellipse and rely on the face being painted on top to leave the correct
- * silhouette showing -- no clip-paths needed.
+ * AvatarSvg.tsx): shoulders (back) -> hair -> ears -> face -> features ->
+ * facial hair -> glasses -> headwear. Hair/headwear/shoulder shapes are
+ * drawn larger than the face path and rely on the face being painted on top
+ * to leave the correct silhouette showing -- no clip-paths needed.
  *
- * Bold, hand-drawn-cartoon styling throughout: every silhouette gets a thick
- * ink outline, flat cel-shading (a single darker shape, not a gradient), and
- * graphic, oversized features -- meant to read as an illustrated character,
- * not a flat generated icon.
+ * Flat-portrait styling: a thick ink outline on face/features/clothing, but
+ * hair uses a bright amber RIM outline instead of ink (see style.tsx) --
+ * that two-tone linework plus solid (not ringed) eyes is the signature look.
  */
 
 export const FACE_ELLIPSE = { cx: 100, cy: 110, rx: 52, ry: 65 };
+
+const FACE_PATH =
+  'M100,46 C72,46 50,66 49,98 C48,122 55,142 70,158 C80,168 90,174 100,178 C110,174 120,168 130,158 C145,142 152,122 151,98 C150,66 128,46 100,46 Z';
 
 export function renderFace(skinHex: string): ReactNode {
   const jawShadow = darken(skinHex, 22);
@@ -27,18 +29,26 @@ export function renderFace(skinHex: string): ReactNode {
       <ellipse cx={153} cy={114} rx={7.5} ry={13.5} fill={skinHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} />
       <ellipse cx={47} cy={117} rx={3.2} ry={7} fill={innerEar} />
       <ellipse cx={153} cy={117} rx={3.2} ry={7} fill={innerEar} />
-      <ellipse
-        cx={FACE_ELLIPSE.cx}
-        cy={FACE_ELLIPSE.cy}
-        rx={FACE_ELLIPSE.rx}
-        ry={FACE_ELLIPSE.ry}
-        fill={skinHex}
-        stroke={OUTLINE}
-        strokeWidth={OUTLINE_WIDTH}
-      />
-      <ellipse cx={100} cy={160} rx={28} ry={10} fill={jawShadow} opacity={0.45} />
+      <path d={FACE_PATH} fill={skinHex} stroke={OUTLINE} strokeWidth={OUTLINE_WIDTH} strokeLinejoin="round" />
+      <ellipse cx={100} cy={157} rx={20} ry={7} fill={jawShadow} opacity={0.45} />
       <ellipse cx={69} cy={127} rx={10} ry={6.5} fill={blush} opacity={0.4} />
       <ellipse cx={131} cy={127} rx={10} ry={6.5} fill={blush} opacity={0.4} />
+    </>
+  );
+}
+
+const SHIRT = '#3f5449';
+const COLLAR = '#f5f1e6';
+
+/** Neck + shoulders + a simple collar, drawn behind the hair/face so the
+ * portrait reads as a bust, not a floating head -- see the reference style. */
+export function renderShoulders(): ReactNode {
+  const shadow = darken(SHIRT, 22);
+  return (
+    <>
+      <ellipse cx={100} cy={233} rx={90} ry={74} fill={SHIRT} stroke={OUTLINE} strokeWidth={OUTLINE_WIDTH} />
+      <ellipse cx={137} cy={220} rx={30} ry={56} fill={shadow} opacity={0.4} />
+      <path d="M100,163 L81,183 L100,199 L119,183 Z" fill={COLLAR} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} strokeLinejoin="round" />
     </>
   );
 }
@@ -59,7 +69,7 @@ function braidSegments(x: number, colorHex: string, taper = 1): ReactNode {
           rx={9 - i * taper}
           ry={13}
           fill={i % 2 === 1 ? darken(colorHex, 16) : colorHex}
-          stroke={OUTLINE}
+          stroke={RIM}
           strokeWidth={OUTLINE_THIN}
         />
       ))}
@@ -68,7 +78,7 @@ function braidSegments(x: number, colorHex: string, taper = 1): ReactNode {
 }
 
 export function renderHair(style: HairStyle, colorHex: string): ReactNode {
-  const outline = { stroke: OUTLINE, strokeWidth: OUTLINE_WIDTH, strokeLinejoin: 'round' as const };
+  const outline = { stroke: RIM, strokeWidth: OUTLINE_WIDTH, strokeLinejoin: 'round' as const };
 
   switch (style) {
     case 'bald':
@@ -202,17 +212,16 @@ export function renderHair(style: HairStyle, colorHex: string): ReactNode {
 function eyeShapePair(shape: EyeShape, colorHex: string): ReactNode {
   const leftX = 78;
   const rightX = 122;
-  const y = 105;
+  const y = 106;
 
   if (shape === 'round') {
     return (
       <>
         {[leftX, rightX].map((x) => (
           <g key={x}>
-            <circle cx={x} cy={y} r={14} fill="#ffffff" stroke={OUTLINE} strokeWidth={2.2} />
-            <circle cx={x} cy={y} r={8} fill={colorHex} stroke={OUTLINE} strokeWidth={1.4} />
-            <circle cx={x} cy={y} r={4.6} fill="#150d08" />
-            <circle cx={x - 3} cy={y - 3} r={2.2} fill="#ffffff" />
+            <circle cx={x} cy={y} r={10} fill={colorHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} />
+            <circle cx={x} cy={y} r={5} fill="#150d08" />
+            <circle cx={x - 3} cy={y - 3} r={1.8} fill="#ffffff" />
           </g>
         ))}
       </>
@@ -224,11 +233,9 @@ function eyeShapePair(shape: EyeShape, colorHex: string): ReactNode {
       <>
         {[leftX, rightX].map((x) => (
           <g key={x}>
-            <ellipse cx={x} cy={y} rx={13.5} ry={7.5} fill="#ffffff" stroke={OUTLINE} strokeWidth={2.2} />
-            <ellipse cx={x} cy={y} rx={7} ry={4.4} fill={colorHex} stroke={OUTLINE} strokeWidth={1.2} />
-            <circle cx={x} cy={y} r={3.4} fill="#150d08" />
-            <circle cx={x - 2} cy={y - 1.4} r={1.4} fill="#ffffff" />
-            {inkStroke(`M${x - 13.5},${y - 4} Q${x},${y - 10} ${x + 13.5},${y - 4}`, OUTLINE, 1.4)}
+            <ellipse cx={x} cy={y} rx={10} ry={6} fill={colorHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} />
+            <circle cx={x} cy={y} r={3.2} fill="#150d08" />
+            <circle cx={x - 2} cy={y - 1.4} r={1.2} fill="#ffffff" />
           </g>
         ))}
       </>
@@ -240,10 +247,9 @@ function eyeShapePair(shape: EyeShape, colorHex: string): ReactNode {
     <>
       {[leftX, rightX].map((x) => (
         <g key={x}>
-          <ellipse cx={x} cy={y} rx={13.5} ry={10.5} fill="#ffffff" stroke={OUTLINE} strokeWidth={2.2} />
-          <ellipse cx={x} cy={y} rx={7.4} ry={7.6} fill={colorHex} stroke={OUTLINE} strokeWidth={1.4} />
-          <circle cx={x} cy={y} r={4} fill="#150d08" />
-          <circle cx={x - 2.4} cy={y - 2.4} r={1.9} fill="#ffffff" />
+          <ellipse cx={x} cy={y} rx={9.5} ry={11} fill={colorHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} />
+          <circle cx={x} cy={y} r={4.4} fill="#150d08" />
+          <circle cx={x - 2.4} cy={y - 2.6} r={1.7} fill="#ffffff" />
         </g>
       ))}
     </>
@@ -253,10 +259,10 @@ function eyeShapePair(shape: EyeShape, colorHex: string): ReactNode {
 export function renderEyesAndBrows(shape: EyeShape, eyeColorHex: string, browHex: string): ReactNode {
   return (
     <>
-      {inkStroke('M64,86 Q78,74 94,84', browHex, 5)}
-      {inkStroke('M106,84 Q122,74 136,86', browHex, 5)}
+      {inkStroke('M65,84 L94,79', browHex, 5.5)}
+      {inkStroke('M106,79 L135,84', browHex, 5.5)}
       {eyeShapePair(shape, eyeColorHex)}
-      <path d="M97,110 Q93,123 100,126" stroke="#00000035" strokeWidth={2.2} fill="none" strokeLinecap="round" />
+      <path d="M97,110 Q93,123 100,126" stroke="#00000035" strokeWidth={2.4} fill="none" strokeLinecap="round" />
     </>
   );
 }

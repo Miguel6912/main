@@ -19,6 +19,18 @@ function simpleEyes(y = 108): ReactNode {
   );
 }
 
+/** Furry chest/shoulders behind the head, mirroring renderShoulders() in
+ * humanParts.tsx so the human/animal choice keeps the same bust framing. */
+function renderChest(furHex: string): ReactNode {
+  const shadow = darken(furHex, 25);
+  return (
+    <>
+      <ellipse cx={100} cy={233} rx={90} ry={74} fill={furHex} stroke={OUTLINE} strokeWidth={OUTLINE_WIDTH} />
+      <ellipse cx={137} cy={220} rx={30} ry={56} fill={shadow} opacity={0.4} />
+    </>
+  );
+}
+
 function whiskers(y = 128): ReactNode {
   return (
     <g stroke={OUTLINE} strokeWidth={1.6} opacity={0.55} strokeLinecap="round">
@@ -34,6 +46,7 @@ function renderFox(furHex: string): ReactNode {
   const dark = darken(furHex, 45);
   return (
     <>
+      {renderChest(furHex)}
       <path d="M46,70 L70,100 L38,108 Z" fill={dark} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} strokeLinejoin="round" />
       <path d="M154,70 L130,100 L162,108 Z" fill={dark} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} strokeLinejoin="round" />
       <path d="M52,78 L68,98 L44,102 Z" fill={PINK} opacity={0.7} />
@@ -54,6 +67,7 @@ function renderDeer(furHex: string): ReactNode {
   const dark = darken(furHex, 45);
   return (
     <>
+      {renderChest(furHex)}
       <g stroke={OUTLINE} strokeWidth={4} fill="none" strokeLinecap="round" strokeLinejoin="round">
         <path d="M78,55 L70,32 M70,32 L60,26 M70,32 L78,38" />
         <path d="M122,55 L130,32 M130,32 L140,26 M130,32 L122,38" />
@@ -77,6 +91,7 @@ function renderOwl(furHex: string): ReactNode {
   const dark = darken(furHex, 45);
   return (
     <>
+      {renderChest(furHex)}
       <path d="M52,70 L62,44 L74,68 Z" fill={furHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} strokeLinejoin="round" />
       <path d="M148,70 L138,44 L126,68 Z" fill={furHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} strokeLinejoin="round" />
       <circle cx={100} cy={112} r={58} fill={furHex} stroke={OUTLINE} strokeWidth={OUTLINE_WIDTH} />
@@ -97,6 +112,7 @@ function renderRabbit(furHex: string): ReactNode {
   const dark = darken(furHex, 45);
   return (
     <>
+      {renderChest(furHex)}
       <ellipse cx={78} cy={50} rx={15} ry={38} fill={furHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} />
       <ellipse cx={122} cy={50} rx={15} ry={38} fill={furHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} />
       <ellipse cx={78} cy={52} rx={8} ry={28} fill={PINK} opacity={0.65} />
@@ -119,6 +135,7 @@ function renderBear(furHex: string): ReactNode {
   const dark = darken(furHex, 45);
   return (
     <>
+      {renderChest(furHex)}
       <circle cx={54} cy={62} r={20} fill={furHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} />
       <circle cx={146} cy={62} r={20} fill={furHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} />
       <circle cx={54} cy={62} r={10} fill={PINK} opacity={0.55} />
@@ -138,6 +155,7 @@ function renderCat(furHex: string): ReactNode {
   const dark = darken(furHex, 45);
   return (
     <>
+      {renderChest(furHex)}
       <path d="M48,72 L58,32 L82,64 Z" fill={furHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} strokeLinejoin="round" />
       <path d="M152,72 L142,32 L118,64 Z" fill={furHex} stroke={OUTLINE} strokeWidth={OUTLINE_THIN} strokeLinejoin="round" />
       <path d="M54,66 L60,44 L74,62 Z" fill={PINK} opacity={0.65} />

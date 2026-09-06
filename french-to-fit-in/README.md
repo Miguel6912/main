@@ -332,16 +332,22 @@ shape, so the correct silhouette falls out of z-order alone, no clip-paths);
 "Surprise me" random button via `engine/avatar.ts`, and swatch/chip grids per
 option).
 
-The art style is a bold, hand-drawn-cartoon look, not a flat generated icon:
-every silhouette in `svgParts/style.tsx`'s shared helpers gets a thick ink
-outline (`OUTLINE`/`OUTLINE_WIDTH`/`OUTLINE_THIN`) and a flat cel-shading
-shape (one darker solid tone, via `darken()`, not a gradient) suggesting
-form, plus oversized eyes with a clear white sclera ring and a catchlight.
-`inkStroke()` gives linework (eyebrows, mouths, whiskers) its own outline by
-stacking a wider dark stroke behind the colored one. This is a deliberate
-style choice inspired by bold animated-show illustration -- thick lines,
-graphic shading, expressive proportions -- not a reproduction of any
-particular show or character.
+The art style is a flat vector portrait, not a floating-head icon: every
+avatar (human or animal) is a bust inside a circular badge --
+`renderShoulders()` (humans) / `renderChest()` (animals) in
+`svgParts/{humanParts,animalParts}.tsx` draw a neck/shoulders/collar layer
+behind the head, and `AvatarSvg.tsx` clips the whole composition to the
+circle (a `<clipPath>`, unique per instance via `useId()`, since several
+avatars render on one page at once) and adds a bright ring + corner dots
+around it. Every silhouette gets a thick ink outline (`OUTLINE`/
+`OUTLINE_WIDTH`/`OUTLINE_THIN` in `svgParts/style.tsx`) and flat cel-shading
+(one darker solid tone via `darken()`, not a gradient) -- except hair, which
+uses a bright amber `RIM` outline instead of ink, the signature two-tone
+linework of this style. Eyes are solid colored shapes (no white sclera) with
+a black pupil and a small catchlight; eyebrows are straight, thick bars via
+`inkStroke()` (a wider dark stroke behind a colored one, also used for
+mouths and whiskers). This is a deliberate style choice, not a reproduction
+of any particular artist's or brand's character designs.
 
 Inclusivity was a deliberate design constraint, not an afterthought:
 
