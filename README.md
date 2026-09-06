@@ -37,7 +37,7 @@ Firefox, Edge, or Safari) and click **New Game**.
 
 ## What to try first
 
-- Walk around the village and talk to all six villagers -- each has a
+- Walk around the village and talk to all six named villagers -- each has a
   distinct personality, a daily schedule, and a distinct outfit, so the
   same NPC looks different at 6am vs 9pm. Watch for the cats, dogs, birds,
   and a horse wandering the village too.
@@ -48,6 +48,10 @@ Firefox, Edge, or Safari) and click **New Game**.
 - Follow the road south of the well down to the orchard and lake. Forage
   apples, then bring 4 to the cider press: come back in a few real in-game
   days to bottle it and sell the batch at the store.
+- Keep following the road south past the lake into **Cottage Row**, a
+  neighbourhood of 100+ homes -- every door has a named villager with their
+  own profession, schedule, personality quirk, and a one-time favour you
+  can help with or turn down.
 - Use the speed controls (1x/2x/4x) to fast-forward through a full day/
   night cycle, and through several days to watch the seasons change.
 - Keep an eye out at dawn near the forest edge in spring/summer, and at
@@ -71,8 +75,9 @@ src/
   systems/             MemorySystem, EconomySystem, PropertySystem,
                        CiderPressSystem, EventSystem, DialogueSystem
   data/                npcs, dialogue, events, shopItems, properties, jobs,
-                       animals -- pure content; this is what you edit to
-                       add things
+                       animals, villagerPools/villagers (Cottage Row's
+                       generated 100+ population) -- pure content; this is
+                       what you edit to add things
   render/              Palette, Particles, Renderer (canvas drawing), Assets (image loading)
   audio/               AudioManager (procedural Web Audio)
   ui/                  UIManager (all DOM/HUD glue)

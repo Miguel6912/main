@@ -35,6 +35,8 @@
 // Text supports {jobDesc} and {jobReward} tokens, substituted from the
 // current daily job template at render time.
 
+import { VILLAGER_DIALOGUE } from './villagers.js';
+
 const COMMON_OPTIONS = [
   { text: 'Ask about the job', conditions: [{ type: 'hasJobToOffer' }], action: { type: 'goto', node: 'job_offer' } },
   { text: "I've got what you asked for", conditions: [{ type: 'canTurnInJob' }], action: { type: 'turnInJob' } },
@@ -234,4 +236,6 @@ export const DIALOGUE = {
       job_offer: jobOfferNode(),
     },
   },
+
+  ...VILLAGER_DIALOGUE,
 };

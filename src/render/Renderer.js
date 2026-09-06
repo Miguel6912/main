@@ -193,9 +193,15 @@ export class Renderer {
     this._drawBuildingSigns();
     this._drawProps();
 
+    // Cottage Row alone puts 100+ background villagers in the data, far
+    // more than are ever on screen at once -- cull to a margin around the
+    // camera so the per-frame draw cost tracks what's visible, not the
+    // size of the population. See DEVELOPMENT.md for the measured saving.
+    const cullMargin = 90;
+    const inView = (e) => e.x > camX - cullMargin && e.x < camX + viewW + cullMargin && e.y > camY - cullMargin && e.y < camY + viewH + cullMargin;
     const drawables = [
-      ...npcs.map((n) => ({ type: 'npc', ref: n, y: n.y })),
-      ...animals.map((a) => ({ type: 'animal', ref: a, y: a.y })),
+      ...npcs.filter(inView).map((n) => ({ type: 'npc', ref: n, y: n.y })),
+      ...animals.filter(inView).map((a) => ({ type: 'animal', ref: a, y: a.y })),
       { type: 'player', ref: player, y: player.y },
     ];
     drawables.sort((a, b) => a.y - b.y);
@@ -1424,6 +1430,39 @@ export class Renderer {
         ctx.ellipse(9, 13, 5, 4, 0.3, 0, Math.PI * 2);
         ctx.fill();
         break;
+      case 'robe': // scribes/scholars/healers: a long straight-hemmed robe with a rope belt
+        ctx.fillStyle = accent;
+        ctx.beginPath();
+        ctx.moveTo(-8, -7);
+        ctx.lineTo(8, -7);
+        ctx.lineTo(10, 17);
+        ctx.lineTo(-10, 17);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-9, 3);
+        ctx.lineTo(9, 3);
+        ctx.stroke();
+        break;
+      case 'shawl': // elders: a knitted shawl draped over the shoulders
+        ctx.fillStyle = accent;
+        ctx.beginPath();
+        ctx.moveTo(-12, -8);
+        ctx.quadraticCurveTo(0, 2, 12, -8);
+        ctx.quadraticCurveTo(13, 4, 8, 13);
+        ctx.quadraticCurveTo(0, 9, -8, 13);
+        ctx.quadraticCurveTo(-13, 4, -12, -8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-8, 13);
+        ctx.lineTo(8, 13);
+        ctx.stroke();
+        break;
       default:
         break;
     }
@@ -1456,6 +1495,17 @@ export class Renderer {
       ctx.fill();
       return;
     }
+    if (outfit === 'shawl') {
+      // elders: a grey headscarf knotted at the back rather than loose hair
+      ctx.fillStyle = shade(hair, 0.1);
+      ctx.beginPath();
+      ctx.arc(0, -20, 9.5, Math.PI * 0.95, Math.PI * 2.05);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(-8, -13, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
     ctx.fillStyle = hair;
     if (outfit === 'child') {
       ctx.beginPath();
@@ -1471,6 +1521,13 @@ export class Renderer {
       ctx.fill();
       ctx.beginPath();
       ctx.arc(8, -14, 4, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (outfit === 'robe') {
+      ctx.beginPath();
+      ctx.arc(0, -21, 9, Math.PI, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, -10, 3, 0, Math.PI * 2);
       ctx.fill();
     } else {
       ctx.beginPath();

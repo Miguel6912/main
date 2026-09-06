@@ -1,9 +1,14 @@
-// NPC roster. Adding a villager means adding an entry here plus a dialogue
-// tree with the matching id in dialogue.js -- no engine changes required.
+// NPC roster. Adding a lead villager means adding an entry here plus a
+// dialogue tree with the matching id in dialogue.js -- no engine changes
+// required. The 100+ background population of Cottage Row is generated
+// separately (see data/villagers.js) and merged in by getNpcData below and
+// by main.js, rather than hand-listed here.
 //
 // schedule: array of { hour, x, y, activity }, sorted by hour. The NPC
 // system lerps position between the current and next schedule point across
 // the hour gap so movement reads as "walking to work", not teleporting.
+
+import { VILLAGERS } from './villagers.js';
 
 export const NPCS = [
   {
@@ -107,5 +112,7 @@ export const NPCS = [
 ];
 
 export function getNpcData(id) {
-  return NPCS.find((n) => n.id === id);
+  const lead = NPCS.find((n) => n.id === id);
+  if (lead) return lead;
+  return VILLAGERS.find((v) => v.id === id);
 }

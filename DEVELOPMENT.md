@@ -11,13 +11,17 @@ See `README.md` for how to run it.
 ## 1. What is currently implemented
 
 **World & time**
-- Single continuous map (2200x1900, up from the original 1800x1000) between
+- Single continuous map (2200x2980, up from the original 1800x1000) between
   a castle (west) and an enchanted forest (east, now deeper, ~320 trees),
   connected by a river with one bridge. A road leads south from the village
-  well into a new district: an orchard (apple trees around three forage
-  spots) and a still lake, home to the cider press (see "Economy" below).
-  All original village content stayed at its original coordinates -- the
-  world grew outward, nothing that already worked had to move or be
+  well into an orchard (apple trees around three forage spots) and a still
+  lake, home to the cider press (see "Economy" below), then further south
+  again into **Cottage Row**, a ~100-house residential quarter (see "NPCs &
+  dialogue"). The river deliberately ends before Cottage Row (`RIVER_END_Y`)
+  rather than running the full world height, so the new district isn't cut
+  off with only the original, distant bridge as a crossing. All original
+  village content stayed at its original coordinates -- the world grew
+  outward twice now, nothing that already worked had to move or be
   re-verified from scratch.
 - Day/night cycle with four visual phases (dawn/day/dusk/night), driving sky
   colour, a night-darkening overlay, stars, and warm window glow on
@@ -29,17 +33,41 @@ See `README.md` for how to run it.
   day". Game-time speed never affects player movement speed.
 
 **NPCs & dialogue**
-- Six named villagers (Mira the baker, Tansy the innkeeper, Bramble the
+- Six named leads (Mira the baker, Tansy the innkeeper, Bramble the
   shopkeeper, Sir Reginald the knight, Old Cobb the woodcutter, Wren the
-  curious child), each with a daily schedule (they visibly walk between
-  scheduled locations) and a distinct dialogue tree.
+  curious child), each individually hand-written in `data/npcs.js` /
+  `data/dialogue.js`: a daily schedule, a distinct outfit, and a dialogue
+  tree with its own jokes, callbacks, and (for three of them) a reaction to
+  a specific rare event.
+- **Cottage Row's ~100+ background villagers** (`data/villagerPools.js` +
+  `data/villagers.js`) are generated, not individually hand-typed one by
+  one -- but genuinely generated, not copy-pasted: a fixed-seed RNG
+  combines a name (from `FIRST_NAMES`/`SURNAMES`) with one of 24
+  hand-written professions (farmer, weaver, blacksmith, scholar, elder,
+  etc. -- each with its own outfit, workplace, and four pieces of
+  hand-written first-person flavour text) and one of 30 hand-written
+  personality quirks, to build a real per-villager `DialogueSystem` tree:
+  a named greeting, an "about yourself" line, and a one-time branching
+  decision (accept/decline a small request) with its own friendship
+  payoff -- the same node/condition/action shape the six leads use, so
+  `DialogueSystem` needed zero changes. Every villager also gets a home
+  (a Cottage Row door) and a two-stop daily schedule (home at night, a
+  profession-appropriate spot by day -- fields, lakeside, forest edge, or
+  their own doorstep) via `NPC.js`'s existing lerp-between-waypoints
+  movement. Honest framing: the *combinatorics* are individual (a given
+  name+profession+quirk combination is very unlikely to repeat across
+  ~100 villagers), but the four profession flavour lines and the greeting/
+  decision *template* are shared across everyone in that profession --
+  it's closer to "everyone has a real, distinct character" than to
+  "everyone has 100% bespoke, never-reused dialogue prose."
 - A generic, data-driven dialogue engine: conditions (met-before, time of
   day, season, friendship level, world/NPC-memory flags, job state) gate
   which line/option is shown; actions (set flags, change friendship,
   give/take items, accept/turn in jobs, open the shop) are executed
   generically. New NPCs or new conversations are content, not code.
 - Per-NPC memory: friendship level and small per-NPC flags (has met the
-  player, has heard a particular story, etc).
+  player, has heard a particular story, has resolved their one-time
+  decision, etc).
 - Ambient wildlife (cats, dogs, birds, a horse) wander randomly near a home
   point -- pure atmosphere, no dialogue or economy tie-in. Adding one is a
   one-line entry in `data/animals.js`; a new *species* needs a movement
@@ -112,18 +140,29 @@ See `README.md` for how to run it.
   fence around the property plot, a hanging sign beside every building
   door, a proper roofed stone well, barrels and flower pots by doorways)
   adds "little market street" detail in the same style.
-- Every character (all six NPCs, the player, and ambient animals) is drawn
-  through one shared `Renderer._drawCharacter` / `_drawAnimal` pipeline: a
-  shadow, alternating legs, a shaded tunic-shaped body, an outfit-specific
-  silhouette accessory (apron/barmaid/vest/armor/cloak/child/traveler --
-  see `outfit` in `data/npcs.js`), then head/hair. Limbs use a real
-  contralateral gait (left arm swings with right leg, and vice versa) driven
-  by each entity's own walk-phase clock, not a uniform bob; four-legged
-  animals trot with diagonal leg pairs (front-left+back-right, then the
-  other pair) rather than moving all four legs in lockstep, and birds hop
-  on two legs with a wing flutter. New NPCs/animals get a look by picking
-  an existing `outfit`/species case or adding a new one -- not by writing a
-  new draw routine per character.
+- Every character (all NPCs -- leads and Cottage Row alike --, the player,
+  and ambient animals) is drawn through one shared `Renderer._drawCharacter`
+  / `_drawAnimal` pipeline: a shadow, alternating legs, a shaded
+  tunic-shaped body, an outfit-specific silhouette accessory
+  (apron/barmaid/vest/armor/cloak/child/traveler/robe/shawl -- see `outfit`
+  in `data/npcs.js` / `data/villagerPools.js`), then head/hair. Limbs use a
+  real contralateral gait (left arm swings with right leg, and vice versa)
+  driven by each entity's own walk-phase clock, not a uniform bob;
+  four-legged animals trot with diagonal leg pairs (front-left+back-right,
+  then the other pair) rather than moving all four legs in lockstep, and
+  birds hop on two legs with a wing flutter. New NPCs/animals get a look by
+  picking an existing `outfit`/species case or adding a new one -- not by
+  writing a new draw routine per character.
+- Cottage Row's ~100 cottages are drawn by a deliberately cheap
+  `Renderer._drawCottage` (about a third of the draw calls a named landmark
+  building costs -- flat wall + triangle thatch + one door + one window,
+  no per-building stone-mottling pass), and the NPC/animal draw list is
+  culled to a margin around the camera before sorting/drawing each frame
+  (`render()`'s `cullMargin`) -- so per-frame cost tracks what's on screen,
+  not the size of the population. Measured in a headless run standing in
+  the densest point of Cottage Row at midnight (everyone home, ~70 NPCs
+  within camera range at once): ~46-56 FPS in a software-rendered headless
+  Chromium; real browsers with GPU compositing should do noticeably better.
 - Comic/warm tone in dialogue and event text (Sir Reginald's exaggerated
   bravado, Mira's temperamental oven, Wren's wide-eyed belief in magic)
   aiming for Fable-style charm without borrowing any of its content.
@@ -172,6 +211,11 @@ See `README.md` for how to run it.
 - **No mobile/touch input**: keyboard only (WASD/arrows + E + Esc).
 - **Single save slot**: saving overwrites the previous save; there's no
   multiple-slot UI.
+- **Cottage Row's flavour text is templated per profession, not unique per
+  villager**: two "Weaver" villagers share the same about-me/decision
+  wording (only their name, home, schedule, appearance, and friendship
+  state differ) -- see "NPCs & dialogue" above for the honest breakdown of
+  what's individually generated vs shared per profession.
 - **Gift-giving isn't wired up**: `fine_ribbon` and `pressed_flower` are
   purchasable and flagged `giftItem` in `data/shopItems.js`, but there is
   no dialogue action yet that lets the player hand an item to an NPC for a
@@ -187,9 +231,17 @@ See `README.md` for how to run it.
 The brief asked for data-driven, additive growth. Concretely, here's what
 that buys you for Phase 2+:
 
-- **New NPC**: add an entry to `data/npcs.js` (schedule + appearance) and a
-  matching tree in `data/dialogue.js`. `MemorySystem` and `DialogueSystem`
-  need no changes.
+- **New lead NPC**: add an entry to `data/npcs.js` (schedule + appearance)
+  and a matching tree in `data/dialogue.js`. `MemorySystem` and
+  `DialogueSystem` need no changes.
+- **New background villager profession** (for Cottage Row): add one entry
+  to `PROFESSIONS` in `data/villagerPools.js` (an outfit, a work zone, and
+  the four flavour-text functions) -- `data/villagers.js`'s generator picks
+  it up automatically for future-generated villagers. **Growing Cottage Row
+  itself** (more houses) is the same story as growing the world: extend
+  `generateNeighborhood()`'s zone in `world/MapData.js`, and the villager
+  generator, obstacle list, and cottage renderer all follow from
+  `NEIGHBORHOOD_HOUSES` automatically.
 - **New random event** (ordinary or magical): add one object to
   `data/events.js`. Season/phase/cooldown/proximity/effects are all
   declarative; `EventSystem` needs no changes. A new *effect type* (e.g.
