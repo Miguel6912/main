@@ -46,6 +46,28 @@ export const BUILDINGS = [
 // river obstacle segments (y 460-560).
 export const RIVER = { x: 1130, y: 0, w: 40, h: WORLD_HEIGHT, bridgeY: 460, bridgeH: 100 };
 
+// Decorative fence runs (purely visual, not obstacles -- consistent with
+// how decorative trees already work). Each is a straight line; the
+// renderer spaces posts + rails evenly along it.
+export const FENCES = [
+  { x1: 718, y1: 494, x2: 800, y2: 494 },
+  { x1: 718, y1: 494, x2: 718, y2: 550 },
+  { x1: 800, y1: 494, x2: 800, y2: 550 },
+  { x1: 718, y1: 550, x2: 760, y2: 550 },
+  { x1: 780, y1: 550, x2: 800, y2: 550 },
+];
+
+// Small decorative clutter near building fronts -- purely cosmetic, placed
+// at each building's doorway with a fixed offset so they read as "sitting
+// by the door" rather than floating in the open field.
+export const PROPS = [
+  { type: 'flowerpot', x: 634, y: 474 }, // bakery
+  { type: 'flowerpot', x: 1034, y: 494 }, // inn
+  { type: 'flowerpot', x: 1419, y: 614 }, // cobb's hut
+  { type: 'barrel', x: 804, y: 676 }, // store
+  { type: 'barrel', x: 818, y: 684 }, // store
+];
+
 // Interactive points that are not NPCs -- shops, quest boards, forage spots.
 export const HOTSPOTS = [
   { id: 'property', x: 760, y: 520, radius: 50, label: 'Empty Plot', prompt: 'Look at the plot' },

@@ -11,6 +11,8 @@ export const NPCS = [
     name: 'Mira Thistledown',
     color: '#e2793d',
     accent: '#fff2df',
+    outfit: 'apron',
+    hair: '#7a4a2e',
     title: 'the Baker',
     blurb: 'Village baker with flour permanently in her hair and an opinion on everything.',
     schedule: [
@@ -26,6 +28,8 @@ export const NPCS = [
     name: 'Tansy Goodbarrel',
     color: '#7a9e5c',
     accent: '#fbf6e3',
+    outfit: 'barmaid',
+    hair: '#b8622e',
     title: 'the Innkeeper',
     blurb: 'Runs the inn, knows everyone\'s business, forgets nothing.',
     schedule: [
@@ -39,6 +43,8 @@ export const NPCS = [
     name: 'Bramble Nutmeg',
     color: '#8a5fae',
     accent: '#efe2c8',
+    outfit: 'vest',
+    hair: '#4a4238',
     title: 'the Shopkeeper',
     blurb: 'Sells a bit of everything and always seems to know what you actually need.',
     schedule: [
@@ -52,6 +58,8 @@ export const NPCS = [
     name: 'Sir Reginald Puddlefoot',
     color: '#4c6fa8',
     accent: '#dfe7f2',
+    outfit: 'armor',
+    hair: '#d9c48a',
     title: 'the Knight',
     blurb: 'Self-appointed village protector. Braver in stories than in practice.',
     schedule: [
@@ -68,6 +76,8 @@ export const NPCS = [
     name: 'Old Cobb',
     color: '#5c6b3f',
     accent: '#cbb995',
+    outfit: 'cloak',
+    hair: '#8a8a86',
     title: 'the Woodcutter',
     blurb: 'Lives at the forest\'s edge. Gruff, but the forest listens to him.',
     schedule: [
@@ -82,6 +92,8 @@ export const NPCS = [
     name: 'Wren',
     color: '#d99bc4',
     accent: '#fff0f8',
+    outfit: 'child',
+    hair: '#5a3d2a',
     title: 'a curious child',
     blurb: 'No one quite remembers whose child Wren is. The village looks after her anyway.',
     schedule: [

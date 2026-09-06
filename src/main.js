@@ -9,7 +9,9 @@ import { PLAYER_SPAWN, HOTSPOTS, FORAGE_SPOTS } from './world/MapData.js';
 
 import { Player } from './entities/Player.js';
 import { NPC } from './entities/NPC.js';
+import { Animal } from './entities/Animal.js';
 import { NPCS, getNpcData } from './data/npcs.js';
+import { ANIMALS } from './data/animals.js';
 import { ITEMS } from './data/shopItems.js';
 
 import { MemorySystem } from './systems/MemorySystem.js';
@@ -45,6 +47,7 @@ const rng = new RNG();
 const time = new TimeSystem(bus);
 const player = new Player(PLAYER_SPAWN.x, PLAYER_SPAWN.y);
 const npcs = NPCS.map((d) => new NPC(d));
+const animals = ANIMALS.map((d) => new Animal(d, rng));
 const memory = new MemorySystem(NPCS.map((n) => n.id));
 const economy = new EconomySystem(bus);
 const property = new PropertySystem(bus);
@@ -266,6 +269,7 @@ function update(dt) {
   const blocked = ui.anyModalOpen();
   player.update(dt, blocked ? { isDown: () => false } : input);
   for (const npc of npcs) npc.update(dt, time);
+  for (const animal of animals) animal.update(dt);
 
   if (!blocked) eventSystem.update(dt, { player, time });
 
@@ -300,6 +304,7 @@ function render() {
   renderer.render({
     player,
     npcs,
+    animals,
     time,
     economy,
     propertyLevel: property.level,

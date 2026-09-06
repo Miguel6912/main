@@ -34,6 +34,10 @@ See `README.md` for how to run it.
   generically. New NPCs or new conversations are content, not code.
 - Per-NPC memory: friendship level and small per-NPC flags (has met the
   player, has heard a particular story, etc).
+- Ambient wildlife (cats, dogs, birds, a horse) wander randomly near a home
+  point -- pure atmosphere, no dialogue or economy tie-in. Adding one is a
+  one-line entry in `data/animals.js`; a new *species* needs a movement
+  profile there and a matching shape in `Renderer._drawAnimal`.
 
 **Random events**
 - A weighted, condition-gated event roller (season/phase/cooldown-eligible
@@ -87,9 +91,24 @@ See `README.md` for how to run it.
   road with soft mottling instead of a flat tinted strip, a large landmark
   tree over the village well, and a soft screen-space vignette for depth.
   Decorative trees and the meadow ground texture are real baked sprites
-  (see "Art assets" below); castle, river, NPCs, player, particles, and UI
-  rings stay procedural vector art, generated once from a fixed seed where
-  relevant so decoration is stable across reloads.
+  (see "Art assets" below); castle, river, particles, and UI rings stay
+  procedural vector art, generated once from a fixed seed where relevant so
+  decoration is stable across reloads. Village square dressing (a picket
+  fence around the property plot, a hanging sign beside every building
+  door, a proper roofed stone well, barrels and flower pots by doorways)
+  adds "little market street" detail in the same style.
+- Every character (all six NPCs, the player, and ambient animals) is drawn
+  through one shared `Renderer._drawCharacter` / `_drawAnimal` pipeline: a
+  shadow, alternating legs, a shaded tunic-shaped body, an outfit-specific
+  silhouette accessory (apron/barmaid/vest/armor/cloak/child/traveler --
+  see `outfit` in `data/npcs.js`), then head/hair. Limbs use a real
+  contralateral gait (left arm swings with right leg, and vice versa) driven
+  by each entity's own walk-phase clock, not a uniform bob; four-legged
+  animals trot with diagonal leg pairs (front-left+back-right, then the
+  other pair) rather than moving all four legs in lockstep, and birds hop
+  on two legs with a wing flutter. New NPCs/animals get a look by picking
+  an existing `outfit`/species case or adding a new one -- not by writing a
+  new draw routine per character.
 - Comic/warm tone in dialogue and event text (Sir Reginald's exaggerated
   bravado, Mira's temperamental oven, Wren's wide-eyed belief in magic)
   aiming for Fable-style charm without borrowing any of its content.

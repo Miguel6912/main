@@ -1,4 +1,4 @@
-import { WORLD_WIDTH, WORLD_HEIGHT, BUILDINGS, RIVER, HOTSPOTS, FORAGE_SPOTS, OBSTACLES } from '../world/MapData.js';
+import { WORLD_WIDTH, WORLD_HEIGHT, BUILDINGS, RIVER, HOTSPOTS, FORAGE_SPOTS, OBSTACLES, FENCES, PROPS } from '../world/MapData.js';
 import { getSkyColor, getNightOverlayAlpha, SEASON_PALETTE, FOLIAGE_PALETTE, lerpColor } from './Palette.js';
 import { RNG } from '../core/RNG.js';
 import { PROPERTY_LEVELS } from '../data/properties.js';
@@ -109,10 +109,19 @@ export class Renderer {
       }
       this.buildingTextures[b.id] = { wallSpots, thatchBumps };
     }
+
+    const castleRng = new RNG(133);
+    this.castleMottles = [];
+    for (let i = 0; i < 40; i++) {
+      this.castleMottles.push({
+        x: castleRng.range(62, 278), y: castleRng.range(302, 598),
+        r: castleRng.range(4, 10), dark: castleRng.chance(0.5),
+      });
+    }
   }
 
   render(state) {
-    const { player, npcs, time, propertyLevel, particles, interactTarget, clockT } = state;
+    const { player, npcs, animals, time, propertyLevel, particles, interactTarget, clockT } = state;
     const { ctx, canvas } = this;
     const viewW = canvas.width;
     const viewH = canvas.height;
@@ -132,20 +141,25 @@ export class Renderer {
     this._drawCastle();
     this._drawRiver(season);
     this._drawRoads();
+    this._drawFences();
     this._drawForestBackdrop(season, 'back');
     this._drawDecor(season);
     this._drawTree(HEART_TREE.x, HEART_TREE.y, HEART_TREE.scale, season);
     this._drawHotspots(propertyLevel, interactTarget);
     this._drawForageSpots(state.economy, time.dayCount, interactTarget);
     this._drawBuildings(time.phase, interactTarget);
+    this._drawBuildingSigns();
+    this._drawProps();
 
     const drawables = [
       ...npcs.map((n) => ({ type: 'npc', ref: n, y: n.y })),
+      ...animals.map((a) => ({ type: 'animal', ref: a, y: a.y })),
       { type: 'player', ref: player, y: player.y },
     ];
     drawables.sort((a, b) => a.y - b.y);
     for (const d of drawables) {
       if (d.type === 'npc') this._drawNpc(d.ref, interactTarget);
+      else if (d.type === 'animal') this._drawAnimal(d.ref);
       else this._drawPlayer(d.ref);
     }
 
@@ -263,6 +277,12 @@ export class Renderer {
     const { ctx } = this;
     ctx.fillStyle = '#7d8592';
     ctx.fillRect(60, 300, 220, 300);
+    for (const m of this.castleMottles) {
+      ctx.fillStyle = m.dark ? 'rgba(50,54,62,0.18)' : 'rgba(255,255,255,0.15)';
+      ctx.beginPath();
+      ctx.ellipse(m.x, m.y, m.r, m.r * 0.8, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.fillStyle = '#6b7280';
     for (const tx of [60, 150, 250]) {
       ctx.fillRect(tx, 260, 40, 60);
@@ -431,6 +451,115 @@ export class Renderer {
     }
   }
 
+  // A wooden hanging sign beside each building's door -- a plain post,
+  // an arm, and a board tinted with the building's accent colour -- for
+  // the "little market street" character from the reference image.
+  _drawBuildingSigns() {
+    const { ctx } = this;
+    for (const b of BUILDINGS) {
+      const sx = b.x + b.w + 16;
+      const sy = b.y + b.h * 0.62;
+      ctx.fillStyle = 'rgba(0,0,0,0.15)';
+      ctx.beginPath();
+      ctx.ellipse(sx, sy + 34, 6, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#4a3220';
+      ctx.fillRect(sx - 2, sy - 8, 4, 40);
+      ctx.fillRect(sx - 2, sy - 8, 22, 4);
+
+      ctx.save();
+      ctx.translate(sx + 17, sy + 8);
+      ctx.rotate(0.03);
+      ctx.fillStyle = '#7a5432';
+      ctx.fillRect(-9, 0, 18, 22);
+      ctx.strokeStyle = b.accent;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-9, 0, 18, 22);
+      ctx.restore();
+    }
+  }
+
+  // Small clutter (flower pots, barrels) sitting on the ground at fixed
+  // doorside spots -- see data/MapData.js PROPS. Purely decorative.
+  _drawProps() {
+    const { ctx } = this;
+    for (const p of PROPS) {
+      ctx.fillStyle = 'rgba(0,0,0,0.15)';
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y + 8, 8, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (p.type === 'barrel') {
+        ctx.fillStyle = '#8a6a42';
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, 8, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(58,42,28,0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y - 4, 8, 2.6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y + 4, 8, 2.6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (p.type === 'flowerpot') {
+        ctx.fillStyle = '#a9754a';
+        ctx.beginPath();
+        ctx.moveTo(p.x - 7, p.y);
+        ctx.lineTo(p.x + 7, p.y);
+        ctx.lineTo(p.x + 5, p.y + 10);
+        ctx.lineTo(p.x - 5, p.y + 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#4f8a3a';
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y - 2, 8, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        const petalColors = ['#e58fb0', '#f0c94a', '#ffffff'];
+        for (let i = 0; i < 3; i++) {
+          ctx.fillStyle = petalColors[i];
+          ctx.beginPath();
+          ctx.arc(p.x - 5 + i * 5, p.y - 6, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  // A simple picket-style fence: two rails plus evenly spaced posts along
+  // each straight run in data/MapData.js FENCES.
+  _drawFences() {
+    const { ctx } = this;
+    for (const f of FENCES) {
+      const dx = f.x2 - f.x1;
+      const dy = f.y2 - f.y1;
+      const len = Math.hypot(dx, dy) || 1;
+
+      ctx.strokeStyle = '#8a6a42';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(f.x1, f.y1 - 5);
+      ctx.lineTo(f.x2, f.y2 - 5);
+      ctx.moveTo(f.x1, f.y1 - 12);
+      ctx.lineTo(f.x2, f.y2 - 12);
+      ctx.stroke();
+
+      const count = Math.max(1, Math.round(len / 22));
+      for (let i = 0; i <= count; i++) {
+        const t = i / count;
+        const x = f.x1 + dx * t;
+        const y = f.y1 + dy * t;
+        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        ctx.beginPath();
+        ctx.ellipse(x, y + 2, 4, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#6b4a2e';
+        ctx.fillRect(x - 2, y - 17, 4, 17);
+      }
+    }
+  }
+
   // Rough-plastered stone rather than a flat paint fill: a base tone,
   // scattered light/dark mottling, faint coursing lines, a dark foundation
   // strip, and exposed dark timber corner posts + a header beam under the
@@ -541,24 +670,7 @@ export class Renderer {
         const tier = PROPERTY_LEVELS[propertyLevel];
         this._drawPropertyPlot(h.x, h.y, propertyLevel, tier);
       } else if (h.id === 'well') {
-        ctx.fillStyle = '#8a8f96';
-        ctx.beginPath();
-        ctx.ellipse(h.x, h.y, 26, 18, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#3d6b7a';
-        ctx.beginPath();
-        ctx.ellipse(h.x, h.y - 3, 18, 11, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#5c5148';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(h.x - 20, h.y - 20);
-        ctx.lineTo(h.x - 20, h.y - 40);
-        ctx.moveTo(h.x + 20, h.y - 20);
-        ctx.lineTo(h.x + 20, h.y - 40);
-        ctx.moveTo(h.x - 20, h.y - 40);
-        ctx.lineTo(h.x + 20, h.y - 40);
-        ctx.stroke();
+        this._drawWell(h.x, h.y);
       } else if (h.id === 'jobboard') {
         ctx.fillStyle = '#7a5432';
         ctx.fillRect(h.x - 4, h.y - 10, 8, 40);
@@ -572,6 +684,70 @@ export class Renderer {
         this._drawInteractRing(h.x, h.y, h.radius * 0.7);
       }
     }
+  }
+
+  // A proper stone wishing-well: mottled stone ring, water, twin posts,
+  // a small peaked thatch roof, and a bucket on a rope -- replacing the
+  // old flat two-tone ellipse.
+  _drawWell(x, y) {
+    const { ctx } = this;
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 20, 30, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#a9a293';
+    ctx.beginPath();
+    ctx.ellipse(x, y, 26, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(70,60,50,0.2)';
+    for (const [ox, oy, r] of [[-14, -4, 4], [11, 6, 3.5], [2, -9, 3], [-6, 9, 3.5]]) {
+      ctx.beginPath();
+      ctx.ellipse(x + ox, y + oy, r, r * 0.75, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = '#3d6b7a';
+    ctx.beginPath();
+    ctx.ellipse(x, y - 3, 17, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(x - 4, y - 6, 6, 2.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#4a3220';
+    ctx.fillRect(x - 23, y - 46, 5, 28);
+    ctx.fillRect(x + 18, y - 46, 5, 28);
+
+    const roofColor = '#c9a35a';
+    ctx.fillStyle = roofColor;
+    ctx.beginPath();
+    ctx.moveTo(x - 31, y - 42);
+    ctx.lineTo(x, y - 58);
+    ctx.lineTo(x + 31, y - 42);
+    ctx.lineTo(x + 25, y - 40);
+    ctx.lineTo(x, y - 53);
+    ctx.lineTo(x - 25, y - 40);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = shade(roofColor, -0.18);
+    ctx.beginPath();
+    ctx.moveTo(x, y - 58);
+    ctx.lineTo(x + 31, y - 42);
+    ctx.lineTo(x + 25, y - 40);
+    ctx.lineTo(x, y - 53);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#3a2a1a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 40);
+    ctx.lineTo(x, y - 15);
+    ctx.stroke();
+    ctx.fillStyle = '#6b4a2e';
+    ctx.fillRect(x - 5, y - 17, 10, 8);
   }
 
   _drawPropertyPlot(x, y, level, tier) {
@@ -640,69 +816,467 @@ export class Renderer {
   }
 
   _drawNpc(npc, interactTarget) {
-    const { ctx } = this;
-    const bob = npc.moving ? Math.sin(npc.bobT * 8) * 2 : Math.sin(npc.bobT * 2) * 1;
-    ctx.save();
-    ctx.translate(npc.x, npc.y + bob);
-    ctx.fillStyle = 'rgba(0,0,0,0.18)';
-    ctx.beginPath();
-    ctx.ellipse(0, 18, 14, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = npc.data.color;
-    ctx.beginPath();
-    ctx.ellipse(0, 6, 12, 15, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = npc.data.accent;
-    ctx.beginPath();
-    ctx.arc(0, -12, 10, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#2b2320';
-    ctx.beginPath();
-    ctx.arc(-3, -13, 1.6, 0, Math.PI * 2);
-    ctx.arc(3, -13, 1.6, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.font = '12px Georgia, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(npc.data.name, 0, -34);
-    ctx.restore();
-
+    const walkPhase = npc.bobT * 9;
+    const bob = npc.moving ? Math.abs(Math.sin(walkPhase)) * 2 : Math.sin(npc.bobT * 2) * 1;
+    const d = npc.data;
+    this._drawCharacter({
+      x: npc.x, y: npc.y, bob, scale: d.outfit === 'child' ? 0.8 : 1,
+      bodyColor: d.color, accent: d.accent, hair: d.hair || '#5a3d2a',
+      outfit: d.outfit || 'plain', label: d.name, facing: npc.facing,
+      moving: npc.moving, walkPhase,
+    });
     if (interactTarget?.type === 'npc' && interactTarget.id === npc.id) {
       this._drawInteractRing(npc.x, npc.y + 4, 26);
     }
   }
 
   _drawPlayer(player) {
+    const walkPhase = player.animT * 11;
+    const bob = player.moving ? Math.abs(Math.sin(walkPhase)) * 2 : 0;
+    this._drawCharacter({
+      x: player.x, y: player.y, bob, scale: 1,
+      bodyColor: '#4a6fa5', accent: '#8a6a42', hair: '#6b4a2e',
+      outfit: 'traveler', facing: player.facing,
+      moving: player.moving, walkPhase,
+    });
+  }
+
+  // Ambient wildlife. Quadrupeds (cat/dog/horse) trot with diagonal leg
+  // pairs moving together (front-left+back-right, then front-right+
+  // back-left) -- the real gait, not all four legs in lockstep. Birds hop
+  // on two legs with a wing-flutter instead.
+  _drawAnimal(animal) {
     const { ctx } = this;
-    const bob = player.moving ? Math.sin(player.animT * 10) * 2 : 0;
+    const walkPhase = animal.bobT * 10;
+    const stride = animal.moving ? Math.sin(walkPhase) : 0;
+    const facingLeft = animal.facing === 'left';
+    const bob = animal.moving ? Math.abs(Math.sin(walkPhase)) * 1.6 : Math.sin(animal.bobT * 1.5) * 0.6;
+
     ctx.save();
-    ctx.translate(player.x, player.y + bob);
+    ctx.translate(animal.x, animal.y + bob);
+    ctx.scale((facingLeft ? -1 : 1) * animal.profile.scale, animal.profile.scale);
+
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath();
-    ctx.ellipse(0, 18, 15, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 16, 16, 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#4a6fa5';
+    if (animal.type === 'bird') {
+      this._drawBirdShape(animal.color, stride, animal.moving);
+    } else {
+      this._drawQuadrupedShape(animal.type, animal.color, stride);
+    }
+
+    ctx.restore();
+  }
+
+  _drawQuadrupedShape(type, color, stride) {
+    const { ctx } = this;
+    const isHorse = type === 'horse';
+    const legShade = shade(color, -0.35);
+    const legLen = isHorse ? 20 : 9;
+    const bodyLen = isHorse ? 24 : 14;
+    const bodyHeightRatio = isHorse ? 0.4 : 0.55;
+    // Diagonal pairs: (front-left, back-right) share `stride`, the other
+    // pair gets the opposite phase.
+    const legs = [
+      { x: -bodyLen * 0.55, phase: stride }, // back-left
+      { x: -bodyLen * 0.55, phase: -stride, side: 1 }, // back-right
+      { x: bodyLen * 0.5, phase: -stride }, // front-left
+      { x: bodyLen * 0.5, phase: stride, side: 1 }, // front-right
+    ];
+    ctx.fillStyle = legShade;
+    for (const leg of legs) {
+      const lift = Math.max(0, leg.phase);
+      ctx.beginPath();
+      ctx.ellipse(leg.x + (leg.side ? 2 : -2), bodyLen * bodyHeightRatio - lift * 2, 2.6, legLen / 2 - lift * 1.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.ellipse(0, 6, 13, 16, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, bodyLen, bodyLen * bodyHeightRatio, 0, 0, Math.PI * 2);
     ctx.fill();
-
-    ctx.fillStyle = '#f0c9a0';
+    ctx.fillStyle = shade(color, -0.18);
     ctx.beginPath();
-    ctx.arc(0, -13, 11, 0, Math.PI * 2);
+    ctx.ellipse(-bodyLen * 0.3, bodyLen * bodyHeightRatio * 0.35, bodyLen * 0.55, bodyLen * bodyHeightRatio * 0.55, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    const dir = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[player.facing] || [0, 1];
+    if (isHorse) {
+      const neckTopX = bodyLen * 0.72;
+      const neckTopY = -bodyLen * 0.82;
+      ctx.fillStyle = shade(color, -0.05);
+      ctx.beginPath();
+      ctx.moveTo(bodyLen * 0.55, -bodyLen * 0.1);
+      ctx.quadraticCurveTo(bodyLen * 0.62, -bodyLen * 0.55, neckTopX, neckTopY);
+      ctx.lineTo(neckTopX + 9, neckTopY + 4);
+      ctx.quadraticCurveTo(bodyLen * 0.85, -bodyLen * 0.35, bodyLen * 0.92, -bodyLen * 0.05);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = shade(color, -0.4);
+      ctx.beginPath();
+      ctx.moveTo(bodyLen * 0.58, -bodyLen * 0.15);
+      ctx.quadraticCurveTo(bodyLen * 0.6, -bodyLen * 0.55, neckTopX - 2, neckTopY + 2);
+      ctx.lineTo(neckTopX + 4, neckTopY + 5);
+      ctx.quadraticCurveTo(bodyLen * 0.72, -bodyLen * 0.4, bodyLen * 0.72, -bodyLen * 0.1);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.ellipse(neckTopX + 11, neckTopY + 6, 11, 5.5, -0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(neckTopX - 1, neckTopY - 5);
+      ctx.lineTo(neckTopX + 4, neckTopY - 11);
+      ctx.lineTo(neckTopX + 6, neckTopY - 3);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = shade(color, -0.4);
+      ctx.beginPath();
+      ctx.ellipse(-bodyLen * 0.95, -bodyLen * 0.15, 3, 11, -0.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(neckTopX - 1, neckTopY + 1, 2.2, 6, 0.35, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#2b2320';
+      ctx.beginPath();
+      ctx.arc(neckTopX + 18, neckTopY + 4, 1.4, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+
+    // head/neck (cat/dog)
+    const headX = bodyLen * 0.95;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(headX, -bodyLen * 0.25, bodyLen * 0.32, bodyLen * 0.28, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(headX - 6, -bodyLen * 0.4);
+      ctx.arc(headX - 6, -bodyLen * 0.4, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(headX + 4, -bodyLen * 0.42);
+      ctx.arc(headX + 4, -bodyLen * 0.42, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = type === 'dog' ? 3 : 2;
+      ctx.beginPath();
+      ctx.moveTo(-bodyLen * 0.9, -2);
+      if (type === 'dog') ctx.quadraticCurveTo(-bodyLen * 1.2, -bodyLen * 0.3, -bodyLen * 1.05, -bodyLen * 0.55);
+      else ctx.quadraticCurveTo(-bodyLen * 1.3, 2, -bodyLen * 1.1, -bodyLen * 0.35);
+      ctx.stroke();
+    }
     ctx.fillStyle = '#2b2320';
     ctx.beginPath();
-    ctx.arc(dir[0] * 4 - 3, -14 + dir[1] * 2, 1.7, 0, Math.PI * 2);
-    ctx.arc(dir[0] * 4 + 3, -14 + dir[1] * 2, 1.7, 0, Math.PI * 2);
+    ctx.arc(headX + 3, -bodyLen * 0.28, 1.4, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  _drawBirdShape(color, stride, moving) {
+    const { ctx } = this;
+    ctx.fillStyle = shade(color, -0.3);
+    const lift = moving ? Math.abs(stride) : 0;
+    ctx.beginPath();
+    ctx.ellipse(-1.5, 7 - lift, 1, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(1.5, 7 - (moving ? Math.abs(Math.sin(stride + Math.PI)) : 0), 1, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 8, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const wingFlap = moving ? Math.abs(Math.sin(stride * 2)) * 0.6 : 0;
+    ctx.fillStyle = shade(color, -0.2);
+    ctx.beginPath();
+    ctx.ellipse(-2, -1 - wingFlap * 4, 5, 3, -0.3 - wingFlap, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(7, -4, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e0a13a';
+    ctx.beginPath();
+    ctx.moveTo(10, -4);
+    ctx.lineTo(14, -3);
+    ctx.lineTo(10, -2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#2b2320';
+    ctx.beginPath();
+    ctx.arc(8.5, -5, 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Shared layered character sprite: shadow, legs, a tunic-shaped body with
+  // simple two-tone shading for volume (same shade() trick as the roofs),
+  // an outfit-specific silhouette accessory, then head/hair/eyes. Every NPC
+  // and the player run through this so a new look is a new `outfit` case,
+  // not a new draw routine.
+  _drawCharacter({ x, y, bob, scale = 1, bodyColor, accent, hair, outfit, label, facing = 'down', moving = false, walkPhase = 0 }) {
+    const { ctx } = this;
+    ctx.save();
+    ctx.translate(x, y + bob);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(0, 18, 14, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Legs alternate (one lifts/shortens while the other plants/lengthens)
+    // rather than moving in lockstep -- a real stride, not a shuffle.
+    const stride = moving ? Math.sin(walkPhase) : 0;
+    const legShade = shade(bodyColor, -0.4);
+    ctx.fillStyle = legShade;
+    ctx.beginPath();
+    ctx.ellipse(-5, 13 - stride * 2, 4, 7 - Math.abs(stride) * 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(5, 13 + stride * 2, 4, 7 - Math.abs(stride) * 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // tunic body
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath();
+    ctx.moveTo(-7, -7);
+    ctx.quadraticCurveTo(-14, 3, -13, 15);
+    ctx.quadraticCurveTo(0, 20, 13, 15);
+    ctx.quadraticCurveTo(14, 3, 7, -7);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = shade(bodyColor, -0.2);
+    ctx.beginPath();
+    ctx.moveTo(2, -7);
+    ctx.quadraticCurveTo(0, 4, 3, 15);
+    ctx.quadraticCurveTo(9, 11, 13, 15);
+    ctx.quadraticCurveTo(14, 3, 7, -7);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = shade(bodyColor, 0.18);
+    ctx.beginPath();
+    ctx.ellipse(-6, -1, 3.5, 9, 0.25, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Arms swing opposite their same-side leg (left arm forward with right
+    // leg forward, and vice versa) -- the natural contralateral gait,
+    // rather than both arms/legs on one side moving together. Drawn as
+    // sleeves resting over the tunic's shoulders.
+    ctx.fillStyle = shade(bodyColor, -0.08);
+    ctx.beginPath();
+    ctx.ellipse(-11, 1 + stride * 3, 3.2, 6.5, -stride * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(11, 1 - stride * 3, 3.2, 6.5, stride * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    this._drawOutfitDetail(outfit, accent, hair);
+
+    // head
+    const skin = '#f0c9a0';
+    ctx.fillStyle = skin;
+    ctx.beginPath();
+    ctx.arc(0, -15, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = shade(skin, -0.12);
+    ctx.beginPath();
+    ctx.arc(4, -12, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = skin;
+    ctx.beginPath();
+    ctx.arc(-1, -15, 8.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    this._drawHairOrHelmet(outfit, hair);
+
+    const dir = { left: [-1, 0], right: [1, 0], up: [0, -0.6], down: [0, 0.6] }[facing] || [0, 0.6];
+    ctx.fillStyle = '#2b2320';
+    ctx.beginPath();
+    ctx.arc(dir[0] * 3.5 - 3, -15 + dir[1] * 2, 1.5, 0, Math.PI * 2);
+    ctx.arc(dir[0] * 3.5 + 3, -15 + dir[1] * 2, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.restore();
+
+    if (label) {
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.font = '12px Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, x, y + bob - 34 * scale);
+    }
+  }
+
+  _drawOutfitDetail(outfit, accent, hair) {
+    const { ctx } = this;
+    switch (outfit) {
+      case 'apron': // Mira: cream bib apron over the tunic
+        ctx.fillStyle = accent;
+        ctx.beginPath();
+        ctx.moveTo(-6, -4);
+        ctx.lineTo(6, -4);
+        ctx.lineTo(5, 15);
+        ctx.lineTo(-5, 15);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-6, -4);
+        ctx.lineTo(-9, -8);
+        ctx.moveTo(6, -4);
+        ctx.lineTo(9, -8);
+        ctx.stroke();
+        break;
+      case 'barmaid': // Tansy: darker underskirt hem + a white collar
+        ctx.fillStyle = shade(accent, -0.1);
+        ctx.beginPath();
+        ctx.moveTo(-11, 4);
+        ctx.quadraticCurveTo(0, 10, 12, 4);
+        ctx.quadraticCurveTo(13, 10, 12, 15);
+        ctx.quadraticCurveTo(0, 19, -12, 15);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#fbf6e3';
+        ctx.beginPath();
+        ctx.ellipse(0, -6, 5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      case 'vest': // Bramble: buttoned vest panel
+        ctx.fillStyle = accent;
+        ctx.beginPath();
+        ctx.moveTo(-5, -6);
+        ctx.lineTo(5, -6);
+        ctx.lineTo(4, 13);
+        ctx.lineTo(-4, 13);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        for (const by of [-1, 4, 9]) {
+          ctx.beginPath();
+          ctx.arc(0, by, 0.9, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        break;
+      case 'armor': // Reginald: pauldrons + a chest strap
+        ctx.fillStyle = shade(accent, -0.1);
+        ctx.beginPath();
+        ctx.arc(-11, -5, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(11, -5, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(80,60,30,0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-8, -6);
+        ctx.lineTo(8, 12);
+        ctx.stroke();
+        break;
+      case 'cloak': // Old Cobb: heavy hood/cloak overlapping the shoulders
+        ctx.fillStyle = shade(accent, -0.15);
+        ctx.beginPath();
+        ctx.moveTo(-10, -9);
+        ctx.quadraticCurveTo(-15, 2, -12, 15);
+        ctx.lineTo(-6, 12);
+        ctx.quadraticCurveTo(-9, 0, -4, -9);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(10, -9);
+        ctx.quadraticCurveTo(15, 2, 12, 15);
+        ctx.lineTo(6, 12);
+        ctx.quadraticCurveTo(9, 0, 4, -9);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      case 'child': // Wren: small pinafore triangle
+        ctx.fillStyle = accent;
+        ctx.beginPath();
+        ctx.moveTo(-5, -5);
+        ctx.lineTo(5, -5);
+        ctx.lineTo(3, 8);
+        ctx.lineTo(-3, 8);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      case 'traveler': // player: a satchel strap and small bag
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-8, -8);
+        ctx.lineTo(9, 12);
+        ctx.stroke();
+        ctx.fillStyle = accent;
+        ctx.beginPath();
+        ctx.ellipse(9, 13, 5, 4, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      default:
+        break;
+    }
+  }
+
+  _drawHairOrHelmet(outfit, hair) {
+    const { ctx } = this;
+    if (outfit === 'armor') {
+      ctx.fillStyle = '#8f96a0';
+      ctx.beginPath();
+      ctx.arc(0, -18, 9.5, Math.PI, 0);
+      ctx.fill();
+      ctx.fillRect(-9.5, -18, 19, 4);
+      ctx.fillStyle = shade('#8f96a0', -0.2);
+      ctx.fillRect(-9.5, -14, 19, 2.5);
+      return;
+    }
+    if (outfit === 'cloak') {
+      ctx.fillStyle = shade(hair, -0.3);
+      ctx.beginPath();
+      ctx.arc(0, -19, 11, Math.PI * 0.95, Math.PI * 2.05);
+      ctx.fill();
+      // small beard
+      ctx.fillStyle = shade(hair, -0.1);
+      ctx.beginPath();
+      ctx.moveTo(-4, -9);
+      ctx.lineTo(4, -9);
+      ctx.lineTo(0, -3);
+      ctx.closePath();
+      ctx.fill();
+      return;
+    }
+    ctx.fillStyle = hair;
+    if (outfit === 'child') {
+      ctx.beginPath();
+      ctx.arc(-9, -16, 3.5, 0, Math.PI * 2);
+      ctx.arc(9, -16, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, -22, 8, Math.PI, Math.PI * 2);
+      ctx.fill();
+    } else if (outfit === 'barmaid') {
+      ctx.beginPath();
+      ctx.arc(0, -22, 8.5, Math.PI, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(8, -14, 4, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.arc(0, -21, 9, Math.PI, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   _drawRareFlourishGlow(flourish, camX, camY) {

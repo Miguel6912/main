@@ -14,6 +14,7 @@ export class NPC {
     this.y = data.schedule[0].y;
     this.currentActivity = data.schedule[0].activity;
     this.bobT = Math.random() * Math.PI * 2;
+    this.facing = 'down';
   }
 
   _scheduleWindow(hourFrac) {
@@ -46,8 +47,15 @@ export class NPC {
         t = Math.max(0, Math.min(1, t));
       }
     }
-    this.x = prev.x + (next.x - prev.x) * t;
-    this.y = prev.y + (next.y - prev.y) * t;
+    const nx = prev.x + (next.x - prev.x) * t;
+    const ny = prev.y + (next.y - prev.y) * t;
+    const dx = nx - this.x;
+    const dy = ny - this.y;
+    if (Math.abs(dx) > 0.05 || Math.abs(dy) > 0.05) {
+      this.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
+    }
+    this.x = nx;
+    this.y = ny;
     this.currentActivity = t < 0.5 ? prev.activity : next.activity;
     this.moving = t > 0 && t < 1;
     this.bobT += dt;
