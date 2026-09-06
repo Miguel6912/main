@@ -6,7 +6,15 @@ import { computePilotSummary, type PilotSummary } from '../../features/pilot/pil
 import { getAllPilotEvents } from '../../storage/pilotStore';
 import { toCSV, downloadTextFile } from '../../utils/csv';
 import { useAppMeta } from '../hooks/useAppMeta';
+import { getFieldTestById } from '../../content/fieldTests';
 import './PilotDashboardPage.css';
+
+const DIMENSION_LABEL: Record<string, string> = {
+  RETRIEVAL: 'Retrieval',
+  CONTROL: 'Control',
+  REPAIR: 'Repair',
+  TRANSFER: 'Transfer',
+};
 
 export function PilotDashboardPage() {
   const { meta } = useAppMeta();
@@ -52,7 +60,7 @@ export function PilotDashboardPage() {
     <div className="pilot-dashboard">
       <h1>Pilot Dashboard</h1>
       <p className="pilot-dashboard-note">
-        Private research view. All data stays on this device -- nothing here is ever transmitted externally.
+        Private research view. All data stays on this device — nothing here is ever transmitted externally.
       </p>
 
       <div className="pilot-dashboard-actions">
@@ -146,17 +154,17 @@ export function PilotDashboardPage() {
       </Card>
 
       <Card>
-        <h2>Field-test scores</h2>
+        <h2>Field test scores</h2>
         {summary.fieldTestResults.length === 0 ? (
           <p>No field tests taken yet.</p>
         ) : (
           <ul className="pilot-list pilot-field-test-list">
             {summary.fieldTestResults.map((r) => (
               <li key={r.fieldTestId}>
-                <span>{r.fieldTestId}</span>
+                <span>{getFieldTestById(r.fieldTestId)?.title ?? r.fieldTestId}</span>
                 <span>
-                  {r.dimensionResults.map((d) => `${d.dimension[0]}:${d.score}`).join(' ')} &middot;{' '}
-                  {r.progressionJustified ? 'justified' : 'not yet'}
+                  {r.dimensionResults.map((d) => `${DIMENSION_LABEL[d.dimension] ?? d.dimension} ${d.score}`).join(' · ')}{' '}
+                  &middot; {r.progressionJustified ? 'Justified' : 'Not yet justified'}
                 </span>
               </li>
             ))}

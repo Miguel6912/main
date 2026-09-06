@@ -103,7 +103,7 @@ export function scoreFieldTest(
     }
 
     // TRANSFER proxy: response is more than a bare single word, i.e. the
-    // learner produced a fuller utterance rather than a memorised fragment.
+    // learner produced a fuller utterance rather than a memorized fragment.
     if (words.length >= 3) {
       transferHits += 1;
     }
@@ -137,7 +137,7 @@ export function scoreFieldTest(
     {
       dimension: 'TRANSFER',
       score: transferScore,
-      notes: `Produced a fuller utterance (not just a memorised fragment) in ${transferHits}/${steps.length} steps.`,
+      notes: `Produced a fuller utterance (not just a memorized fragment) in ${transferHits}/${steps.length} steps.`,
     },
   ];
 }

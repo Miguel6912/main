@@ -29,7 +29,7 @@ export function RetrievalGateScreen({ state, onSubmit }: RetrievalGateScreenProp
     <Card className="retrieval-gate-card">
       <Pill tone="accent">Quick retrieval &middot; {index + 1} of {state.retrievalGate.length}</Pill>
       <h2 className="retrieval-gate-prompt">{current.prompt}</h2>
-      <p className="retrieval-gate-hint">From material you've already met -- no new teaching here.</p>
+      <p className="retrieval-gate-hint">From material you've already met — no new teaching here.</p>
       <AnswerInput value={value} onChange={setValue} onSubmit={handleSubmit} disabled={submitting} autoFocus />
     </Card>
   );

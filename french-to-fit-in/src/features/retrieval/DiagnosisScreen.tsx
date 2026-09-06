@@ -29,7 +29,7 @@ export function DiagnosisScreen({ state, onContinue }: DiagnosisScreenProps) {
       {needsRemediation ? (
         <p className="diagnosis-note">A couple of items need a quick targeted review before today's material.</p>
       ) : (
-        <p className="diagnosis-note">Everything held up -- moving straight to today's material.</p>
+        <p className="diagnosis-note">Everything held up — moving straight to today's material.</p>
       )}
       <Button onClick={onContinue}>Continue</Button>
     </Card>

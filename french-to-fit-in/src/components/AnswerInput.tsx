@@ -81,7 +81,7 @@ export function AnswerInput({ value, onChange, onSubmit, placeholder, disabled, 
           Answer
         </Button>
         <Button variant="ghost" onClick={() => onSubmit('?')} disabled={disabled}>
-          I can't recall this ("?")
+          I can't recall this
         </Button>
       </div>
     </div>

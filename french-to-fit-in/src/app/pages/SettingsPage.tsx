@@ -33,7 +33,7 @@ export function SettingsPage() {
 
       <Card className="settings-card">
         <h2>Pilot / Research Mode</h2>
-        <p>Captures anonymised local interaction data (retrieval outcomes, latency, remediation events) for the pilot dashboard. Nothing leaves this device.</p>
+        <p>Captures anonymized local interaction data (retrieval outcomes, response times, review activity) for the Pilot dashboard. Nothing leaves this device.</p>
         <label className="settings-toggle">
           <input
             type="checkbox"
@@ -45,14 +45,15 @@ export function SettingsPage() {
       </Card>
 
       <Card className="settings-card">
-        <h2>Developer</h2>
+        <h2>Advanced</h2>
+        <p>Preview every day in the Course Map ahead of schedule, before it's normally unlocked.</p>
         <label className="settings-toggle">
           <input
             type="checkbox"
             checked={meta.curriculumPreviewEnabled}
             onChange={(e) => patch({ curriculumPreviewEnabled: e.target.checked })}
           />
-          Allow curriculum preview (unlock all days in Course Map)
+          Unlock all days early
         </label>
       </Card>
 

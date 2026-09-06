@@ -8,10 +8,10 @@ import type { Week } from '../../types';
 import './CourseMapPage.css';
 
 const WEEK_TITLES: Record<Week, string> = {
-  1: 'Week 1 -- Control the Interaction',
-  2: 'Week 2 -- Expand the World',
-  3: 'Week 3 -- Become Socially Conversational',
-  4: 'Week 4 -- Independence',
+  1: 'Week 1 — Control the Interaction',
+  2: 'Week 2 — Expand the World',
+  3: 'Week 3 — Become Socially Conversational',
+  4: 'Week 4 — Independence',
 };
 
 export function CourseMapPage() {

@@ -42,7 +42,7 @@ export function HomePage() {
         )}
         {day && !dayIsPlayable && (
           <p className="home-draft-note">
-            This day's content hasn't been authored yet -- see Course Map for status.
+            This day's content hasn't been authored yet — see Course Map for status.
           </p>
         )}
       </section>

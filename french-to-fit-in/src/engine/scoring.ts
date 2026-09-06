@@ -62,7 +62,7 @@ export function scoreResponse(input: ScoreResponseInput): EvaluationResult {
       retrievalOutcome: 'SKIPPED',
       feedback: reveal
         ? `It's "${reveal}". Try producing it yourself once more in a moment.`
-        : "No single fixed answer here -- there's nothing to reveal. Try producing something, even imperfect.",
+        : "No single fixed answer here — there's nothing to reveal. Try producing something, even imperfect.",
       itemIds: input.itemIds,
       shouldAdvance: false,
     };
@@ -78,8 +78,8 @@ export function scoreResponse(input: ScoreResponseInput): EvaluationResult {
       classification: attempted ? 'FUNCTIONAL' : 'FAILED',
       retrievalOutcome: attempted ? 'MEANING_PRESERVED_IMPERFECT' : 'FAILED_RETRIEVAL',
       feedback: attempted
-        ? 'Good -- you kept the interaction going in French.'
-        : 'Try producing something, even imperfect -- staying in French matters more than being exact.',
+        ? 'Good — you kept the interaction going in French.'
+        : 'Try producing something, even imperfect — staying in French matters more than being exact.',
       itemIds: input.itemIds,
       shouldAdvance: attempted,
     };
@@ -108,7 +108,7 @@ export function scoreResponse(input: ScoreResponseInput): EvaluationResult {
     return {
       classification: 'FUNCTIONAL',
       retrievalOutcome: 'MEANING_PRESERVED_IMPERFECT',
-      feedback: `Meaning survived. The exact form is "${input.acceptableAnswers[0]}" -- close enough to move on.`,
+      feedback: `Meaning survived. The exact form is "${input.acceptableAnswers[0]}" — close enough to move on.`,
       itemIds: input.itemIds,
       shouldAdvance: true,
     };
@@ -125,7 +125,7 @@ export function scoreResponse(input: ScoreResponseInput): EvaluationResult {
     return {
       classification: 'FUNCTIONAL',
       retrievalOutcome: 'MEANING_PRESERVED_IMPERFECT',
-      feedback: 'Meaning survived, and you kept going -- good.',
+      feedback: 'Meaning survived, and you kept going — good.',
       itemIds: input.itemIds,
       shouldAdvance: true,
     };

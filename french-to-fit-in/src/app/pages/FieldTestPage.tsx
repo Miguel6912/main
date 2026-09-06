@@ -60,7 +60,7 @@ export function FieldTestPage() {
           <CelebrationOverlay outcome={gamificationOutcome} onContinue={() => setCelebrationDismissed(true)} />
         )}
         <Card className="field-test-results">
-          <h2>{definition.title} -- results</h2>
+          <h2>{definition.title} — results</h2>
           <div className="field-test-dimensions">
             {result.dimensionResults.map((d) => (
               <div key={d.dimension} className="field-test-dimension">

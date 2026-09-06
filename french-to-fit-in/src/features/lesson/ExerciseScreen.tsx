@@ -63,7 +63,7 @@ export function ExerciseScreen({
   return (
     <Card className="exercise-card">
       <Pill tone="accent">
-        {PHASE_LABEL[phase]} &middot; {positionLabel} &middot; Level {exercise.level}
+        {PHASE_LABEL[phase]} &middot; {positionLabel} &middot; Step {exercise.level}
       </Pill>
 
       {exercise.promptFrench && <p className="exercise-french-prompt">{exercise.promptFrench}</p>}

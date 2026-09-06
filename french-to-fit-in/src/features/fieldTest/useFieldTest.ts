@@ -18,6 +18,13 @@ const DIMENSION_LOW_MESSAGE: Record<string, string> = {
   TRANSFER: 'Applying material in a new context',
 };
 
+const DIMENSION_TITLE: Record<string, string> = {
+  RETRIEVAL: 'Retrieval',
+  CONTROL: 'Control',
+  REPAIR: 'Repair',
+  TRANSFER: 'Transfer',
+};
+
 export function useFieldTest(fieldTestId: string, pilotModeEnabled: boolean) {
   const definition = useMemo(() => getFieldTestById(fieldTestId), [fieldTestId]);
   const [stepIndex, setStepIndex] = useState(0);
@@ -41,7 +48,7 @@ export function useFieldTest(fieldTestId: string, pilotModeEnabled: boolean) {
         dimensionResults,
         whatWorked: strong.map((d) => DIMENSION_LOW_MESSAGE[d.dimension] ?? d.dimension),
         whatBroke: weak.map((d) => DIMENSION_LOW_MESSAGE[d.dimension] ?? d.dimension),
-        whatNeedsRetrieval: weak.map((d) => d.dimension),
+        whatNeedsRetrieval: weak.map((d) => DIMENSION_TITLE[d.dimension] ?? d.dimension),
         progressionJustified,
       };
 

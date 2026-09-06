@@ -53,7 +53,7 @@ export const BADGES: BadgeDefinition[] = [
   {
     id: 'badge.field-test-pass',
     title: 'Field Tested',
-    description: 'Pass a field test with progression justified.',
+    description: 'Pass a field test with strong results across the board.',
     icon: '🏆',
     tone: 'rose',
   },

@@ -12,7 +12,7 @@ export const FIELD_TESTS: FieldTestDefinition[] = [
     afterDayNumber: 7,
     title: 'Week 1 Field Test',
     scenario:
-      '[DRAFT] A short, unscripted real-world interaction drawing only on Days 1-7 material (entering a conversation, expressing needs, asking questions, making plans).',
+      'A short, unscripted real-world interaction drawing only on Days 1-7 material (entering a conversation, expressing needs, asking questions, making plans).',
     steps: [
       {
         id: 'week1-ft-step-1',
@@ -27,7 +27,7 @@ export const FIELD_TESTS: FieldTestDefinition[] = [
     id: 'field-test-week-2',
     afterDayNumber: 14,
     title: 'Week 2 Field Test',
-    scenario: '[DRAFT] Scenario drawing on Days 8-14 (navigation, description, past events, routines, comparisons).',
+    scenario: 'Scenario drawing on Days 8-14 (navigation, description, past events, routines, comparisons).',
     steps: [],
     status: 'DRAFT',
   },
@@ -35,7 +35,7 @@ export const FIELD_TESTS: FieldTestDefinition[] = [
     id: 'field-test-week-3',
     afterDayNumber: 21,
     title: 'Week 3 Field Test',
-    scenario: '[DRAFT] Scenario drawing on Days 15-21 (social conversation, opinions, storytelling, group talk).',
+    scenario: 'Scenario drawing on Days 15-21 (social conversation, opinions, storytelling, group talk).',
     steps: [],
     status: 'DRAFT',
   },
@@ -43,7 +43,7 @@ export const FIELD_TESTS: FieldTestDefinition[] = [
     id: 'field-test-final',
     afterDayNumber: 30,
     title: 'Final Mission',
-    scenario: '[DRAFT] Independent multi-step day-in-the-life mission drawing on the full 30-day curriculum.',
+    scenario: 'Independent multi-step day-in-the-life mission drawing on the full 30-day curriculum.',
     steps: [],
     status: 'DRAFT',
   },

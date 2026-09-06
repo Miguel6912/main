@@ -47,7 +47,7 @@ export function SessionPage() {
     return (
       <Card>
         <h2>{day.title}</h2>
-        <p>This day's content hasn't been authored yet -- it's a locked curriculum slot awaiting approved material.</p>
+        <p>This day's content hasn't been authored yet — it's a locked curriculum slot awaiting approved material.</p>
         <Link to="/">
           <Button>Back to home</Button>
         </Link>
