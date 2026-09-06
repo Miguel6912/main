@@ -21,7 +21,7 @@ export function TeachingScreen({ lessonBlocks, onDone }: TeachingScreenProps) {
   if (!block) {
     return (
       <Card className="teaching-card">
-        <p>No new material today — moving to practice.</p>
+        <p>Nothing new to introduce today — straight to practice.</p>
         <Button onClick={onDone}>Begin practice</Button>
       </Card>
     );

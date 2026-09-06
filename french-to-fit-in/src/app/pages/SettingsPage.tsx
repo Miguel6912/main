@@ -24,7 +24,7 @@ export function SettingsPage() {
     try {
       const data = await readLearnerStateFromFile(file);
       await importLearnerState(data);
-      setImportMessage('Import successful. Reload the app to see the restored state.');
+      setImportMessage('Import successful — reload the app to see your restored progress.');
     } catch (err) {
       setImportMessage(err instanceof Error ? err.message : 'Import failed.');
     }

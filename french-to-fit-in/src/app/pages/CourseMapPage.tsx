@@ -24,8 +24,8 @@ export function CourseMapPage() {
     <div className="course-map-page">
       <h1>Course Map</h1>
       <p className="course-map-intro">
-        The 30-day sequence is locked and cannot be reordered. Days ahead of your current progress stay closed during
-        normal use.
+        The 30 days build on each other in order, so future days stay closed until you get there —
+        no skipping ahead of yourself.
       </p>
       {weeks.map((week) => (
         <section key={week} className="course-map-week">

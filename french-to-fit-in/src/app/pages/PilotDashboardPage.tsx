@@ -30,12 +30,12 @@ export function PilotDashboardPage() {
     return (
       <Card>
         <h1>Pilot Dashboard</h1>
-        <p>Pilot Mode is off, so no interaction data is being captured. Turn it on in Settings to start collecting data.</p>
+        <p>Pilot Mode is off, so nothing's being recorded. Flip it on in Settings whenever you want to start collecting data.</p>
       </Card>
     );
   }
 
-  if (!summary) return <p>Loading...</p>;
+  if (!summary) return <p>Loading pilot data…</p>;
 
   async function exportCSV() {
     const events = await getAllPilotEvents();
@@ -92,7 +92,7 @@ export function PilotDashboardPage() {
       <Card>
         <h2>Retrieval success by day</h2>
         {summary.retrievalByDay.length === 0 ? (
-          <p>No retrieval data yet.</p>
+          <p>No retrieval data yet — it shows up after your first session.</p>
         ) : (
           <ul className="pilot-list">
             {summary.retrievalByDay.map((r) => (
@@ -124,7 +124,7 @@ export function PilotDashboardPage() {
       <Card>
         <h2>Weak vocabulary</h2>
         {summary.weakVocabulary.length === 0 ? (
-          <p>Nothing flagged yet.</p>
+          <p>Nothing flagged — good sign.</p>
         ) : (
           <ul className="pilot-list">
             {summary.weakVocabulary.map((i) => (
@@ -140,7 +140,7 @@ export function PilotDashboardPage() {
       <Card>
         <h2>Weak engines</h2>
         {summary.weakEngines.length === 0 ? (
-          <p>Nothing flagged yet.</p>
+          <p>Nothing flagged — good sign.</p>
         ) : (
           <ul className="pilot-list">
             {summary.weakEngines.map((i) => (
@@ -156,7 +156,7 @@ export function PilotDashboardPage() {
       <Card>
         <h2>Field test scores</h2>
         {summary.fieldTestResults.length === 0 ? (
-          <p>No field tests taken yet.</p>
+          <p>No field tests yet — the first one unlocks after Week 1.</p>
         ) : (
           <ul className="pilot-list pilot-field-test-list">
             {summary.fieldTestResults.map((r) => (

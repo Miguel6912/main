@@ -14,6 +14,7 @@ export function AchievementsPage() {
   return (
     <div className="achievements-page">
       <h1>Achievements</h1>
+      <p className="achievements-intro">A record of what you've stuck with.</p>
 
       <ProgressHUD totalXP={meta.totalXP} currentStreakDays={meta.currentStreakDays} avatarConfig={meta.avatarConfig} />
 

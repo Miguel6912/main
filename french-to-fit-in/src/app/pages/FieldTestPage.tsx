@@ -32,7 +32,7 @@ export function FieldTestPage() {
   if (!definition) {
     return (
       <Card>
-        <p>Unknown field test.</p>
+        <p>Can't find that field test.</p>
         <Link to="/">
           <Button>Back to home</Button>
         </Link>
@@ -77,11 +77,11 @@ export function FieldTestPage() {
 
           <div className="field-test-summary">
             <h3>What worked</h3>
-            <p>{result.whatWorked.length > 0 ? result.whatWorked.join('; ') : 'Nothing scored strongly yet.'}</p>
+            <p>{result.whatWorked.length > 0 ? result.whatWorked.join('; ') : "Nothing stood out yet — that's what the next attempt is for."}</p>
             <h3>What broke</h3>
-            <p>{result.whatBroke.length > 0 ? result.whatBroke.join('; ') : 'Nothing broke down.'}</p>
+            <p>{result.whatBroke.length > 0 ? result.whatBroke.join('; ') : 'Nothing broke down — solid all the way through.'}</p>
             <h3>What needs retrieval</h3>
-            <p>{result.whatNeedsRetrieval.length > 0 ? result.whatNeedsRetrieval.join(', ') : 'Nothing flagged.'}</p>
+            <p>{result.whatNeedsRetrieval.length > 0 ? result.whatNeedsRetrieval.join(', ') : "Nothing flagged — you're covered here."}</p>
             <h3>Progression</h3>
             <Pill tone={result.progressionJustified ? 'sage' : 'rose'}>
               {result.progressionJustified ? 'Justified' : 'Not yet justified'}
@@ -91,7 +91,7 @@ export function FieldTestPage() {
           {gamificationOutcome && (
             <div className="field-test-gamification">
               <Pill tone="gold">+{gamificationOutcome.xpEarned} XP</Pill>
-              {gamificationOutcome.leveledUp && <span>Level up! Now level {gamificationOutcome.levelAfter}.</span>}
+              {gamificationOutcome.leveledUp && <span>Level up! You're now level {gamificationOutcome.levelAfter}.</span>}
               {gamificationOutcome.newlyEarnedBadges.map((badge) => (
                 <span key={badge.id} className={`field-test-badge field-test-badge-${badge.tone}`}>
                   <span aria-hidden="true">{badge.icon}</span> {badge.title}

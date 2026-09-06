@@ -35,7 +35,7 @@ export function HomePage() {
           <span className="home-hero-icon" aria-hidden="true">
             {day ? iconForDay(day.dayNumber) : '🏁'}
           </span>
-          {day ? day.title : 'Course complete'}
+          {day ? day.title : 'You made it through all 30 days.'}
         </h1>
         {day && <p className="home-capability">{day.capability}</p>}
         {day ? (
@@ -47,7 +47,7 @@ export function HomePage() {
         )}
         {day && !dayIsPlayable && (
           <p className="home-draft-note">
-            This day's content hasn't been authored yet — see Course Map for status.
+            This day hasn't been written yet — check the Course Map for what's ready.
           </p>
         )}
       </section>
@@ -88,7 +88,7 @@ export function HomePage() {
 
       {knowledge && knowledge.weakPoints.length > 0 && (
         <Card className="home-weak-points-card">
-          <h2 className="home-section-title">Recent Weak Points</h2>
+          <h2 className="home-section-title">Worth Another Look</h2>
           <ul className="home-weak-points-list">
             {knowledge.weakPoints.map((item) => (
               <li key={item.id}>

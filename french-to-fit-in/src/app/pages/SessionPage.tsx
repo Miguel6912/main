@@ -29,13 +29,13 @@ export function SessionPage() {
   }, [state?.phase, finishSession]);
 
   if (session.loading || !state) {
-    return <p>Loading session...</p>;
+    return <p>Setting up your session…</p>;
   }
 
   if (!day) {
     return (
       <Card>
-        <p>Day {dayNumber} doesn't exist in the curriculum.</p>
+        <p>There's no Day {dayNumber} in this course — check the Course Map for what's actually there.</p>
         <Link to="/">
           <Button>Back to home</Button>
         </Link>
@@ -93,10 +93,10 @@ export function SessionPage() {
             onSubmit={session.submitExerciseAnswer}
           />
         ) : (
-          <p>Moving on...</p>
+          <p>On to the next part…</p>
         ))}
 
-      {state.phase === 'LEDGER_UPDATE' && <p>Saving progress...</p>}
+      {state.phase === 'LEDGER_UPDATE' && <p>Saving your progress…</p>}
 
       {state.phase === 'SESSION_COMPLETE' && (
         <>

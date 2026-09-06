@@ -4,6 +4,11 @@
   gap: 1.25rem;
 }
 
+.achievements-intro {
+  color: var(--ink-soft);
+  margin: -0.75rem 0 0;
+}
+
 .achievements-longest-streak-note {
   color: var(--ink-soft);
   margin: -0.5rem 0 0;
