@@ -19,6 +19,7 @@ import { recordPilotEvent } from '../../storage/pilotStore';
 import { exercisesForPhase } from './dayExercises';
 import { xpForClassification, SESSION_COMPLETION_XP } from '../../engine/gamification';
 import { applyGamificationForSession } from '../gamification/gamificationService';
+import { playCorrectChime } from '../../utils/sound';
 
 function newId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -62,6 +63,7 @@ export function useLessonSession(dayNumber: number, pilotModeEnabled: boolean): 
       sessionXPRef.current += amount;
       xpPopKeyRef.current += 1;
       setXpPopup({ amount, key: xpPopKeyRef.current });
+      playCorrectChime();
     }
   }, []);
 

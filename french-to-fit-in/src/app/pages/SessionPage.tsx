@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
+import { CelebrationOverlay } from '../../components/CelebrationOverlay';
 import { useAppMeta } from '../hooks/useAppMeta';
 import { useLessonSession } from '../../features/lesson/useLessonSession';
 import { RetrievalGateScreen } from '../../features/retrieval/RetrievalGateScreen';
@@ -17,6 +18,7 @@ export function SessionPage() {
   const dayNumber = Number(params.dayNumber ?? '1');
   const { meta } = useAppMeta();
   const session = useLessonSession(dayNumber, meta?.pilotModeEnabled ?? false);
+  const [celebrationDismissed, setCelebrationDismissed] = useState(false);
 
   const { state, day, finishSession } = session;
 
@@ -97,7 +99,15 @@ export function SessionPage() {
       {state.phase === 'LEDGER_UPDATE' && <p>Saving progress...</p>}
 
       {state.phase === 'SESSION_COMPLETE' && (
-        <SessionCompleteScreen day={day} state={state} gamificationOutcome={session.gamificationOutcome} />
+        <>
+          {session.gamificationOutcome && !celebrationDismissed && (
+            <CelebrationOverlay
+              outcome={session.gamificationOutcome}
+              onContinue={() => setCelebrationDismissed(true)}
+            />
+          )}
+          <SessionCompleteScreen day={day} state={state} gamificationOutcome={session.gamificationOutcome} />
+        </>
       )}
     </div>
   );

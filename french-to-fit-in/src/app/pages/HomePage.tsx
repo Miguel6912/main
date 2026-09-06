@@ -2,12 +2,12 @@ import { Link } from 'react-router-dom';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Pill } from '../../components/Pill';
-import { StreakFlame } from '../../components/StreakFlame';
-import { XPBar } from '../../components/XPBar';
+import { ProgressHUD } from '../../components/ProgressHUD';
 import { useAppMeta } from '../hooks/useAppMeta';
 import { useWorkingKnowledge } from '../hooks/useWorkingKnowledge';
 import { getDayByNumber } from '../../content/curriculum';
 import { WEEK_FIELD_TESTS } from '../../content/curriculum';
+import { iconForDay } from '../../content/dayIcons';
 import './HomePage.css';
 
 export function HomePage() {
@@ -22,19 +22,16 @@ export function HomePage() {
 
   return (
     <div className="home-page">
-      <div className="home-status-row">
-        <StreakFlame days={meta.currentStreakDays} />
-        <Link to="/achievements" className="home-achievements-link">
-          Achievements
-        </Link>
-      </div>
-      <Card className="home-xp-card">
-        <XPBar totalXP={meta.totalXP} />
-      </Card>
+      <ProgressHUD totalXP={meta.totalXP} currentStreakDays={meta.currentStreakDays} showAchievementsLink />
 
       <section className="home-hero">
         <p className="home-eyebrow">Day {meta.currentDay} of 30</p>
-        <h1>{day ? day.title : 'Course complete'}</h1>
+        <h1>
+          <span className="home-hero-icon" aria-hidden="true">
+            {day ? iconForDay(day.dayNumber) : '🏁'}
+          </span>
+          {day ? day.title : 'Course complete'}
+        </h1>
         {day && <p className="home-capability">{day.capability}</p>}
         {day ? (
           <Link to={`/session/${day.dayNumber}`}>

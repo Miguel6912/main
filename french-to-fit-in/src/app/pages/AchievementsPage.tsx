@@ -1,7 +1,5 @@
-import { Card } from '../../components/Card';
 import { Pill } from '../../components/Pill';
-import { XPBar } from '../../components/XPBar';
-import { StreakFlame } from '../../components/StreakFlame';
+import { ProgressHUD } from '../../components/ProgressHUD';
 import { useAppMeta } from '../hooks/useAppMeta';
 import { allBadgesWithEarnedState } from '../../features/gamification/gamificationService';
 import './AchievementsPage.css';
@@ -17,19 +15,11 @@ export function AchievementsPage() {
     <div className="achievements-page">
       <h1>Achievements</h1>
 
-      <Card className="achievements-summary-card">
-        <XPBar totalXP={meta.totalXP} />
-        <div className="achievements-streak-row">
-          <div>
-            <StreakFlame days={meta.currentStreakDays} />
-            <p className="achievements-streak-label">Current streak</p>
-          </div>
-          <div>
-            <span className="achievements-longest-streak">{meta.longestStreakDays}</span>
-            <p className="achievements-streak-label">Longest streak</p>
-          </div>
-        </div>
-      </Card>
+      <ProgressHUD totalXP={meta.totalXP} currentStreakDays={meta.currentStreakDays} />
+
+      <p className="achievements-longest-streak-note">
+        Longest streak: <strong>{meta.longestStreakDays}</strong> day{meta.longestStreakDays === 1 ? '' : 's'}
+      </p>
 
       <p className="achievements-count">
         {earnedCount} of {badgeStates.length} badges earned
@@ -37,8 +27,11 @@ export function AchievementsPage() {
 
       <ul className="achievements-badge-grid">
         {badgeStates.map(({ badge, earned }) => (
-          <li key={badge.id} className={`achievements-badge ${earned ? 'achievements-badge-earned' : 'achievements-badge-locked'}`}>
-            <span className="achievements-badge-icon" aria-hidden="true">
+          <li
+            key={badge.id}
+            className={`achievements-badge ${earned ? 'achievements-badge-earned' : 'achievements-badge-locked'}`}
+          >
+            <span className={`achievements-badge-icon achievements-badge-icon-${badge.tone}`} aria-hidden="true">
               {badge.icon}
             </span>
             <span className="achievements-badge-title">{badge.title}</span>

@@ -4,34 +4,15 @@
   gap: 1.25rem;
 }
 
-.achievements-summary-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.achievements-streak-row {
-  display: flex;
-  gap: 2.5rem;
-}
-
-.achievements-longest-streak {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
-.achievements-streak-label {
-  color: var(--ink-faint);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin: 0.25rem 0 0;
+.achievements-longest-streak-note {
+  color: var(--ink-soft);
+  margin: -0.5rem 0 0;
 }
 
 .achievements-count {
   color: var(--ink-soft);
   margin: 0;
+  font-weight: 600;
 }
 
 .achievements-badge-grid {
@@ -48,21 +29,50 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.35rem;
-  padding: 1.1rem 0.75rem;
+  gap: 0.4rem;
+  padding: 1.25rem 0.75rem;
   border-radius: var(--radius-lg);
   border: 1px solid var(--line);
   background: var(--paper-raised);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.achievements-badge-earned:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
 }
 
 .achievements-badge-icon {
-  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  font-size: 1.7rem;
   line-height: 1;
 }
 
+.achievements-badge-icon-accent {
+  background: var(--accent-soft);
+}
+.achievements-badge-icon-terracotta {
+  background: var(--terracotta-soft);
+}
+.achievements-badge-icon-gold {
+  background: var(--gold-soft);
+}
+.achievements-badge-icon-sage {
+  background: var(--sage-soft);
+}
+.achievements-badge-icon-rose {
+  background: var(--rose-soft);
+}
+
 .achievements-badge-title {
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .achievements-badge-description {
@@ -71,9 +81,10 @@
 }
 
 .achievements-badge-locked {
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
 .achievements-badge-locked .achievements-badge-icon {
   filter: grayscale(1);
+  background: var(--line);
 }

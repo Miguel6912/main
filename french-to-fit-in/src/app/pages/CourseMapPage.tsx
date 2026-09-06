@@ -3,6 +3,7 @@ import { Card } from '../../components/Card';
 import { Pill } from '../../components/Pill';
 import { useAppMeta } from '../hooks/useAppMeta';
 import { CURRICULUM } from '../../content/curriculum';
+import { iconForDay } from '../../content/dayIcons';
 import type { Week } from '../../types';
 import './CourseMapPage.css';
 
@@ -37,6 +38,9 @@ export function CourseMapPage() {
                 <li key={d.id} className={unlocked ? '' : 'course-map-locked'}>
                   <Card className="course-map-day-card">
                     <div className="course-map-day-row">
+                      <span className="course-map-day-icon" aria-hidden="true">
+                        {iconForDay(d.dayNumber)}
+                      </span>
                       <span className="course-map-day-number">Day {d.dayNumber}</span>
                       <span className="course-map-day-title">{d.title}</span>
                       {!hasContent && <Pill tone="gold">Draft</Pill>}

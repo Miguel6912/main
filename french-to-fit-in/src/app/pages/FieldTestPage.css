@@ -60,7 +60,28 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.3rem 0.65rem;
-  background: var(--paper-raised);
   border-radius: 999px;
   font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.field-test-badge-accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.field-test-badge-terracotta {
+  background: var(--terracotta-soft);
+  color: var(--terracotta);
+}
+.field-test-badge-gold {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+.field-test-badge-sage {
+  background: var(--sage-soft);
+  color: var(--sage);
+}
+.field-test-badge-rose {
+  background: var(--rose-soft);
+  color: var(--rose);
 }

@@ -5,11 +5,14 @@
  * scoring/leveling/streak math and content/badges.ts for the badge list.
  */
 
+export type BadgeTone = 'accent' | 'terracotta' | 'gold' | 'sage' | 'rose';
+
 export interface BadgeDefinition {
   id: string;
   title: string;
   description: string;
   icon: string;
+  tone: BadgeTone;
 }
 
 export interface LevelInfo {

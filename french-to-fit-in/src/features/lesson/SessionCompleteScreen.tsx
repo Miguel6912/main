@@ -3,7 +3,6 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Pill } from '../../components/Pill';
 import { StreakFlame } from '../../components/StreakFlame';
-import { Confetti } from '../../components/Confetti';
 import type { DayDefinition, GamificationOutcome, SessionState } from '../../types';
 import './SessionCompleteScreen.css';
 
@@ -13,14 +12,14 @@ interface SessionCompleteScreenProps {
   gamificationOutcome: GamificationOutcome | null;
 }
 
+/**
+ * The "big moment" (confetti, chime) happens in CelebrationOverlay right
+ * before this renders -- this screen is the persistent recap left behind
+ * once that's dismissed, so the reward stays visible, not just flashed.
+ */
 export function SessionCompleteScreen({ day, state, gamificationOutcome }: SessionCompleteScreenProps) {
-  const celebrate = Boolean(
-    gamificationOutcome && (gamificationOutcome.leveledUp || gamificationOutcome.newlyEarnedBadges.length > 0),
-  );
-
   return (
     <Card className="session-complete-card">
-      <Confetti burstKey={celebrate ? 1 : 0} />
       <h2>Session complete</h2>
       <p className="session-complete-title">Day {day.dayNumber} &middot; {day.title}</p>
       <p>{day.learningOutcome}</p>
@@ -32,7 +31,7 @@ export function SessionCompleteScreen({ day, state, gamificationOutcome }: Sessi
         <div className="session-complete-gamification">
           <div className="session-complete-xp-row">
             <Pill tone="gold">+{gamificationOutcome.xpEarned} XP</Pill>
-            {gamificationOutcome.streakExtended && <StreakFlame days={gamificationOutcome.streak.currentStreakDays} />}
+            <StreakFlame days={gamificationOutcome.streak.currentStreakDays} />
           </div>
 
           {gamificationOutcome.leveledUp && (
@@ -44,7 +43,7 @@ export function SessionCompleteScreen({ day, state, gamificationOutcome }: Sessi
           {gamificationOutcome.newlyEarnedBadges.length > 0 && (
             <div className="session-complete-badges">
               {gamificationOutcome.newlyEarnedBadges.map((badge) => (
-                <div key={badge.id} className="session-complete-badge">
+                <div key={badge.id} className={`session-complete-badge session-complete-badge-${badge.tone}`}>
                   <span aria-hidden="true">{badge.icon}</span>
                   <span>{badge.title}</span>
                 </div>

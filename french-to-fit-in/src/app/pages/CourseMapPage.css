@@ -37,6 +37,11 @@
   flex-wrap: wrap;
 }
 
+.course-map-day-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
 .course-map-day-number {
   color: var(--ink-faint);
   font-size: 0.85rem;

@@ -2,13 +2,42 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3em;
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.95rem;
   color: var(--ink-faint);
+}
+
+.streak-flame-md {
+  font-size: 0.95rem;
+}
+
+.streak-flame-lg {
+  font-size: 1.6rem;
 }
 
 .streak-flame-active {
   color: var(--terracotta);
+}
+
+.streak-flame-active .streak-flame-emoji {
+  display: inline-block;
+  animation: streak-flame-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes streak-flame-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-flame-active .streak-flame-emoji {
+    animation: none;
+  }
 }
 
 .streak-flame-count {

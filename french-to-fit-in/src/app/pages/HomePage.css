@@ -4,23 +4,6 @@
   gap: 1.25rem;
 }
 
-.home-status-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.home-achievements-link {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.home-xp-card {
-  padding: 1rem 1.25rem;
-}
-
 .home-hero {
   padding: 1rem 0 0.5rem;
 }
@@ -34,8 +17,15 @@
 }
 
 .home-hero h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 2rem;
   margin-bottom: 0.3rem;
+}
+
+.home-hero-icon {
+  font-size: 1.7rem;
 }
 
 .home-capability {
