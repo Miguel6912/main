@@ -1,41 +1,42 @@
 /* French to Fit In -- design tokens & global styles.
-   Warm, charismatic, Provençal-market palette: bone/ivory ground, smokey
-   teal as the structural accent, terracotta and antique gold as warm
-   highlight colors, deep burgundy for emphasis. Still editorial and
+   Light, airy, forest-inspired palette: pale birch/mist ground, a living
+   forest green as the structural accent, dappled-sunlight gold, clay, sage,
+   and berry as warm highlight colors -- meant to read as calm and grounded
+   ("harmony"), not tropical or candy-colored. Still editorial and
    restrained -- no neon, no candy primaries, no mascots. */
 
 :root {
   color-scheme: light;
 
-  --paper: #fbf3e6;
-  --paper-raised: #fffcf7;
-  --ink: #2a211b;
-  --ink-soft: #5c4f44;
-  --ink-faint: #8c7f71;
-  --line: #e8dcc8;
-  --line-strong: #d3c2a3;
+  --paper: #f5f8f0;
+  --paper-raised: #ffffff;
+  --ink: #23312a;
+  --ink-soft: #55665a;
+  --ink-faint: #869180;
+  --line: #e0e8d8;
+  --line-strong: #c5d3b8;
 
-  --accent: #0e6e68;
-  --accent-soft: #dcebe7;
+  --accent: #3c7a5c;
+  --accent-soft: #dcebe0;
   --accent-contrast: #ffffff;
 
-  --terracotta: #c1502f;
-  --terracotta-soft: #f5ded2;
+  --terracotta: #bf7d3f;
+  --terracotta-soft: #f2e3cd;
 
-  --sage: #5c7a45;
-  --sage-soft: #e6edd7;
+  --sage: #6c8f4e;
+  --sage-soft: #e7efdc;
 
-  --rose: #9c3b4a;
-  --rose-soft: #f2dee1;
+  --rose: #a6495c;
+  --rose-soft: #f2dfe3;
 
-  --gold: #b8863a;
-  --gold-soft: #f3e7cc;
+  --gold: #b6903f;
+  --gold-soft: #f3ecd3;
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
 
-  --shadow-card: 0 1px 2px rgba(42, 33, 27, 0.05), 0 8px 24px -12px rgba(42, 33, 27, 0.2);
+  --shadow-card: 0 1px 2px rgba(35, 49, 42, 0.05), 0 8px 24px -14px rgba(35, 49, 42, 0.16);
 
   --font-display: 'Baloo 2', 'Segoe UI Rounded', 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -46,26 +47,26 @@
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --paper: #1d1712;
-    --paper-raised: #29211a;
-    --ink: #f3ead9;
-    --ink-soft: #d2c4af;
-    --ink-faint: #9c8d7a;
-    --line: #3a2f24;
-    --line-strong: #4c3e2f;
+    --paper: #131a15;
+    --paper-raised: #1c2620;
+    --ink: #e9f1e4;
+    --ink-soft: #c0cdb9;
+    --ink-faint: #8ea089;
+    --line: #2a3830;
+    --line-strong: #3b4c40;
 
-    --accent: #4fb3aa;
-    --accent-soft: #1e3b37;
-    --accent-contrast: #0b211e;
+    --accent: #6fc79a;
+    --accent-soft: #1f3a2c;
+    --accent-contrast: #0b1f16;
 
-    --terracotta: #e08760;
-    --terracotta-soft: #3a2620;
+    --terracotta: #dda36a;
+    --terracotta-soft: #3a2c1c;
 
-    --sage: #a3c084;
-    --sage-soft: #2a331f;
+    --sage: #a8c98a;
+    --sage-soft: #2a3320;
 
-    --rose: #e0949e;
-    --rose-soft: #3a2225;
+    --rose: #dd93a0;
+    --rose-soft: #3a232a;
 
     --gold: #d9bd7a;
     --gold-soft: #362d1c;
@@ -85,7 +86,7 @@ body {
 body {
   background-color: var(--paper);
   background-image: radial-gradient(var(--line) 1px, transparent 1px);
-  background-size: 22px 22px;
+  background-size: 26px 26px;
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 16px;
