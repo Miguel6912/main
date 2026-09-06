@@ -31,6 +31,7 @@ content in this repository is explicitly marked `DRAFT`. See
 - [How field tests work](#how-field-tests-work)
 - [How gamification works](#how-gamification-works)
 - [How the avatar system works](#how-the-avatar-system-works)
+- [How first-run onboarding works](#how-first-run-onboarding-works)
 - [Running locally](#running-locally)
 - [Installing as a PWA](#installing-as-a-pwa)
 - [Running tests](#running-tests)
@@ -342,6 +343,21 @@ Inclusivity was a deliberate design constraint, not an afterthought:
   toggle independent of every other choice.
 - **6 animal species** (fox, deer, owl, rabbit, bear, cat) for anyone who'd
   rather not pick a human likeness at all.
+
+## How first-run onboarding works
+
+`App.tsx` checks `AppMeta.onboardingCompleted` on load; while it's `false`,
+`app/pages/OnboardingPage.tsx` renders full-screen in place of the entire
+routed app (no header, no nav) -- there's nothing to skip to. It's a short
+wizard: welcome/philosophy blurb -> optional display name -> the avatar
+picker -> narrator voice choice (with a live preview) -> a ready screen
+showing the finished avatar. "Start Day 1" persists
+`onboardingCompleted: true` and hands control back to the normal router,
+landing wherever the browser's current URL already pointed (normally `/`).
+Every field it sets (`displayName`, `avatarConfig`, `voicePersona`) is the
+same `AppMeta` state `/settings` and `/avatar` edit later, via the same
+`useAppMeta` hook -- onboarding doesn't own separate state, it's just the
+first place those settings get a value.
 
 ## Running locally
 

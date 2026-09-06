@@ -9,21 +9,28 @@ import { PilotDashboardPage } from './app/pages/PilotDashboardPage';
 import { FieldTestPage } from './app/pages/FieldTestPage';
 import { AchievementsPage } from './app/pages/AchievementsPage';
 import { AvatarPage } from './app/pages/AvatarPage';
+import { OnboardingPage } from './app/pages/OnboardingPage';
 import { ensureLedgerSeeded } from './storage/ledgerStore';
 import { getAppMeta } from './storage/metaStore';
 import { audioProvider } from './providers/audio';
 
 function App() {
   const [ready, setReady] = useState(false);
+  const [onboarded, setOnboarded] = useState(true);
 
   useEffect(() => {
     Promise.all([ensureLedgerSeeded(), getAppMeta()]).then(([, meta]) => {
       audioProvider.setPersona(meta.voicePersona);
+      setOnboarded(meta.onboardingCompleted);
       setReady(true);
     });
   }, []);
 
   if (!ready) return null;
+
+  if (!onboarded) {
+    return <OnboardingPage onComplete={() => setOnboarded(true)} />;
+  }
 
   return (
     <BrowserRouter>

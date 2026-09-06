@@ -33,6 +33,8 @@ export interface AppMeta {
   displayName: string;
   /** Narrator voice for audioProvider.speak() -- see providers/audio. */
   voicePersona: VoicePersona;
+  /** Whether the first-run onboarding wizard has been completed. */
+  onboardingCompleted: boolean;
 }
 
 export interface FrenchToFitInDB extends DBSchema {

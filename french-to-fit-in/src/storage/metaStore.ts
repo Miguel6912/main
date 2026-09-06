@@ -17,6 +17,7 @@ function defaultMeta(): AppMeta {
     avatarConfig: defaultAvatarConfig(),
     displayName: '',
     voicePersona: 'feminine',
+    onboardingCompleted: false,
   };
 }
 
