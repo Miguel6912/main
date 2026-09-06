@@ -58,6 +58,7 @@ Firefox, Edge, or Safari) and click **New Game**.
 ```
 index.html            entry point (DOM shell for HUD/dialogue/panels)
 styles.css            all UI chrome styling
+assets/               baked tree/meadow sprites (see DEVELOPMENT.md "Art assets")
 src/
   main.js             wires every system together + the game loop
   core/                EventBus, GameLoop, RNG, SaveManager, Input
@@ -67,7 +68,7 @@ src/
                        EventSystem, DialogueSystem
   data/                npcs, dialogue, events, shopItems, properties, jobs
                        -- pure content; this is what you edit to add things
-  render/              Palette, Particles, Renderer (canvas drawing only)
+  render/              Palette, Particles, Renderer (canvas drawing), Assets (image loading)
   audio/               AudioManager (procedural Web Audio)
   ui/                  UIManager (all DOM/HUD glue)
 ```

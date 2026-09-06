@@ -79,16 +79,49 @@ See `README.md` for how to run it.
   per browser autoplay policy; mutable from the HUD.
 
 **Rendering & atmosphere**
-- Hand-drawn-feeling canvas art (no image assets): painterly ground texture,
-  a castle silhouette, a dense forest edge, five distinct cottages, a river
-  + bridge, decorative trees generated once from a fixed seed so they're
-  stable across reloads. Warm, storybook-leaning colour choices throughout.
+- Canvas 2D scene: a castle silhouette, a dense forest edge, five distinct
+  cottages, a river + bridge, all built from flat vector shapes. Decorative
+  trees and the meadow ground texture are real baked sprites (see "Art
+  assets" below); everything else (buildings, NPCs, player, particles,
+  UI rings) stays procedural vector art, generated once from a fixed seed
+  where relevant so decoration is stable across reloads.
 - Comic/warm tone in dialogue and event text (Sir Reginald's exaggerated
   bravado, Mira's temperamental oven, Wren's wide-eyed belief in magic)
   aiming for Fable-style charm without borrowing any of its content.
 
+**Art assets**
+- `assets/tree-{spring,summer,autumn,winter}.png` and `assets/meadow-tile.png`
+  are pre-rendered sprites baked from two user-supplied 3D models (a
+  detailed low-poly village tree and a meadow ground patch with grass and
+  wildflowers, both OBJ meshes with per-part materials but no textures).
+  They were baked *offline* using Three.js + `OBJLoader` in a throwaway
+  headless-Chromium harness (not part of the shipped game -- the browser
+  game itself has no WebGL/Three.js dependency and never loads the source
+  OBJ files): each named material (`bark`, `leaf_sun`, `grass_mid`,
+  `petal_rose`, etc.) was mapped to a flat colour, the tree was captured
+  from a fixed 3/4 angle (four times, once per season's leaf palette) and
+  the meadow patch from directly above, then each was alpha-cropped and
+  downscaled to a game-appropriate size.
+- `src/render/Assets.js` loads these five PNGs once at startup and hands
+  ready-to-draw `<img>` elements to the renderer; `Renderer._drawTree`
+  falls back to the original flat-vector tree shape for any frame rendered
+  before an image has finished decoding, so there's never a visible gap.
+  Ground tiling (`_drawMeadowTexture`) only runs in spring/summer and only
+  west of the forest edge, so autumn/winter and the forest floor keep their
+  flat seasonal colour.
+- To add another baked asset from a new 3D model later: register its path
+  in `ASSET_PATHS` in `Assets.js`, then reference it from the renderer the
+  same way `_drawTree`/`_drawMeadowTexture` do. The original `.obj` source
+  files are not stored in this repo (only the baked output is); if new
+  colour/angle variants of the existing tree or meadow model are needed,
+  the source OBJs would need to be supplied again.
+
 ## 2. Known bugs / rough edges
 
+- **Meadow tile seams**: the baked meadow ground texture is tiled with
+  alternating flips to break up repetition, but a faint grid can still be
+  spotted on close inspection, especially at building/road edges where the
+  tile is partly covered.
 - **NPC label overlap**: when two NPCs' schedules put them close together,
   their name labels can visually overlap. Cosmetic only.
 - **NPCs don't avoid obstacles**: NPC movement is a straight-line lerp

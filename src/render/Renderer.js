@@ -2,6 +2,12 @@ import { WORLD_WIDTH, WORLD_HEIGHT, BUILDINGS, RIVER, HOTSPOTS, FORAGE_SPOTS, OB
 import { getSkyColor, getNightOverlayAlpha, SEASON_PALETTE, FOLIAGE_PALETTE } from './Palette.js';
 import { RNG } from '../core/RNG.js';
 import { PROPERTY_LEVELS } from '../data/properties.js';
+import { AssetLoader } from './Assets.js';
+
+const TREE_BASE_WIDTH = 108; // on-screen width in world px at scale=1
+const MEADOW_TILE_SIZE = 240; // on-screen width/height of one tiled meadow patch
+const MEADOW_TILE_SEASONS = new Set(['spring', 'summer']);
+const MEADOW_TILE_MAX_X = 1480; // keep the forest floor clear of open-meadow texture
 
 function clampCamera(target, viewSize, worldSize) {
   if (worldSize <= viewSize) return (worldSize - viewSize) / 2;
@@ -24,6 +30,7 @@ export class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
+    this.assets = new AssetLoader();
     this._generateDecor();
   }
 
@@ -136,6 +143,33 @@ export class Renderer {
       ctx.fill();
     }
     ctx.globalAlpha = 1;
+
+    if (MEADOW_TILE_SEASONS.has(season)) this._drawMeadowTexture();
+  }
+
+  // Tiles the baked meadow-tile image (real grass+wildflower detail) over
+  // the open village ground in the warmer seasons. Alternating flips break
+  // up the repeating grid without needing more source art. The forest zone
+  // is left as flat colour so it still reads as darker/denser underfoot.
+  _drawMeadowTexture() {
+    const img = this.assets.get('meadow-tile');
+    if (!img) return;
+    const { ctx } = this;
+    const cols = Math.ceil(Math.min(WORLD_WIDTH, MEADOW_TILE_MAX_X) / MEADOW_TILE_SIZE);
+    const rows = Math.ceil(WORLD_HEIGHT / MEADOW_TILE_SIZE);
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const flipX = (col + row) % 2 === 0;
+        const flipY = (col * 3 + row * 7) % 5 < 2;
+        const x = col * MEADOW_TILE_SIZE;
+        const y = row * MEADOW_TILE_SIZE;
+        ctx.save();
+        ctx.translate(x + MEADOW_TILE_SIZE / 2, y + MEADOW_TILE_SIZE / 2);
+        ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+        ctx.drawImage(img, -MEADOW_TILE_SIZE / 2, -MEADOW_TILE_SIZE / 2, MEADOW_TILE_SIZE, MEADOW_TILE_SIZE);
+        ctx.restore();
+      }
+    }
   }
 
   _drawRoads() {
@@ -203,29 +237,42 @@ export class Renderer {
   }
 
   _drawForestBackdrop(season, layer) {
-    const { ctx } = this;
-    const colors = FOLIAGE_PALETTE[season];
     for (const t of this.forestTrees) {
       const isBack = t.depth < 0.5;
       if ((layer === 'back') !== isBack) continue;
-      this._drawTree(t.x, t.y, t.scale, colors);
+      this._drawTree(t.x, t.y, t.scale, season);
     }
   }
 
   _drawDecor(season) {
-    const colors = FOLIAGE_PALETTE[season];
-    for (const t of this.villageTrees) this._drawTree(t.x, t.y, t.scale, colors);
+    for (const t of this.villageTrees) this._drawTree(t.x, t.y, t.scale, season);
   }
 
-  _drawTree(x, y, scale, colors) {
+  _drawTree(x, y, scale, season) {
+    const { ctx } = this;
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 4, 16 * scale, 6 * scale, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const img = this.assets.get(`tree-${season}`);
+    if (img) {
+      const w = TREE_BASE_WIDTH * scale;
+      const h = w * (img.height / img.width);
+      ctx.drawImage(img, x - w / 2, y - h, w, h);
+    } else {
+      this._drawTreeVector(x, y, scale, FOLIAGE_PALETTE[season]);
+    }
+  }
+
+  // Fallback used only for the handful of frames before the baked tree
+  // image has finished decoding (see Assets.js) -- keeps the scene from
+  // ever showing an empty gap where a tree should be.
+  _drawTreeVector(x, y, scale, colors) {
     const { ctx } = this;
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(scale, scale);
-    ctx.fillStyle = 'rgba(0,0,0,0.12)';
-    ctx.beginPath();
-    ctx.ellipse(0, 6, 20, 7, 0, 0, Math.PI * 2);
-    ctx.fill();
     ctx.fillStyle = '#6b4a2e';
     ctx.fillRect(-4, -10, 8, 22);
     ctx.fillStyle = colors[0];
