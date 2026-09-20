@@ -14,7 +14,7 @@ body {
 
 #app {
   width: 100%;
-  max-width: 1500px;
+  max-width: 1400px;
   padding: 16px;
 }
 
@@ -54,17 +54,103 @@ button:hover {
   border-color: #6a6a80;
 }
 
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: transparent;
+}
+
 #layout {
   display: flex;
   gap: 16px;
   align-items: flex-start;
 }
 
+#stage {
+  position: relative;
+  flex-shrink: 0;
+  width: 960px;
+  max-width: 100%;
+}
+
 #game-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 960 / 540;
   background: #111017;
   border: 1px solid #33333f;
   border-radius: 4px;
-  flex-shrink: 0;
+}
+
+#prompt-forge {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 16, 0.85);
+  border: 1px solid #4a4a5c;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+#prompt-forge.hidden {
+  display: none;
+}
+
+#forge-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 5, 8, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#forge-modal.hidden {
+  display: none;
+}
+
+.forge-card {
+  background: #16161f;
+  border: 1px solid #3a3a4c;
+  border-radius: 8px;
+  padding: 20px 24px;
+  width: 320px;
+  max-width: 90%;
+}
+
+.forge-card h2 {
+  margin: 0 0 12px;
+  color: #ffd76a;
+}
+
+.forge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #2a2a38;
+}
+
+.forge-item-name {
+  font-size: 0.9rem;
+  color: #f0f0f5;
+}
+
+.forge-item-stats {
+  font-size: 0.78rem;
+  color: #9a9ab0;
+}
+
+#forge-currency {
+  margin: 0 0 12px;
 }
 
 #sidebar {
@@ -89,17 +175,19 @@ button:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .stat-label {
-  width: 60px;
+  width: 62px;
   color: #9a9ab0;
+  flex-shrink: 0;
 }
 
 .stat-value {
   margin-left: auto;
   color: #f0f0f5;
+  text-align: right;
 }
 
 .hp-bar {
@@ -148,11 +236,6 @@ button:hover {
   margin: 0;
 }
 
-.glyph-stairs {
-  color: #ffd76a;
-  font-weight: bold;
-}
-
 kbd {
   background: #2a2a38;
   border: 1px solid #4a4a5c;
@@ -165,9 +248,8 @@ kbd {
   list-style: none;
   margin: 0;
   padding: 0;
-  height: 160px;
-  overflow-y: auto;
-  font-size: 0.82rem;
+  min-height: 80px;
+  font-size: 0.8rem;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -186,6 +268,7 @@ kbd {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
 }
 
 #game-over.hidden {
@@ -209,13 +292,12 @@ kbd {
   margin-top: 12px;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1000px) {
   #layout {
     flex-direction: column;
   }
 
-  #game-canvas {
-    max-width: 100%;
-    height: auto;
+  #stage {
+    width: 100%;
   }
 }

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wayfarer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="header">
+      <h1>Wayfarer</h1>
+      <div class="header-stats">
+        <span>Best distance: <strong id="header-best">0</strong>m</span>
+        <button id="new-run-btn">New Run</button>
+      </div>
+    </header>
+
+    <main id="layout">
+      <div id="stage">
+        <canvas id="game-canvas"></canvas>
+        <div id="prompt-forge" class="hidden">Press <kbd>E</kbd> to forge</div>
+
+        <div id="forge-modal" class="hidden">
+          <div class="forge-card">
+            <h2>Forge</h2>
+            <div class="forge-row">
+              <div>
+                <div class="forge-item-name" id="forge-weapon-name">Weapon</div>
+                <div class="forge-item-stats" id="forge-weapon-stats"></div>
+              </div>
+              <button id="forge-weapon-btn"></button>
+            </div>
+            <div class="forge-row">
+              <div>
+                <div class="forge-item-name" id="forge-armor-name">Armor</div>
+                <div class="forge-item-stats" id="forge-armor-stats"></div>
+              </div>
+              <button id="forge-armor-btn"></button>
+            </div>
+            <p class="hint" id="forge-currency"></p>
+            <button id="forge-close-btn" class="secondary">Close (E)</button>
+          </div>
+        </div>
+      </div>
+
+      <aside id="sidebar">
+        <section id="stats">
+          <div class="stat-row">
+            <span class="stat-label">HP</span>
+            <div class="hp-bar"><div id="hp-fill" class="hp-fill"></div></div>
+            <span id="hp-text" class="stat-value">40/40</span>
+          </div>
+          <div class="stat-row"><span class="stat-label">Realm</span><span id="stat-biome" class="stat-value">Forest</span></div>
+          <div class="stat-row"><span class="stat-label">Distance</span><span id="stat-distance" class="stat-value">0</span></div>
+          <div class="stat-row"><span class="stat-label">Weapon</span><span id="stat-weapon" class="stat-value">Rusty Dagger T1</span></div>
+          <div class="stat-row"><span class="stat-label">Armor</span><span id="stat-armor" class="stat-value">Traveler's Garb T1</span></div>
+          <div class="stat-row"><span class="stat-label">Gold</span><span id="stat-gold" class="stat-value">0</span></div>
+          <div class="stat-row"><span class="stat-label">Scrap</span><span id="stat-scrap" class="stat-value">0</span></div>
+        </section>
+
+        <section id="help">
+          <h2>Controls</h2>
+          <ul>
+            <li><kbd>A</kbd>/<kbd>D</kbd> or arrows — move</li>
+            <li><kbd>W</kbd> / <kbd>Space</kbd> — jump</li>
+            <li><kbd>J</kbd> / <kbd>F</kbd> — attack</li>
+            <li><kbd>E</kbd> — forge / interact</li>
+          </ul>
+          <p class="hint">Fight through forest, graveyard, and castle in turn. Better gear drops as you go, or forge upgrades with scrap and gold. Falling into a pit costs health — mind your step.</p>
+        </section>
+
+        <section id="log-section">
+          <h2>Log</h2>
+          <ul id="message-log"></ul>
+        </section>
+      </aside>
+    </main>
+
+    <div id="game-over" class="hidden">
+      <div class="game-over-card">
+        <h2>Your journey ends</h2>
+        <p>Distance travelled: <strong id="final-distance">0</strong>m</p>
+        <p>Realm: <strong id="final-biome">forest</strong></p>
+        <p>Weapon: <strong id="final-weapon">-</strong></p>
+        <p>Armor: <strong id="final-armor">-</strong></p>
+        <p>Best distance ever: <strong id="best-distance">0</strong>m</p>
+        <button id="restart-btn">Try Again</button>
+        <p class="hint">or press <kbd>R</kbd></p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
