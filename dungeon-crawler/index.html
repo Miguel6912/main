@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Descent — a little roguelike</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="header">
+      <h1>Descent</h1>
+      <div class="header-stats">
+        <span>Best depth: <strong id="header-best-depth">0</strong></span>
+        <button id="new-run-btn">New Run</button>
+      </div>
+    </header>
+
+    <main id="layout">
+      <canvas id="game-canvas"></canvas>
+
+      <aside id="sidebar">
+        <section id="stats">
+          <div class="stat-row">
+            <span class="stat-label">HP</span>
+            <div class="hp-bar"><div id="hp-fill" class="hp-fill"></div></div>
+            <span id="hp-text" class="stat-value">20/20</span>
+          </div>
+          <div class="stat-row"><span class="stat-label">Depth</span><span id="stat-depth" class="stat-value">1</span></div>
+          <div class="stat-row"><span class="stat-label">Level</span><span id="stat-level" class="stat-value">1</span></div>
+          <div class="stat-row"><span class="stat-label">XP</span><span id="stat-xp" class="stat-value">0/12</span></div>
+          <div class="stat-row"><span class="stat-label">Gold</span><span id="stat-gold" class="stat-value">0</span></div>
+          <div class="stat-row"><span class="stat-label">Potions</span><span id="stat-potions" class="stat-value">1</span></div>
+        </section>
+
+        <section id="help">
+          <h2>Controls</h2>
+          <ul>
+            <li><kbd>WASD</kbd> / arrows — move &amp; attack</li>
+            <li><kbd>.</kbd> / <kbd>Z</kbd> — wait a turn</li>
+            <li><kbd>P</kbd> / <kbd>Q</kbd> — drink a potion</li>
+          </ul>
+          <p class="hint">Walk into a monster to attack it. Reach the <span class="glyph-stairs">&gt;</span> to descend. Death is permanent — how deep can you go?</p>
+        </section>
+
+        <section id="log-section">
+          <h2>Log</h2>
+          <ul id="message-log"></ul>
+        </section>
+      </aside>
+    </main>
+
+    <div id="game-over" class="hidden">
+      <div class="game-over-card">
+        <h2>You have fallen</h2>
+        <p>Depth reached: <strong id="final-depth">1</strong></p>
+        <p>Level: <strong id="final-level">1</strong></p>
+        <p>Gold collected: <strong id="final-gold">0</strong></p>
+        <p>Best depth ever: <strong id="best-depth">0</strong></p>
+        <button id="restart-btn">Try Again</button>
+        <p class="hint">or press <kbd>R</kbd></p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
