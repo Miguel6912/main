@@ -2,8 +2,8 @@ import { makeRng, randInt, chance } from './rng.js';
 import { generateDungeon, computeFOV, isWalkable, TILE } from './dungeon.js';
 import { createPlayer, createMonster, resolveAttack, levelUpIfReady } from './entities.js';
 
-export const DUNGEON_WIDTH = 50;
-export const DUNGEON_HEIGHT = 26;
+export const DUNGEON_WIDTH = 42;
+export const DUNGEON_HEIGHT = 22;
 export const FOV_RADIUS = 7;
 const MAX_MESSAGES = 200;
 

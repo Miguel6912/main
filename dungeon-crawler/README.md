@@ -33,13 +33,19 @@ index.html            entry point (canvas + HUD shell)
 styles.css             UI styling
 src/
   main.js              input handling, HUD/DOM wiring, game loop
-  render.js             canvas glyph rendering
+  render.js             canvas tile/entity rendering, fog of war
+  sprites.js             hand-drawn vector art for every tile/creature/item
   core/
     rng.js               seeded PRNG
     dungeon.js            room+corridor generation, field of view
     entities.js           player/monster stats, combat resolution
     game.js               turn logic tying it all together (pure, DOM-free)
 ```
+
+All art in `sprites.js` is drawn procedurally with canvas paths/gradients
+(no image assets to load) — a small stylized fantasy-icon look: brick walls
+with the occasional flickering torch, cracked flagstone floors, a glowing
+staircase, and a distinct sprite per monster type and pickup.
 
 `core/` has no DOM dependency, so its logic can be exercised headlessly
 (e.g. `node` scripts simulating thousands of turns) when making changes.
