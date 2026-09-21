@@ -166,17 +166,16 @@ button.secondary {
 }
 
 .touch-forge {
-  /* Deliberately separate from both the d-pad (bottom-left) and the
-     action buttons (bottom-right) so it can never overlap either one,
-     regardless of screen size. */
+  /* Sits just above the action-button cluster (not clear across the
+     screen) with a fixed pixel gap, so it reads as part of that group
+     without ever overlapping it at any screen size. */
   position: absolute;
-  left: 50%;
-  top: 6%;
-  transform: translateX(-50%);
-  width: 54px;
-  height: 54px;
-  background: rgba(255, 215, 106, 0.3);
-  border-color: #ffd76a;
+  right: calc(4% + 46px);
+  bottom: calc(8% + 78px);
+  width: 50px;
+  height: 50px;
+  background: rgba(20, 20, 30, 0.55);
+  border-color: rgba(255, 215, 106, 0.55);
 }
 
 .touch-forge.hidden {

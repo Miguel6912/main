@@ -35,14 +35,14 @@ const MAX_MESSAGES = 50;
 const ENEMY_WINDUP = 0.35;
 const ENEMY_KNOCKBACK = 44;
 const ENEMY_HITSTUN = 0.18;
-const SHAKE_DECAY = 5;
-const SHAKE_ON_HIT = 0.5;
-const SHAKE_ON_KILL = 1;
-const SHAKE_ON_HURT = 0.85;
+// Small nudges, not a jolt: this is a bump you register, not a freeze-frame
+// that makes it look like something broke. No hit-stop -- it read as the
+// game hanging rather than as weight.
+const SHAKE_DECAY = 7;
+const SHAKE_ON_HIT = 0.16;
+const SHAKE_ON_KILL = 0.32;
+const SHAKE_ON_HURT = 0.28;
 const FLOATING_TEXT_LIFE = 0.7;
-const HITSTOP_HIT = 0.045;
-const HITSTOP_KILL = 0.09;
-const HITSTOP_HURT = 0.06;
 
 function addMessage(state, text) {
   state.messages.push(text);
@@ -58,7 +58,7 @@ function spawnFloatingText(state, x, y, text, color) {
 }
 
 function addShake(state, amount) {
-  state.shake = Math.min(3, state.shake + amount);
+  state.shake = Math.min(1, state.shake + amount);
 }
 
 function loadLevel(state, levelIndex) {
@@ -97,7 +97,6 @@ export function createGame(seed) {
     totalDistance: 0,
     floatingTexts: [],
     shake: 0,
-    hitstop: 0,
   };
   loadLevel(state, 0);
   return state;
@@ -111,7 +110,6 @@ function hurtPlayer(state, amount) {
   player.invuln = INVULN_DURATION;
   spawnFloatingText(state, player.x + player.w / 2, player.y, `-${amount}`, '#ff6b6b');
   addShake(state, SHAKE_ON_HURT);
-  state.hitstop = Math.max(state.hitstop, HITSTOP_HURT);
   if (player.hp <= 0) {
     state.gameOver = true;
     addMessage(state, `You fall in the ${state.level.biome}.`);
@@ -141,7 +139,6 @@ function killEnemy(state, enemy) {
   player.gold += gold;
   spawnFloatingText(state, enemy.x + enemy.w / 2, enemy.y - 10, `+${gold}g`, '#f4d35e');
   addShake(state, SHAKE_ON_KILL);
-  state.hitstop = Math.max(state.hitstop, HITSTOP_KILL);
   if (chance(state.rng, 0.35)) player.scrap += randInt(state.rng, 2, 5);
   if (chance(state.rng, 0.1)) {
     const isWeapon = chance(state.rng, 0.5);
@@ -164,7 +161,6 @@ function applyDamageToEnemy(state, enemy, rawDamage, knockbackDir) {
   enemy.x = Math.max(enemy.patrolMin - 60, Math.min(enemy.patrolMax - enemy.w + 60, pushed));
   spawnFloatingText(state, enemy.x + enemy.w / 2, enemy.y, `${dmg}`, '#ffffff');
   addShake(state, SHAKE_ON_HIT);
-  state.hitstop = Math.max(state.hitstop, HITSTOP_HIT);
 }
 
 function performPlayerAttack(state) {
