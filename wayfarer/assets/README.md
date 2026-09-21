@@ -13,6 +13,14 @@ game, which cut total size from ~82MB to ~13MB with no visible quality
 loss at game scale. If you bring in new art at similar source sizes,
 re-run that resize pass rather than committing multi-MB originals.
 
+Every non-background file is also auto-cropped to its alpha content
+bounding box (2px safety margin) — the source files had transparent
+padding on most edges (up to 57px on some), which left visible gaps
+between characters/spikes and the ground, and let ground/platform art's
+top padding show the vector fallback color through as a seam. If new art
+arrives with similar padding, crop it the same way (`Image.getbbox()` on
+the alpha channel) before committing.
+
 ## Layout
 
 ```
