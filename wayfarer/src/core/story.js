@@ -42,3 +42,71 @@ export const FORGE_INTRO_LINES = {
 // level after that at a higher tier, and the joke doesn't need repeating).
 export const CASTLE_APPROACH_LINE =
   "The castle looms ahead: broken towers, worse company, and somewhere at the top, a king who used to throw much better parties. Elara's counting on you not to disappoint twice in one week.";
+
+// ---------------------------------------------------------------- bosses --
+// Content only for now -- there's no city biome and no boss-encounter
+// system yet for either of these to hook into (both depend on the combat
+// overhaul currently being designed alongside the boss art). Written ahead
+// of that so it's ready the moment there's somewhere to call it from:
+//   - BOSS_ROSTER[n].elaraLine: what she says the next time you reach the
+//     city after that boss falls -- who you just fought, who's next.
+//     Intended trigger: entering the city with defeatedBosses.has(id) newly
+//     true for that entry and not yet acknowledged.
+//   - FOREST_SURPRISE_BOSS: not in the roster and Elara never mentions it --
+//     you find this one yourself. encounterLines are meant to print the
+//     moment the fight starts, before the reveal.
+
+export const BOSS_ROSTER = [
+  {
+    id: 'vess',
+    name: 'Vess',
+    title: "the Hollow King's Head Assassin",
+    elaraLine: [
+      "So. You're alive, he's not -- I'll take that as a win.",
+      "That was Vess, my father's head assassin. Loyal to a fault, which was always his problem: he never once asked why the crown wanted so many people quietly dead.",
+      "Next up is General Korrath, his High General. Korrath does not do \"quietly.\" Try not to die between here and there -- I only just finished the paperwork for the last hero.",
+    ],
+  },
+  {
+    id: 'korrath',
+    name: 'General Korrath',
+    title: "the Hollow King's High General",
+    elaraLine: [
+      "Korrath. Gods, that man could talk for an hour about troop formations and never once about whether the war was a good idea.",
+      "Still -- done. Next is Seneschal Odalys. She basically ran the kingdom while my father was busy being kingly, which apparently included some light treason.",
+      "Watch yourself with her. She was frightening before she started decomposing.",
+    ],
+  },
+  {
+    id: 'odalys',
+    name: 'Seneschal Odalys',
+    title: "the King's Seneschal",
+    elaraLine: [
+      "Odalys. I actually liked her, before. She used to sneak me sweets out of the treasury budget.",
+      "Now she tried to have you filed as \"deceased, pending.\" Progress, I suppose.",
+      "That leaves the Herald. I don't know what it used to be -- nobody does. It's the thing my father actually made his bargain with, or close enough to it. After that... it's him.",
+    ],
+  },
+  {
+    id: 'herald',
+    name: 'the Herald',
+    title: 'of the Hollowing',
+    elaraLine: [
+      "That's it, then. That's everyone standing between you and him. No more titles left to hide behind.",
+      "Just find him. Whatever's left of him.",
+      "And if there's still a person in there somewhere -- I need to know. Even if the answer's the one I'm afraid of.",
+    ],
+  },
+];
+
+// A palate-cleanser between the court's escalating titles: no rank, no
+// warning, Elara has genuinely never heard of it. Second boss you actually
+// run into, not second in the roster -- it isn't in the roster at all.
+export const FOREST_SURPRISE_BOSS = {
+  id: 'hollow_hare',
+  name: 'the Hollow Hare',
+  encounterLines: [
+    "Huh. A rabbit.",
+    "...that is a lot of teeth for a rabbit.",
+  ],
+};
