@@ -81,18 +81,31 @@ export function drawPlatform(ctx, biome, screenX0, screenX1, y) {
 
 export function drawHazard(ctx, screenX0, screenX1, groundY) {
   const w = screenX1 - screenX0;
-  const spikeW = 12;
-  ctx.fillStyle = '#c9c9d4';
+
+  // A warning strip along the danger zone's edges reads at a glance, even
+  // before the spikes themselves are legible against a busy background.
+  ctx.fillStyle = 'rgba(220,60,50,0.55)';
+  ctx.fillRect(screenX0 - 4, groundY - 3, 4, 3);
+  ctx.fillRect(screenX1, groundY - 3, 4, 3);
+
+  ctx.fillStyle = '#2a1414';
+  ctx.fillRect(screenX0 - 2, groundY - 4, w + 4, 5);
+
+  const spikeW = 13;
+  const spikeH = 27;
   for (let x = screenX0; x < screenX1; x += spikeW) {
-    poly(ctx, [[x, groundY], [x + spikeW / 2, groundY - 18], [Math.min(x + spikeW, screenX1), groundY]]);
+    const tip = Math.min(x + spikeW, screenX1);
+    const mid = (x + tip) / 2;
+    const grad = ctx.createLinearGradient(0, groundY - 4, 0, groundY - spikeH);
+    grad.addColorStop(0, '#7a1c1c');
+    grad.addColorStop(1, '#f4f4fa');
+    ctx.fillStyle = grad;
+    poly(ctx, [[x, groundY - 3], [mid, groundY - spikeH], [tip, groundY - 3]]);
     ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
   }
-  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.fillRect(screenX0 - 2, groundY - 2, w + 4, 4);
-  ctx.fillStyle = '#6a6a76';
-  ctx.fillRect(screenX0 - 2, groundY - 2, w + 4, 4);
 }
 
 const DECOR_COLORS = {

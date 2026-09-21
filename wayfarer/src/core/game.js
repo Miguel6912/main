@@ -236,7 +236,11 @@ function updatePhysics(state, dt) {
   }
 
   for (const hazard of level.hazards) {
-    const hbox = { x: hazard.x0, y: hazard.y - 12, w: hazard.x1 - hazard.x0, h: 12 };
+    // Kept a little shorter than the drawn spike height (27px in
+    // sprites.js) so the very tip is forgiving, but close enough that the
+    // hitbox roughly matches what's visible -- getting hurt should track
+    // what you can see, not a much shorter invisible collision box.
+    const hbox = { x: hazard.x0, y: hazard.y - 20, w: hazard.x1 - hazard.x0, h: 20 };
     if (rectsOverlap(player, hbox)) hurtPlayer(state, HAZARD_DAMAGE);
   }
 }

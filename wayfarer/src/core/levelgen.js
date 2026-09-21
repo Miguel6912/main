@@ -61,7 +61,14 @@ function buildPlatforms(rng, levelWidth) {
   return platforms;
 }
 
-function buildHazards(rng, segments) {
+// How far a hazard must stay from the forge's x -- wide enough to clear
+// both its visual footprint (the house/anvil/dwarf art) and the interact
+// range in core/game.js, so a spike patch can never end up hidden behind
+// the forge sprite while still being live (the bug: dying "at the
+// blacksmith" with the actual spikes invisible underneath the building).
+const HAZARD_FORGE_CLEARANCE = 110;
+
+function buildHazards(rng, segments, avoidX) {
   const hazards = [];
   for (let i = 1; i < segments.length; i++) {
     const seg = segments[i];
@@ -69,9 +76,19 @@ function buildHazards(rng, segments) {
     if (!chance(rng, 0.3)) continue;
     const width = randInt(rng, 36, 64);
     const x0 = randInt(rng, seg.x0 + 40, seg.x1 - width - 40);
-    hazards.push({ x0, x1: x0 + width, y: GROUND_Y });
+    const x1 = x0 + width;
+    if (avoidX !== null && x1 > avoidX - HAZARD_FORGE_CLEARANCE && x0 < avoidX + HAZARD_FORGE_CLEARANCE) continue;
+    hazards.push({ x0, x1, y: GROUND_Y });
   }
   return hazards;
+}
+
+function placeForge(segments, levelWidth) {
+  const midLo = levelWidth * 0.35;
+  const midHi = levelWidth * 0.65;
+  let forgeSeg = segments.find((s) => s.x1 - s.x0 >= 220 && s.x0 >= midLo && s.x0 <= midHi);
+  if (!forgeSeg) forgeSeg = segments.reduce((best, s) => (s.x1 - s.x0 > (best ? best.x1 - best.x0 : -1) ? s : best), null);
+  return forgeSeg ? { x: (forgeSeg.x0 + forgeSeg.x1) / 2, y: GROUND_Y } : null;
 }
 
 function buildDecorations(rng, biome, segments, levelWidth) {
@@ -118,8 +135,9 @@ export function generateLevel(levelIndex, rng) {
   const levelWidth = Math.min(6400, 3200 + levelIndex * 120);
 
   const segments = buildGround(rng, levelWidth);
+  const forge = placeForge(segments, levelWidth);
   const platforms = buildPlatforms(rng, levelWidth);
-  const hazards = buildHazards(rng, segments);
+  const hazards = buildHazards(rng, segments, forge ? forge.x : null);
   const decor = buildDecorations(rng, biome, segments, levelWidth);
   const zones = zoneList(segments, platforms);
 
@@ -165,13 +183,6 @@ export function generateLevel(levelIndex, rng) {
       pickups.push({ x: randomXInZone(rng, zone), y: zone.y, kind: isWeapon ? 'weapon' : 'armor', item });
     }
   }
-
-  // Forge sits on a wide ground segment roughly in the level's middle third.
-  const midLo = levelWidth * 0.35;
-  const midHi = levelWidth * 0.65;
-  let forgeSeg = segments.find((s) => s.x1 - s.x0 >= 220 && s.x0 >= midLo && s.x0 <= midHi);
-  if (!forgeSeg) forgeSeg = segments.reduce((best, s) => (s.x1 - s.x0 > (best ? best.x1 - best.x0 : -1) ? s : best), null);
-  const forge = forgeSeg ? { x: (forgeSeg.x0 + forgeSeg.x1) / 2, y: GROUND_Y } : null;
 
   return {
     biome,
