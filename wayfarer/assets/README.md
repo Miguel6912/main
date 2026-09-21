@@ -1,85 +1,67 @@
-# Drop-in art assets
+# Art assets
 
-The game runs entirely on hand-drawn vector art (`src/sprites.js`) with no
-files in this folder at all. Anything placed at the exact paths below is
-picked up automatically the next time the page loads — no code changes, no
-build step, no "enabling" anything. A missing file just leaves that one
-sprite on its vector fallback; nothing breaks.
+Real painted art, in place and wired up. If a file at one of these paths
+goes missing (or gets replaced with a broken image), that one sprite falls
+back to the original hand-drawn vector art automatically — nothing else
+breaks. The loader and full path list live in `src/assets.js`
+(`ASSET_PATHS`); this file is the human-readable index.
 
-The loader and full path list live in `src/assets.js` (`ASSET_PATHS`) — this
-file is the human-readable version of the same list.
+Source art was delivered at ~1200-1500px per side (AI-generated,
+painterly style); everything here has been downscaled (LANCZOS, PNG
+optimize) to whatever it actually needs for how large it renders in
+game, which cut total size from ~82MB to ~13MB with no visible quality
+loss at game scale. If you bring in new art at similar source sizes,
+re-run that resize pass rather than committing multi-MB originals.
 
-## Format
+## Layout
 
-- PNG, transparent background, no drop shadow baked in (the game adds its
-  own where relevant, e.g. hit-flash, invulnerability flicker).
-- Side view (profile), facing **right** — the game flips left-facing
-  automatically.
-- No fixed pixel size required. Characters/enemies stretch to fit their
-  actual hitbox (see sizes below, for reference/proportion only); terrain
-  and decoration images scale to a fixed on-screen height and keep their own
-  aspect ratio.
+```
+player/          idle, run, jump, attack — 4 poses, one player character
+enemies/         wolf, bandit, skeleton, zombie, guard, gargoyle
+forest/          background, ground, platform, tree, bush, rock
+graveyard/       background, ground, platform, gravestone, dead_tree, crypt
+castle/          background, ground, platform, pillar, banner, rubble
+items/           coins, scrap, health_potion, arrow
+weapons/         rusty_dagger, iron_sword, war_axe, greatsword, hunters_bow
+armour/          travelers_garb, leather_vest, chainmail, knights_plate
+structures/      forge, portal (the level-end gate), spikes (hazard)
+alternate_versions/
+                 second takes on wolf, bush, rock, pillar, banner, rubble —
+                 not wired into the manifest. Swap one in by pointing its
+                 ASSET_PATHS entry at the alternate file if you prefer its
+                 look; the primary version stays as an unused file either way.
+```
 
-## Player — `assets/player/`
+`weapons/` and `armour/` are keyed by the item's catalog id (see
+`WEAPON_CATALOG`/`ARMOR_CATALOG` in `src/core/items.js`), not by filename
+pattern — dagger→rusty_dagger, sword→iron_sword, axe→war_axe,
+greatsword→greatsword, bow→hunters_bow; garb→travelers_garb,
+leather→leather_vest, chain→chainmail, plate→knights_plate. A pickup shows
+the actual weapon/armor art, not a generic icon.
 
-Four poses, each its own file:
+## How each category is drawn (src/render.js)
 
-| File | Used when |
-| --- | --- |
-| `idle.png` | Standing still |
-| `run.png` | Moving on the ground |
-| `jump.png` | Airborne |
-| `attack.png` | Mid-swing (`swingFlash` active) |
+- **player / enemies**: stretched to fill the entity's real hitbox exactly,
+  so the art never drifts from where hits register.
+- **`*/background.png`**: these are full painted vistas (sun, a distant
+  landmark, specific mountains) — not a repeating pattern. Scaled to cover
+  the viewport once and panned only slightly (clamped within its own
+  overflow), rather than tiled, so landmarks never visibly repeat down a
+  multi-thousand-px level.
+- **`*/ground.png`**: a seamless-enough cross-section, tiled horizontally
+  across however wide a segment is.
+- **`*/platform.png` / `structures/portal.png` / `structures/forge.png`**:
+  self-contained chunks with finished edges (not repeating strips) —
+  stretched once to fit rather than tiled.
+- **`structures/spikes.png`**: a repeating spike row, tiled like ground.
+- **decorations / items / weapons / armour**: aspect-ratio preserved,
+  scaled to a fixed target height (documented as constants at the top of
+  `render.js` — `DECOR_TARGET_H`, `ITEM_TARGET_H`, etc.) times each prop's
+  own placement scale.
 
-Reference hitbox: **38×64**.
+## If something looks off
 
-## Enemies — `assets/enemies/`
-
-One idle/default pose each — `wolf.png`, `bandit.png` (forest),
-`skeleton.png`, `zombie.png` (graveyard), `guard.png`, `gargoyle.png`
-(castle). Reference hitboxes vary by type (roughly 35–49 wide, 38–64 tall);
-exact values are in `ENEMY_TYPES` in `src/core/entities.js` if you want to
-match proportions precisely.
-
-## Terrain — `assets/terrain/`
-
-Two per biome, **seamlessly tileable** left-to-right (they're repeated
-across however wide a ground segment or platform is):
-
-- `forest_ground.png` / `forest_platform.png`
-- `graveyard_ground.png` / `graveyard_platform.png`
-- `castle_ground.png` / `castle_platform.png`
-
-Ground tiles are stretched to fill the visible ground band (~80px); platform
-tiles to a thin ~16px strip. Any aspect ratio works — width per tile is
-derived from it — but a tile roughly 2:1 (wide) reads best at that height.
-
-## Decorations — `assets/decor/`
-
-One each, scaled to ~90px tall by default (times each placed instance's own
-random scale factor, so some read bigger/smaller than others):
-
-- Forest: `tree.png`, `bush.png`, `rock.png`
-- Graveyard: `gravestone.png`, `deadtree.png`, `crypt.png`
-- Castle: `pillar.png`, `banner.png`, `rubble.png`
-
-## Items — `assets/items/`
-
-Scaled to ~26px tall: `gold.png`, `scrap.png`, `potion.png`, `weapon.png`
-(generic weapon-pickup icon), `armor.png` (generic armor-pickup icon),
-`arrow.png` (the bow's projectile, ~14px, drawn horizontally).
-
-## Structures & hazards
-
-- `assets/structures/forge.png` — the whole blacksmith setup (house, anvil,
-  dwarf) as one image, ~100px tall.
-- `assets/structures/gate.png` — the level-end portal, ~120px tall.
-- `assets/hazards/spike.png` — tiled like ground/platform, ~27px tall.
-
-## If proportions look off once real art is in
-
-The target-height constants (90/26/14/100/120/27px etc.) live at the top of
-`src/render.js` and in the individual `drawAnchoredImage`/`drawTiledImage`
-calls — they're a first guess made without any real art to check against,
-not a hard spec. Adjust them once you can see how the actual images read in
-place.
+The target-height constants in `render.js` were picked before any real art
+existed; they held up well against this set, but if a specific prop reads
+too big/small once you're looking at it in play, that constant — not the
+art — is almost certainly what to adjust.

@@ -46,17 +46,52 @@ function drawBoxImage(ctx, img, x, y, w, h, flip) {
 }
 
 // Tiles an image horizontally across [x0, x1), stretched to bandH tall --
-// used for ground/platform strips of arbitrary width. Always drawn over a
-// solid-color fill underneath (from the vector path) so there's never a gap
-// if a real tile image turns out shorter than the visible band.
-function drawTiledImage(ctx, img, x0, x1, top, bandH) {
+// used for ground/platform strips of arbitrary width, and (with a scroll
+// offset) the parallax background layer. Always drawn over a solid-color
+// fill underneath (from the vector path) for ground/platform, so there's
+// never a gap if a real tile image turns out shorter than the visible band.
+// Clips to the target rect and draws whole tiles across it rather than
+// cropping source rects per tile -- much simpler, and correctness-critical
+// for ground/platform since a tile must never bleed past a segment's real
+// edge into the pit beside it. scrollOffset shifts the tile phase without
+// moving x0/x1, so a parallax layer's pattern can drift independently of
+// the (fixed, screen-space) rect it's clipped to.
+function drawTiledImage(ctx, img, x0, x1, top, bandH, scrollOffset = 0) {
   const aspect = (img.naturalWidth || 1) / (img.naturalHeight || 1);
   const tileW = Math.max(4, bandH * aspect);
-  for (let x = x0; x < x1; x += tileW) {
-    const w = Math.min(tileW, x1 - x);
-    const srcW = (img.naturalWidth || 1) * (w / tileW);
-    ctx.drawImage(img, 0, 0, srcW, img.naturalHeight || 1, x, top, w, bandH);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x0, top, x1 - x0, bandH);
+  ctx.clip();
+  const start = x0 - (((x0 + scrollOffset) % tileW) + tileW) % tileW;
+  for (let x = start; x < x1; x += tileW) {
+    ctx.drawImage(img, x, top, tileW, bandH);
   }
+  ctx.restore();
+}
+
+// The painted biome backgrounds are single grand vistas (sun, a distant
+// castle silhouette, specific mountain peaks) -- not a repeatable pattern,
+// so tiling them would make those landmarks visibly repeat every ~1280px
+// on a multi-thousand-px level. Instead: scale to cover the viewport once,
+// and pan only a little (clamped within the image's own overflow) for a
+// touch of depth without ever needing to wrap.
+function drawCoverBackground(ctx, img, w, h, panX) {
+  const iw = img.naturalWidth || w;
+  const ih = img.naturalHeight || h;
+  const scale = Math.max(w / iw, h / ih);
+  const drawW = iw * scale;
+  const drawH = ih * scale;
+  const maxPan = Math.max(0, (drawW - w) / 2);
+  const px = Math.max(-maxPan, Math.min(maxPan, -panX));
+  ctx.drawImage(img, (w - drawW) / 2 + px, (h - drawH) / 2, drawW, drawH);
+}
+
+// Platform art is a complete ledge chunk with rounded, decorated ends (not
+// a repeating strip like ground) -- tiling it would show a disconnected
+// row of chunks, so stretch one copy to fit instead.
+function drawStretchImage(ctx, img, x0, x1, top, h) {
+  ctx.drawImage(img, x0, top, x1 - x0, h);
 }
 
 function playerPoseKey(player) {
@@ -86,8 +121,13 @@ export function renderGame(canvas, state, time) {
     ctx.translate((Math.random() - 0.5) * state.shake * 7, (Math.random() - 0.5) * state.shake * 5);
   }
 
-  drawSky(ctx, biome, VIEW_WIDTH, VIEW_HEIGHT);
-  drawFarHill(ctx, biome, -camera * BG_PARALLAX * 0.5, groundScreenY, VIEW_WIDTH * 1.4);
+  const bgImg = getImage(`biome.${biome}.background`);
+  if (bgImg) {
+    drawCoverBackground(ctx, bgImg, VIEW_WIDTH, VIEW_HEIGHT, camera * BG_PARALLAX * 0.15);
+  } else {
+    drawSky(ctx, biome, VIEW_WIDTH, VIEW_HEIGHT);
+    drawFarHill(ctx, biome, -camera * BG_PARALLAX * 0.5, groundScreenY, VIEW_WIDTH * 1.4);
+  }
 
   for (const d of level.decor.background) {
     const sx = d.x - camera * BG_PARALLAX;
@@ -110,7 +150,7 @@ export function renderGame(canvas, state, time) {
   ctx.fillStyle = pitGrad;
   ctx.fillRect(0, groundScreenY, VIEW_WIDTH, VIEW_HEIGHT - groundScreenY);
 
-  const groundImg = getImage(`terrain.${biome}.ground`);
+  const groundImg = getImage(`biome.${biome}.ground`);
   for (const seg of level.segments) {
     const sx0 = seg.x0 - camera;
     const sx1 = seg.x1 - camera;
@@ -119,13 +159,13 @@ export function renderGame(canvas, state, time) {
     if (groundImg) drawTiledImage(ctx, groundImg, sx0, sx1, groundScreenY, VIEW_HEIGHT - groundScreenY);
   }
 
-  const platformImg = getImage(`terrain.${biome}.platform`);
+  const platformImg = getImage(`biome.${biome}.platform`);
   for (const plat of level.platforms) {
     const sx0 = plat.x0 - camera;
     const sx1 = plat.x1 - camera;
     if (sx1 < 0 || sx0 > VIEW_WIDTH) continue;
     drawPlatform(ctx, biome, sx0, sx1, plat.y);
-    if (platformImg) drawTiledImage(ctx, platformImg, sx0, sx1, plat.y, 16);
+    if (platformImg) drawStretchImage(ctx, platformImg, sx0, sx1, plat.y - 4, 24);
   }
 
   const spikeImg = getImage('hazard.spike');
@@ -179,11 +219,12 @@ export function renderGame(canvas, state, time) {
     }
   }
 
-  const pickupImgKeys = { gold: 'item.gold', scrap: 'item.scrap', potion: 'item.potion', weapon: 'item.weapon', armor: 'item.armor' };
+  const pickupImgKeys = { gold: 'item.gold', scrap: 'item.scrap', potion: 'item.potion' };
   for (const p of state.pickups) {
     const sx = p.x - camera;
     if (sx < -30 || sx > VIEW_WIDTH + 30) continue;
-    const img = getImage(pickupImgKeys[p.kind]);
+    const imgKey = p.kind === 'weapon' || p.kind === 'armor' ? `${p.kind}.${p.item.id}` : pickupImgKeys[p.kind];
+    const img = getImage(imgKey);
     if (img) {
       drawAnchoredImage(ctx, img, sx, p.y, ITEM_TARGET_H, false);
       continue;

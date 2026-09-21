@@ -35,7 +35,7 @@ Then open **http://localhost:8000**.
 ```
 index.html            entry point (canvas + HUD + forge modal shell)
 styles.css             UI styling
-assets/                drop-in art (see assets/README.md) -- empty by default
+assets/                painted art (see assets/README.md) -- falls back to vector per sprite
 src/
   main.js              input handling, game loop, HUD/forge UI wiring
   assets.js             optional image loader (falls back to vector art per sprite)
@@ -55,8 +55,10 @@ thousands of times with scripted input — when making changes.
 
 ## Art
 
-Every sprite is vector-drawn in code (`src/sprites.js`) by default. Real
-images can replace any of them individually with no code changes: drop a PNG
-at the right path under `assets/` (see `assets/README.md` for the exact list)
-and it's picked up automatically next load. Nothing there yet is required —
-a missing file just leaves that one sprite on its vector fallback.
+Every sprite has a hand-drawn vector fallback (`src/sprites.js`), but
+`assets/` now ships with a full painted set (player, all enemies, all three
+biomes' backgrounds/terrain/decor, items, per-weapon and per-armor icons,
+forge/gate/spikes) that takes over automatically wherever a file exists —
+no code changes needed either way. See `assets/README.md` for the layout
+and how each category gets drawn (stretched to a hitbox, tiled, or scaled
+to a fixed height, depending on what the art actually is).
