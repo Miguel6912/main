@@ -1,6 +1,9 @@
 import { createGame, update, upgradeWeapon, upgradeArmor, isNearForge } from './core/game.js';
 import { forgeCost, canAffordUpgrade } from './core/items.js';
 import { renderGame } from './render.js';
+import { preloadAssets } from './assets.js';
+
+preloadAssets();
 
 const BEST_DISTANCE_KEY = 'wayfarer-best-distance';
 

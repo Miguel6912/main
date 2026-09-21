@@ -35,8 +35,10 @@ Then open **http://localhost:8000**.
 ```
 index.html            entry point (canvas + HUD + forge modal shell)
 styles.css             UI styling
+assets/                drop-in art (see assets/README.md) -- empty by default
 src/
   main.js              input handling, game loop, HUD/forge UI wiring
+  assets.js             optional image loader (falls back to vector art per sprite)
   render.js             camera, parallax background, draw order
   sprites.js             hand-drawn vector art for terrain, actors, items
   core/
@@ -50,3 +52,11 @@ src/
 `core/` has no DOM dependency, so its physics and combat logic can be
 exercised headlessly — e.g. a `node` script stepping `update(state, input, dt)`
 thousands of times with scripted input — when making changes.
+
+## Art
+
+Every sprite is vector-drawn in code (`src/sprites.js`) by default. Real
+images can replace any of them individually with no code changes: drop a PNG
+at the right path under `assets/` (see `assets/README.md` for the exact list)
+and it's picked up automatically next load. Nothing there yet is required —
+a missing file just leaves that one sprite on its vector fallback.
