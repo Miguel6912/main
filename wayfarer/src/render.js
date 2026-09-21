@@ -2,7 +2,7 @@ import { GROUND_Y } from './core/levelgen.js';
 import {
   drawSky, drawFarHill, drawGround, drawPlatform, drawHazard, drawDecoration,
   drawForge, drawGate, drawGold, drawScrap, drawPotionPickup, drawGearPickup,
-  drawProjectile, drawPlayer, drawEnemy,
+  drawProjectile, drawPlayer, drawEnemy, drawHUD,
 } from './sprites.js';
 
 export const VIEW_WIDTH = 960;
@@ -149,4 +149,6 @@ export function renderGame(canvas, state, time) {
   ctx.globalAlpha = 1;
 
   ctx.restore();
+
+  drawHUD(ctx, state.player);
 }

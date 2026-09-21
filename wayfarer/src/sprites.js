@@ -569,3 +569,75 @@ export function drawEnemy(ctx, enemy, walkPhase) {
 
   ctx.restore();
 }
+
+// -------------------------------------------------------------------- HUD --
+
+// Compact always-on readout, drawn in fixed screen space (not affected by
+// camera or shake) so HP/gold/scrap stay glanceable without looking away to
+// the sidebar -- the sidebar keeps the fuller detail (gear names, log).
+export function drawHUD(ctx, player) {
+  const x = 14;
+  const y = 14;
+  const w = 156;
+  const h = 60;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(10,10,16,0.6)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  const barX = x + 14;
+  const barY = y + 13;
+  const barW = w - 28;
+  const barH = 10;
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, barW, barH, 5);
+  ctx.fill();
+
+  const hpFrac = Math.max(0, Math.min(1, player.hp / player.maxHp));
+  if (hpFrac > 0) {
+    const hpGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+    hpGrad.addColorStop(0, '#7a2020');
+    hpGrad.addColorStop(1, '#d24040');
+    ctx.fillStyle = hpGrad;
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, barW * hpFrac, barH, 5);
+    ctx.fill();
+  }
+  ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, barW, barH, 5);
+  ctx.stroke();
+
+  ctx.font = 'bold 10px "Courier New", monospace';
+  ctx.fillStyle = '#f0f0f5';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(`${Math.max(0, Math.round(player.hp))}/${player.maxHp}`, barX + barW, barY + barH + 11);
+
+  ctx.save();
+  ctx.translate(x + 22, y + 51);
+  ctx.scale(0.8, 0.8);
+  drawGold(ctx);
+  ctx.restore();
+  ctx.font = 'bold 12px "Courier New", monospace';
+  ctx.fillStyle = '#f4d35e';
+  ctx.textAlign = 'left';
+  ctx.fillText(String(player.gold), x + 34, y + 54);
+
+  ctx.save();
+  ctx.translate(x + 98, y + 51);
+  ctx.scale(0.8, 0.8);
+  drawScrap(ctx);
+  ctx.restore();
+  ctx.fillStyle = '#c9c9d4';
+  ctx.fillText(String(player.scrap), x + 108, y + 54);
+
+  ctx.restore();
+}
