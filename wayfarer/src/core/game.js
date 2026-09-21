@@ -25,8 +25,24 @@ const HAZARD_DAMAGE = 6;
 const INVULN_DURATION = 0.75;
 const HIT_KNOCKBACK = 30;
 const SWING_VISUAL = 0.15;
-const INTERACT_RANGE = 70;
+const INTERACT_RANGE = 90;
 const MAX_MESSAGES = 50;
+
+// Enemies telegraph before they swing: cooldown ready + in range starts a
+// windup (visible in sprites.js as a warning flash) instead of dealing
+// damage immediately, so getting hit is about failing to react to a tell,
+// not just standing next to something.
+const ENEMY_WINDUP = 0.35;
+const ENEMY_KNOCKBACK = 44;
+const ENEMY_HITSTUN = 0.18;
+const SHAKE_DECAY = 5;
+const SHAKE_ON_HIT = 0.5;
+const SHAKE_ON_KILL = 1;
+const SHAKE_ON_HURT = 0.85;
+const FLOATING_TEXT_LIFE = 0.7;
+const HITSTOP_HIT = 0.045;
+const HITSTOP_KILL = 0.09;
+const HITSTOP_HURT = 0.06;
 
 function addMessage(state, text) {
   state.messages.push(text);
@@ -37,6 +53,14 @@ function rectsOverlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
+function spawnFloatingText(state, x, y, text, color) {
+  state.floatingTexts.push({ x, y, text, color, life: FLOATING_TEXT_LIFE, vy: -46 });
+}
+
+function addShake(state, amount) {
+  state.shake = Math.min(3, state.shake + amount);
+}
+
 function loadLevel(state, levelIndex) {
   const level = generateLevel(levelIndex, state.rng);
   state.level = level;
@@ -44,6 +68,7 @@ function loadLevel(state, levelIndex) {
   state.enemies = level.enemies;
   state.pickups = level.pickups;
   state.projectiles = [];
+  state.floatingTexts = [];
   state.forgeOpen = false;
   const player = state.player;
   player.x = level.start.x;
@@ -70,6 +95,9 @@ export function createGame(seed) {
     gameOver: false,
     messages: [],
     totalDistance: 0,
+    floatingTexts: [],
+    shake: 0,
+    hitstop: 0,
   };
   loadLevel(state, 0);
   return state;
@@ -81,6 +109,9 @@ function hurtPlayer(state, amount) {
   player.hp = Math.max(0, player.hp - amount);
   player.hitFlash = 0.25;
   player.invuln = INVULN_DURATION;
+  spawnFloatingText(state, player.x + player.w / 2, player.y, `-${amount}`, '#ff6b6b');
+  addShake(state, SHAKE_ON_HURT);
+  state.hitstop = Math.max(state.hitstop, HITSTOP_HURT);
   if (player.hp <= 0) {
     state.gameOver = true;
     addMessage(state, `You fall in the ${state.level.biome}.`);
@@ -106,7 +137,11 @@ function maybeEquip(state, item, isWeapon) {
 function killEnemy(state, enemy) {
   const player = state.player;
   const tier = state.level.tier;
-  player.gold += randInt(state.rng, 3 + tier, 10 + tier * 2);
+  const gold = randInt(state.rng, 3 + tier, 10 + tier * 2);
+  player.gold += gold;
+  spawnFloatingText(state, enemy.x + enemy.w / 2, enemy.y - 10, `+${gold}g`, '#f4d35e');
+  addShake(state, SHAKE_ON_KILL);
+  state.hitstop = Math.max(state.hitstop, HITSTOP_KILL);
   if (chance(state.rng, 0.35)) player.scrap += randInt(state.rng, 2, 5);
   if (chance(state.rng, 0.1)) {
     const isWeapon = chance(state.rng, 0.5);
@@ -116,10 +151,20 @@ function killEnemy(state, enemy) {
   if (chance(state.rng, 0.05)) player.hp = Math.min(player.maxHp, player.hp + 15);
 }
 
-function applyDamageToEnemy(state, enemy, rawDamage) {
+function applyDamageToEnemy(state, enemy, rawDamage, knockbackDir) {
   const dmg = resolveDamage(rawDamage, 0, state.rng);
   enemy.hp -= dmg;
   enemy.hitFlash = 0.2;
+  // Hitstun pauses an in-progress windup (it isn't ticked down while
+  // stunned, further down in updateEnemies) rather than cancelling the
+  // attack outright -- landing hits buys you time and space, it doesn't
+  // let you spam an enemy's swing away for free.
+  enemy.hitstun = ENEMY_HITSTUN;
+  const pushed = enemy.x + knockbackDir * ENEMY_KNOCKBACK;
+  enemy.x = Math.max(enemy.patrolMin - 60, Math.min(enemy.patrolMax - enemy.w + 60, pushed));
+  spawnFloatingText(state, enemy.x + enemy.w / 2, enemy.y, `${dmg}`, '#ffffff');
+  addShake(state, SHAKE_ON_HIT);
+  state.hitstop = Math.max(state.hitstop, HITSTOP_HIT);
 }
 
 function performPlayerAttack(state) {
@@ -141,7 +186,7 @@ function performPlayerAttack(state) {
   const hitbox = { x: reachX0, y: player.y, w: reachX1 - reachX0, h: player.h };
   for (const enemy of state.enemies) {
     if (enemy.hp <= 0) continue;
-    if (rectsOverlap(hitbox, enemy)) applyDamageToEnemy(state, enemy, weapon.damage);
+    if (rectsOverlap(hitbox, enemy)) applyDamageToEnemy(state, enemy, weapon.damage, player.facing);
   }
 }
 
@@ -210,7 +255,7 @@ function updateProjectiles(state, dt) {
     for (const enemy of state.enemies) {
       if (enemy.hp <= 0) continue;
       if (rectsOverlap(pbox, enemy)) {
-        applyDamageToEnemy(state, enemy, p.damage);
+        applyDamageToEnemy(state, enemy, p.damage, Math.sign(p.vx) || 1);
         hit = true;
         break;
       }
@@ -230,6 +275,31 @@ function updateEnemies(state, dt) {
     const dx = player.x - enemy.x;
     const dist = Math.abs(dx);
     const sameLevel = Math.abs((player.y + player.h) - (enemy.y + enemy.h)) < 80;
+
+    if (enemy.hitstun > 0) {
+      enemy.hitstun -= dt;
+      continue;
+    }
+
+    if (enemy.windup > 0) {
+      // Telegraphed: hold position (sprites.js shows the warning flash)
+      // and resolve the hit only if the player is still in range when it
+      // lands — stepping back during the tell is real counterplay.
+      enemy.windup -= dt;
+      if (enemy.windup <= 0) {
+        enemy.cooldownRemaining = enemy.cooldown;
+        if (dist <= enemy.attackRange * 1.2 && sameLevel) {
+          const dmg = resolveDamage(enemy.damage, player.armor.defense, state.rng);
+          const wasAlive = player.invuln <= 0;
+          hurtPlayer(state, dmg);
+          if (wasAlive) {
+            const push = (dx >= 0 ? -1 : 1) * HIT_KNOCKBACK;
+            player.x = Math.max(0, Math.min(state.level.width - player.w, player.x + push));
+          }
+        }
+      }
+      continue;
+    }
 
     if (enemy.state === 'patrol') {
       if (dist < enemy.aggroRange && sameLevel) {
@@ -253,14 +323,8 @@ function updateEnemies(state, dt) {
         const nx = enemy.x + dir * enemy.speed * dt;
         enemy.x = Math.max(enemy.patrolMin - 40, Math.min(enemy.patrolMax - enemy.w + 40, nx));
       } else if (enemy.cooldownRemaining <= 0) {
-        enemy.cooldownRemaining = enemy.cooldown;
-        const dmg = resolveDamage(enemy.damage, player.armor.defense, state.rng);
-        const wasAlive = player.invuln <= 0;
-        hurtPlayer(state, dmg);
-        if (wasAlive) {
-          const push = (dx >= 0 ? -1 : 1) * HIT_KNOCKBACK;
-          player.x = Math.max(0, Math.min(state.level.width - player.w, player.x + push));
-        }
+        enemy.dir = dx >= 0 ? 1 : -1;
+        enemy.windup = ENEMY_WINDUP;
       }
     }
   }
@@ -271,16 +335,33 @@ function updateEnemies(state, dt) {
   });
 }
 
+function updateFloatingTexts(state, dt) {
+  const kept = [];
+  for (const f of state.floatingTexts) {
+    f.life -= dt;
+    f.y += f.vy * dt;
+    f.vy += 60 * dt;
+    if (f.life > 0) kept.push(f);
+  }
+  state.floatingTexts = kept;
+}
+
 function updatePickups(state) {
   const player = state.player;
   const kept = [];
   for (const pickup of state.pickups) {
     const box = { x: pickup.x - 12, y: pickup.y - 24, w: 24, h: 24 };
     if (rectsOverlap(player, box)) {
-      if (pickup.kind === 'gold') player.gold += pickup.amount;
-      else if (pickup.kind === 'scrap') player.scrap += pickup.amount;
-      else if (pickup.kind === 'potion') player.hp = Math.min(player.maxHp, player.hp + pickup.amount);
-      else if (pickup.kind === 'weapon') maybeEquip(state, pickup.item, true);
+      if (pickup.kind === 'gold') {
+        player.gold += pickup.amount;
+        spawnFloatingText(state, pickup.x, pickup.y - 20, `+${pickup.amount}g`, '#f4d35e');
+      } else if (pickup.kind === 'scrap') {
+        player.scrap += pickup.amount;
+        spawnFloatingText(state, pickup.x, pickup.y - 20, `+${pickup.amount} scrap`, '#c9c9d4');
+      } else if (pickup.kind === 'potion') {
+        player.hp = Math.min(player.maxHp, player.hp + pickup.amount);
+        spawnFloatingText(state, pickup.x, pickup.y - 20, `+${pickup.amount} hp`, '#7fdc7f');
+      } else if (pickup.kind === 'weapon') maybeEquip(state, pickup.item, true);
       else if (pickup.kind === 'armor') maybeEquip(state, pickup.item, false);
       continue;
     }
@@ -309,6 +390,8 @@ export function update(state, input, dt) {
   player.swingFlash = Math.max(0, player.swingFlash - dt);
   player.invuln = Math.max(0, player.invuln - dt);
   player.hitFlash = Math.max(0, player.hitFlash - dt);
+  state.shake = Math.max(0, state.shake - SHAKE_DECAY * dt);
+  updateFloatingTexts(state, dt);
 
   let dir = 0;
   if (input.left) dir -= 1;

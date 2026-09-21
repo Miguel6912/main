@@ -34,13 +34,17 @@ export function createPlayer(x, y) {
   };
 }
 
+// Enemies now telegraph before they hit (see game.js windup handling), so
+// they can afford to hit harder and notice you from further off than before
+// without feeling cheap -- the counterplay is dodging the tell, not just
+// trading blows.
 const ENEMY_TYPES = {
-  wolf: { w: 49, h: 38, hpBase: 8, hpPerTier: 2, dmgBase: 3, dmgPerTier: 1, speed: 150, aggro: 230, range: 40, cooldown: 0.55 },
-  bandit: { w: 38, h: 61, hpBase: 14, hpPerTier: 3, dmgBase: 5, dmgPerTier: 1, speed: 100, aggro: 200, range: 42, cooldown: 0.8 },
-  skeleton: { w: 35, h: 61, hpBase: 12, hpPerTier: 3, dmgBase: 5, dmgPerTier: 1, speed: 95, aggro: 210, range: 42, cooldown: 0.7 },
-  zombie: { w: 41, h: 61, hpBase: 22, hpPerTier: 4, dmgBase: 7, dmgPerTier: 1, speed: 60, aggro: 160, range: 42, cooldown: 1.0 },
-  guard: { w: 41, h: 64, hpBase: 20, hpPerTier: 4, dmgBase: 6, dmgPerTier: 1, speed: 95, aggro: 220, range: 44, cooldown: 0.7 },
-  gargoyle: { w: 46, h: 55, hpBase: 30, hpPerTier: 5, dmgBase: 9, dmgPerTier: 1, speed: 75, aggro: 200, range: 44, cooldown: 0.9 },
+  wolf: { w: 49, h: 38, hpBase: 8, hpPerTier: 2, dmgBase: 4, dmgPerTier: 1, speed: 160, aggro: 260, range: 40, cooldown: 0.5 },
+  bandit: { w: 38, h: 61, hpBase: 14, hpPerTier: 3, dmgBase: 6, dmgPerTier: 1, speed: 105, aggro: 230, range: 42, cooldown: 0.75 },
+  skeleton: { w: 35, h: 61, hpBase: 12, hpPerTier: 3, dmgBase: 6, dmgPerTier: 1, speed: 100, aggro: 240, range: 42, cooldown: 0.65 },
+  zombie: { w: 41, h: 61, hpBase: 22, hpPerTier: 4, dmgBase: 8, dmgPerTier: 1, speed: 65, aggro: 190, range: 42, cooldown: 0.95 },
+  guard: { w: 41, h: 64, hpBase: 20, hpPerTier: 4, dmgBase: 7, dmgPerTier: 1, speed: 100, aggro: 250, range: 44, cooldown: 0.65 },
+  gargoyle: { w: 46, h: 55, hpBase: 30, hpPerTier: 5, dmgBase: 10, dmgPerTier: 1, speed: 80, aggro: 230, range: 44, cooldown: 0.85 },
 };
 
 export const BIOME_ENEMIES = {
@@ -74,6 +78,8 @@ export function createEnemy(type, x, groundY, patrolMin, patrolMax, tier, rng) {
     dir: rng() < 0.5 ? -1 : 1,
     state: 'patrol',
     hitFlash: 0,
+    windup: 0,
+    hitstun: 0,
   };
 }
 

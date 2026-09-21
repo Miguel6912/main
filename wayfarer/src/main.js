@@ -165,8 +165,15 @@ function loop(now) {
       attackPressed: justPressed.has('attack'),
       interactPressed: justPressed.has('interact'),
     };
-    update(state, input, dt);
     justPressed.clear();
+    // Hit-stop: freeze the simulation for a few frames on an impactful hit
+    // so it reads with some weight, instead of running every frame through
+    // unconditionally. Still consumes input above so nothing queues oddly.
+    if (state.hitstop > 0) {
+      state.hitstop = Math.max(0, state.hitstop - dt);
+    } else {
+      update(state, input, dt);
+    }
   }
 
   renderGame(document.getElementById('game-canvas'), state, now / 1000);

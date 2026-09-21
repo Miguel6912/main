@@ -24,6 +24,11 @@ export function renderGame(canvas, state, time) {
   const camera = computeCamera(state);
   const groundScreenY = GROUND_Y;
 
+  ctx.save();
+  if (state.shake > 0) {
+    ctx.translate((Math.random() - 0.5) * state.shake * 7, (Math.random() - 0.5) * state.shake * 5);
+  }
+
   drawSky(ctx, biome, VIEW_WIDTH, VIEW_HEIGHT);
   drawFarHill(ctx, biome, -camera * BG_PARALLAX * 0.5, groundScreenY, VIEW_WIDTH * 1.4);
 
@@ -130,5 +135,18 @@ export function renderGame(canvas, state, time) {
   ctx.save();
   ctx.translate(-camera, 0);
   drawPlayer(ctx, state.player, time);
+  ctx.restore();
+
+  ctx.font = 'bold 15px "Courier New", monospace';
+  ctx.textAlign = 'center';
+  for (const f of state.floatingTexts) {
+    const sx = f.x - camera;
+    if (sx < -40 || sx > VIEW_WIDTH + 40) continue;
+    ctx.globalAlpha = Math.max(0, Math.min(1, f.life / 0.35));
+    ctx.fillStyle = f.color;
+    ctx.fillText(f.text, sx, f.y);
+  }
+  ctx.globalAlpha = 1;
+
   ctx.restore();
 }

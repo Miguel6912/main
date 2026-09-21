@@ -183,20 +183,100 @@ export function drawDecoration(ctx, type, flip, scale) {
 }
 
 export function drawForge(ctx, glow) {
-  ctx.fillStyle = '#2a2a30';
-  ctx.fillRect(-22, -26, 44, 26);
-  ctx.fillStyle = '#4a4a52';
-  poly(ctx, [[-26, -26], [26, -26], [18, -38], [-18, -38]]);
+  // A small blacksmith's house behind the anvil, so the forge reads as a
+  // place rather than just a floating prop.
+  ctx.save();
+  ctx.translate(-22, 0);
+  ctx.fillStyle = '#4a3a2c';
+  ctx.fillRect(-38, -58, 76, 58);
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  ctx.fillRect(-38, -58, 76, 8);
+  ctx.fillStyle = '#6a3a2c';
+  poly(ctx, [[-46, -58], [0, -92], [46, -58]]);
   ctx.fill();
+  ctx.strokeStyle = '#2a1c14';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#2a1c14';
+  ctx.fillRect(-11, -34, 20, 34);
+  const winFlicker = 0.75 + Math.sin(glow * 5) * 0.2;
+  ctx.fillStyle = `rgba(255,180,80,${0.55 * winFlicker})`;
+  ctx.fillRect(14, -44, 13, 13);
+  ctx.strokeStyle = '#2a1c14';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(14, -44, 13, 13);
+  ctx.fillStyle = '#5a4a3c';
+  ctx.fillRect(25, -86, 10, 22);
+  ctx.fillStyle = 'rgba(200,200,200,0.3)';
+  circle(ctx, 30, -92 - Math.sin(glow * 2) * 4, 6);
+  ctx.fill();
+  circle(ctx, 34, -102 - Math.sin(glow * 2 + 1) * 4, 5);
+  ctx.fill();
+  ctx.restore();
+
+  // Anvil, out front where the player interacts.
+  ctx.save();
+  ctx.translate(30, 0);
+  ctx.fillStyle = '#2a2a30';
+  ctx.fillRect(-15, -20, 30, 20);
+  ctx.fillStyle = '#44444e';
+  poly(ctx, [[-20, -20], [20, -20], [15, -31], [-15, -31]]);
+  ctx.fill();
+  ctx.fillStyle = '#54545e';
+  ctx.fillRect(-19, -33, 38, 4);
   const flicker = 0.7 + Math.sin(glow * 6) * 0.15;
-  const grad = ctx.createRadialGradient(0, -34, 2, 0, -34, 26 * flicker);
-  grad.addColorStop(0, 'rgba(255,140,50,0.8)');
+  const grad = ctx.createRadialGradient(0, -35, 2, 0, -35, 26 * flicker);
+  grad.addColorStop(0, 'rgba(255,140,50,0.75)');
   grad.addColorStop(1, 'rgba(255,140,50,0)');
   ctx.fillStyle = grad;
   ctx.fillRect(-40, -70, 80, 70);
   ctx.fillStyle = '#ff9c4a';
-  circle(ctx, 0, -36, 6 * flicker);
+  circle(ctx, 0, -33, 5 * flicker);
   ctx.fill();
+  ctx.restore();
+
+  // The dwarf blacksmith, standing beside his anvil.
+  ctx.save();
+  ctx.translate(-3, 0);
+  ctx.fillStyle = '#3a2c20';
+  ctx.fillRect(-10, -13, 8, 13);
+  ctx.fillRect(2, -13, 8, 13);
+  ctx.fillStyle = '#7a4a2c';
+  ctx.beginPath();
+  ctx.roundRect(-14, -38, 28, 26, 4);
+  ctx.fill();
+  ctx.strokeStyle = '#4a2c18';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#5a4030';
+  ctx.fillRect(-11, -30, 22, 16);
+  ctx.fillStyle = '#7a4a2c';
+  ctx.fillRect(-18, -35, 6, 18);
+  ctx.fillRect(12, -35, 6, 18);
+  circle(ctx, 0, -45, 11);
+  ctx.fillStyle = '#e8b98a';
+  ctx.fill();
+  ctx.fillStyle = '#c9c9c9';
+  poly(ctx, [[-9, -43], [9, -43], [7, -26], [0, -22], [-7, -26]]);
+  ctx.fill();
+  ctx.fillStyle = '#5a5a62';
+  poly(ctx, [[-12, -51], [12, -51], [10, -55], [-10, -55]]);
+  ctx.fill();
+  ctx.fillRect(-13, -53, 26, 4);
+  ctx.fillStyle = '#20202a';
+  circle(ctx, -4, -46, 1.4);
+  ctx.fill();
+  circle(ctx, 4, -46, 1.4);
+  ctx.fill();
+  ctx.save();
+  ctx.translate(17, -24);
+  ctx.rotate(0.35);
+  ctx.fillStyle = '#5a4324';
+  ctx.fillRect(-2, -4, 4, 24);
+  ctx.fillStyle = '#7a7a82';
+  ctx.fillRect(-8, -13, 16, 10);
+  ctx.restore();
+  ctx.restore();
 }
 
 export function drawGate(ctx, height) {
@@ -367,6 +447,11 @@ function drawBipedBase(ctx, w, h, bodyColor, outline, legColor) {
   ctx.stroke();
 }
 
+// Windup duration enemies telegraph an attack for -- kept in sync with
+// ENEMY_WINDUP in core/game.js so the warning ring's pulse timing reads
+// as "about to land," not just decorative.
+const ENEMY_WINDUP_REFERENCE = 0.35;
+
 export function drawEnemy(ctx, enemy, walkPhase) {
   ctx.save();
   ctx.translate(enemy.x + enemy.w / 2, enemy.y + enemy.h);
@@ -377,6 +462,22 @@ export function drawEnemy(ctx, enemy, walkPhase) {
   const h = enemy.h;
   const bob = enemy.state === 'chase' ? Math.sin(walkPhase * 9) * 2 : 0;
   ctx.translate(0, bob);
+
+  if (enemy.windup > 0) {
+    const urgency = 1 - enemy.windup / ENEMY_WINDUP_REFERENCE;
+    const pulse = 0.5 + 0.5 * Math.sin(walkPhase * 26);
+    ctx.save();
+    ctx.scale(enemy.dir >= 0 ? 1 : -1, 1);
+    ctx.strokeStyle = `rgba(255,70,60,${0.35 + 0.4 * urgency})`;
+    ctx.lineWidth = 2.5;
+    circle(ctx, 0, -h * 0.55, w * 0.55 + pulse * 4);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,90,70,0.9)';
+    ctx.font = `bold ${Math.round(h * 0.36)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('!', 0, -h * 1.08);
+    ctx.restore();
+  }
 
   if (enemy.type === 'wolf') {
     ctx.fillStyle = '#6a6a72';

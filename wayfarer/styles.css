@@ -166,13 +166,16 @@ button.secondary {
 }
 
 .touch-forge {
+  /* Deliberately separate from both the d-pad (bottom-left) and the
+     action buttons (bottom-right) so it can never overlap either one,
+     regardless of screen size. */
   position: absolute;
-  right: calc(4% + 32px);
-  bottom: 26%;
-  width: 50px;
-  height: 50px;
-  transform: translateX(50%);
-  background: rgba(255, 215, 106, 0.25);
+  left: 50%;
+  top: 6%;
+  transform: translateX(-50%);
+  width: 54px;
+  height: 54px;
+  background: rgba(255, 215, 106, 0.3);
   border-color: #ffd76a;
 }
 
