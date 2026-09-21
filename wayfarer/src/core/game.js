@@ -25,9 +25,25 @@ const FALL_DAMAGE = 4;
 const HAZARD_DAMAGE = 6;
 const INVULN_DURATION = 0.75;
 const HIT_KNOCKBACK = 30;
-const SWING_VISUAL = 0.15;
+// Was 0.15 -- long enough now to play out the 4-frame melee swing clip
+// (render.js) at a readable pace instead of just flashing a static pose.
+const SWING_VISUAL = 0.28;
 const INTERACT_RANGE = 90;
 const MAX_MESSAGES = 50;
+
+// Combo: each melee hit advances comboStep (0-3, wrapping), landing on a
+// different one of the 4 swings in the delivered melee sheet -- the first
+// hit of a fresh combo is swing 0, the second swing 1, and so on. Land
+// another hit within COMBO_WINDOW and it continues; wait longer and it
+// resets, so the next swing after a gap is swing 0 again, not wherever the
+// count happened to stop. Swing 3 -- the 4th hit of an unbroken combo -- is
+// the finisher: on top of its normal melee hit, it also sends a short
+// forward wave that can catch a second target just past your blade's own
+// reach ("a little slice wave forward a step or 2").
+const COMBO_WINDOW = 0.7;
+const WAVE_SPEED = 480;
+const WAVE_RANGE = 90;
+const WAVE_DAMAGE_MULT = 1.4;
 
 // Enemies telegraph before they swing: cooldown ready + in range starts a
 // windup (visible in sprites.js as a warning flash) instead of dealing
@@ -171,6 +187,11 @@ function performPlayerAttack(state) {
   const { player } = state;
   const weapon = player.weapon;
   if (weapon.type === 'ranged') {
+    // Ranged weapons don't combo -- each shot is its own thing, so the next
+    // melee hit (if you switch weapons) always starts a fresh combo rather
+    // than continuing wherever a bow volley left off. -1, not 0: see
+    // entities.js createPlayer for why.
+    player.comboStep = -1;
     state.projectiles.push({
       x: player.facing > 0 ? player.x + player.w : player.x,
       y: player.y + player.h / 2,
@@ -178,15 +199,29 @@ function performPlayerAttack(state) {
       damage: weapon.damage,
       traveled: 0,
       maxRange: weapon.range,
+      kind: 'arrow',
     });
     return;
   }
+  player.comboStep = (player.comboStep + 1) % 4;
+  player.comboTimer = COMBO_WINDOW;
   const reachX0 = player.facing > 0 ? player.x + player.w : player.x - weapon.range;
   const reachX1 = player.facing > 0 ? player.x + player.w + weapon.range : player.x;
   const hitbox = { x: reachX0, y: player.y, w: reachX1 - reachX0, h: player.h };
   for (const enemy of state.enemies) {
     if (enemy.hp <= 0) continue;
     if (rectsOverlap(hitbox, enemy)) applyDamageToEnemy(state, enemy, weapon.damage, player.facing);
+  }
+  if (player.comboStep === 3) {
+    state.projectiles.push({
+      x: player.facing > 0 ? player.x + player.w : player.x,
+      y: player.y + player.h / 2,
+      vx: WAVE_SPEED * player.facing,
+      damage: Math.round(weapon.damage * WAVE_DAMAGE_MULT),
+      traveled: 0,
+      maxRange: WAVE_RANGE,
+      kind: 'wave',
+    });
   }
 }
 
@@ -394,6 +429,8 @@ export function update(state, input, dt) {
   player.swingFlash = Math.max(0, player.swingFlash - dt);
   player.invuln = Math.max(0, player.invuln - dt);
   player.hitFlash = Math.max(0, player.hitFlash - dt);
+  player.comboTimer = Math.max(0, player.comboTimer - dt);
+  if (player.comboTimer <= 0) player.comboStep = -1;
   state.shake = Math.max(0, state.shake - SHAKE_DECAY * dt);
   updateFloatingTexts(state, dt);
 
@@ -416,6 +453,7 @@ export function update(state, input, dt) {
   }
 
   updatePhysics(state, dt);
+  player.airTime = player.onGround ? 0 : player.airTime + dt;
   updateProjectiles(state, dt);
   updateEnemies(state, dt);
   updatePickups(state);

@@ -24,7 +24,8 @@ the alpha channel) before committing.
 ## Layout
 
 ```
-player/          idle, run, jump, attack — 4 poses, one player character
+player/          4 animation sheets (see "Animation sheets" below) —
+                 moods (idle/hurt/dodge/victory), walk_death, run_jump, melee
 enemies/         wolf, bandit, skeleton, zombie, guard, gargoyle
 forest/          background, ground, platform, tree, bush, rock
 graveyard/       background, ground, platform, gravestone, dead_tree, crypt
@@ -61,10 +62,37 @@ greatsword→greatsword, bow→hunters_bow; garb→travelers_garb,
 leather→leather_vest, chain→chainmail, plate→knights_plate. A pickup shows
 the actual weapon/armor art, not a generic icon.
 
+## Animation sheets
+
+`player/*.png` are 4x4 grids (16 frames each), not single poses — see
+`src/animator.js` for the frame-slicing math and `PLAYER_CLIPS` in
+`src/render.js` for which rows of which sheet map to which named clip
+(idle, run, jump, hurt, death, and 4 melee combo swings). Several clips can
+share one sheet file. **Downscale these without cropping** — cropping
+would shift the grid's cell boundaries, since `frameRect()` divides the
+image's own pixel dimensions by 4 to find each cell.
+
+A few frames (mostly in `walk_death.png`'s death rows) have a stray limb
+fragment from the row above bleeding across the cell boundary — a known
+issue from the source generation, not a frame-slicing bug (verified by
+extracting the raw cells directly). Low-priority since it only shows in
+the death clip, which is rarely lingered on (the game-over modal covers
+it within one frame in normal play); worth a proper source-side fix
+(re-crop or regenerate the affected frames) if the sheets get revisited.
+
+Enemies, bosses, and NPCs delivered in the same expansion (spells, ranged
+effects, castle parallax layers, a full boss roster, and a blacksmith
+portrait/workbench set) are not wired in yet -- only the player's moveset
+uses the new animation system so far. They're extracted and inventoried,
+waiting on the next integration pass.
+
 ## How each category is drawn (src/render.js)
 
-- **player / enemies**: stretched to fill the entity's real hitbox exactly,
-  so the art never drifts from where hits register.
+- **player**: same per-frame animation system as above, stretched to the
+  entity's real hitbox (`drawSheetBox`) so the art never drifts from where
+  hits register regardless of which frame is showing.
+- **enemies** (still single-pose, not yet upgraded to sheets): stretched to
+  fill the entity's real hitbox exactly, same reasoning.
 - **`*/background.png`**: these are full painted vistas (sun, a distant
   landmark, specific mountains) — not a repeating pattern. Scaled to cover
   the viewport once and panned only slightly (clamped within its own

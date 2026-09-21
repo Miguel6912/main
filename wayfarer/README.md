@@ -24,6 +24,9 @@ Then open **http://localhost:8000**.
 
 - `A`/`D` or arrow keys to move, `W`/`Space` to jump.
 - `J`/`F` to attack — melee weapons swing on contact, bows fire an arrow.
+  Landing melee hits back-to-back chains a 4-swing combo; the 4th sends a
+  short forward wave that can catch a second target past your blade's own
+  reach. Waiting too long between hits resets the combo to the first swing.
 - `E` to open the forge when you're standing near an anvil, and again to close it.
 - Walking over a better weapon or armor auto-equips it; anything worse is
   broken down into scrap instead, so nothing found is wasted.
@@ -40,6 +43,7 @@ assets/                painted art (see assets/README.md) -- falls back to vecto
 src/
   main.js              input handling, game loop, HUD/forge UI wiring
   assets.js             optional image loader (falls back to vector art per sprite)
+  animator.js            frame math for 4x4 animation sheets (see assets/README.md)
   render.js             camera, parallax background, draw order
   sprites.js             hand-drawn vector art for terrain, actors, items
   core/

@@ -31,6 +31,15 @@ export function createPlayer(x, y) {
     jumpsUsed: 0,
     lastSafeX: x,
     lastSafeY: y,
+    // Combo: which of the 4 melee swings was just thrown (0-3), and how
+    // long since then before it resets to the first swing again -- see
+    // performPlayerAttack. Starts at -1, not 0, so the very first swing of
+    // a fresh combo lands on index 0 (comboStep + 1) % 4 rather than
+    // skipping straight to index 1. airTime is purely cosmetic (drives the
+    // jump animation's frame in render.js), not read by physics.
+    comboStep: -1,
+    comboTimer: 0,
+    airTime: 0,
   };
 }
 

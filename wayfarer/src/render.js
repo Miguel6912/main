@@ -2,9 +2,10 @@ import { GROUND_Y } from './core/levelgen.js';
 import {
   drawSky, drawFarHill, drawGround, drawPlatform, drawHazard, drawDecoration,
   drawForge, drawGate, drawGold, drawScrap, drawPotionPickup, drawGearPickup,
-  drawProjectile, drawPlayer, drawEnemy, drawHUD,
+  drawProjectile, drawSliceWave, drawPlayer, drawEnemy, drawHUD,
 } from './sprites.js';
 import { getImage } from './assets.js';
+import { frameRect, frameForElapsed, frameForPhase } from './animator.js';
 
 // Bumped from 960x540 -- at the old size, making things read bigger meant
 // zooming into the same on-screen area, which necessarily showed less of
@@ -91,6 +92,86 @@ const ENEMY_VISUAL_SCALE = {
   gargoyle: 1.4,
 };
 
+// ----------------------------------------------------------- player anims --
+// Every player sheet is a 4x4 grid (src/animator.js); a clip is a named
+// slice of its 16 frames. Several clips can share one sheet (moods.png
+// alone covers idle/hurt/dodge/victory). dodge and victory are defined but
+// not currently selected by pickPlayerClip below -- there's no dodge-roll
+// or level-complete-pause mechanic yet for them to represent, so they sit
+// ready rather than being force-fit onto something that doesn't fit.
+const PLAYER_CLIPS = {
+  idle: { key: 'player.sheet.moods', start: 0, count: 4 },
+  hurt: { key: 'player.sheet.moods', start: 4, count: 4 },
+  dodge: { key: 'player.sheet.moods', start: 8, count: 4 },
+  victory: { key: 'player.sheet.moods', start: 12, count: 4 },
+  run: { key: 'player.sheet.runJump', start: 0, count: 8 },
+  jump: { key: 'player.sheet.runJump', start: 8, count: 8 },
+  death: { key: 'player.sheet.walkDeath', start: 8, count: 8 },
+  swing0: { key: 'player.sheet.melee', start: 0, count: 4 },
+  swing1: { key: 'player.sheet.melee', start: 4, count: 4 },
+  swing2: { key: 'player.sheet.melee', start: 8, count: 4 },
+  swing3: { key: 'player.sheet.melee', start: 12, count: 4 },
+};
+// Mirrors core/game.js's SWING_VISUAL/hurtPlayer's hitFlash duration --
+// kept as separate constants (render.js doesn't otherwise depend on
+// game.js) rather than importing them, matching how ENEMY_WINDUP_REFERENCE
+// above already mirrors game.js's ENEMY_WINDUP. Keep both in sync if either
+// changes.
+const PLAYER_SWING_DURATION = 0.28;
+const PLAYER_HURT_DURATION = 0.25;
+const PLAYER_JUMP_DURATION = 0.5;
+const PLAYER_DEATH_DURATION = 0.6;
+// World px of travel per full 8-frame run cycle -- tuned so the stride
+// looks natural at the player's actual move speed, not by wall-clock time
+// (so it freezes cleanly the instant you stop, exactly like the old bob
+// hack did, but now with a real running animation instead of one static
+// pose bouncing up and down).
+const PLAYER_RUN_STRIDE = 60;
+
+function pickPlayerClipName(player, gameOver) {
+  if (gameOver) return 'death';
+  if (player.swingFlash > 0) return `swing${player.comboStep}`;
+  if (player.hitFlash > 0) return 'hurt';
+  if (!player.onGround) return 'jump';
+  if (Math.abs(player.vx) > 5) return 'run';
+  return 'idle';
+}
+
+function playerClipFrame(clipName, clip, player, time, deathElapsed) {
+  if (clipName === 'run') {
+    return frameForPhase(clip, (player.x / PLAYER_RUN_STRIDE) * clip.count);
+  }
+  if (clipName === 'jump') {
+    return frameForElapsed({ count: clip.count, fps: clip.count / PLAYER_JUMP_DURATION, loop: false }, player.airTime);
+  }
+  if (clipName === 'death') {
+    return frameForElapsed({ count: clip.count, fps: clip.count / PLAYER_DEATH_DURATION, loop: false }, deathElapsed);
+  }
+  if (clipName === 'hurt') {
+    return frameForElapsed(
+      { count: clip.count, fps: clip.count / PLAYER_HURT_DURATION, loop: false },
+      PLAYER_HURT_DURATION - player.hitFlash,
+    );
+  }
+  if (clipName.startsWith('swing')) {
+    return frameForElapsed(
+      { count: clip.count, fps: clip.count / PLAYER_SWING_DURATION, loop: false },
+      PLAYER_SWING_DURATION - player.swingFlash,
+    );
+  }
+  // idle (and dodge/victory, if ever wired) -- a slow ambient loop driven
+  // by wall-clock time since there's no movement to drive it off while
+  // standing still.
+  return frameForElapsed({ count: clip.count, fps: 3, loop: true }, time);
+}
+
+// Tracks when the current death animation started so its frame can be
+// computed from elapsed wall-clock time (renderGame only receives `time`,
+// not a per-state timer -- game.js's own update() loop stops entirely once
+// gameOver is set, so there's nowhere on the simulation side to count this
+// from). Reset the moment a new run starts.
+let deathStartTime = null;
+
 // Anchored at (x, y) = bottom-center, matching every vector prop's own
 // translate() convention, so swapping one prop from vector to image never
 // shifts where it sits relative to the ground/platform under it.
@@ -117,6 +198,19 @@ function drawBoxImage(ctx, img, x, y, w, h, flip, visualScale = 1) {
   ctx.translate(x, y);
   if (flip) ctx.scale(-1, 1);
   ctx.drawImage(img, -dw / 2, -dh, dw, dh);
+  ctx.restore();
+}
+
+// Same as drawBoxImage, but draws one frame out of a 4x4 animation sheet
+// (see src/animator.js) instead of the whole image.
+function drawSheetBox(ctx, img, frameIndex, x, y, w, h, flip, visualScale = 1) {
+  const { sx, sy, sw, sh } = frameRect(img, frameIndex);
+  const dw = w * visualScale;
+  const dh = h * visualScale;
+  ctx.save();
+  ctx.translate(x, y);
+  if (flip) ctx.scale(-1, 1);
+  ctx.drawImage(img, sx, sy, sw, sh, -dw / 2, -dh, dw, dh);
   ctx.restore();
 }
 
@@ -194,13 +288,6 @@ function drawWindupTelegraph(ctx, sx, enemy, walkPhase) {
   ctx.textAlign = 'center';
   ctx.fillText('!', cx, enemy.y - enemy.h * 0.08);
   ctx.restore();
-}
-
-function playerPoseKey(player) {
-  if (player.swingFlash > 0) return 'player.attack';
-  if (!player.onGround) return 'player.jump';
-  if (Math.abs(player.vx) > 5) return 'player.run';
-  return 'player.idle';
 }
 
 export function computeCamera(state) {
@@ -368,7 +455,14 @@ export function renderGame(canvas, state, time) {
     const sx = proj.x - camera;
     if (sx < -20 || sx > SCREEN_W + 20) continue;
     const facing = Math.sign(proj.vx) || 1;
-    if (arrowImg) {
+    if (proj.kind === 'wave') {
+      // No dedicated art delivered for the combo finisher's wave yet --
+      // vector for now, same fallback philosophy as everything else here.
+      ctx.save();
+      ctx.translate(sx, proj.y);
+      drawSliceWave(ctx, facing);
+      ctx.restore();
+    } else if (arrowImg) {
       drawAnchoredImage(ctx, arrowImg, sx, proj.y + PROJECTILE_TARGET_H / 2, PROJECTILE_TARGET_H, facing < 0);
     } else {
       ctx.save();
@@ -418,14 +512,25 @@ export function renderGame(canvas, state, time) {
 
   const player = state.player;
   const playerSx = player.x - camera;
-  const playerImg = getImage(playerPoseKey(player));
+  const clipName = pickPlayerClipName(player, state.gameOver);
+  const clip = PLAYER_CLIPS[clipName];
+  const playerImg = getImage(clip.key);
   if (playerImg) {
-    const running = player.onGround && Math.abs(player.vx) > 5;
-    const bob = running ? -Math.abs(Math.sin(player.x * 0.045)) * 4 : 0;
+    if (state.gameOver) {
+      if (deathStartTime === null) deathStartTime = time;
+    } else {
+      deathStartTime = null;
+    }
+    const deathElapsed = state.gameOver ? time - deathStartTime : 0;
+    const localFrame = playerClipFrame(clipName, clip, player, time, deathElapsed);
     ctx.save();
     if (player.hitFlash > 0) ctx.globalAlpha = 0.6;
     if (player.invuln > 0) ctx.globalAlpha = Math.max(0.4, ctx.globalAlpha - 0.25 * (Math.sin(player.invuln * 30) * 0.5 + 0.5));
-    drawBoxImage(ctx, playerImg, playerSx + player.w / 2, player.y + player.h + bob, player.w, player.h, player.facing < 0, PLAYER_VISUAL_SCALE);
+    drawSheetBox(
+      ctx, playerImg, clip.start + localFrame,
+      playerSx + player.w / 2, player.y + player.h,
+      player.w, player.h, player.facing < 0, PLAYER_VISUAL_SCALE,
+    );
     ctx.restore();
   } else {
     ctx.save();

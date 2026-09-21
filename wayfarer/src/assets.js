@@ -7,10 +7,13 @@
 // each key expects (size, orientation, transparency).
 
 export const ASSET_PATHS = {
-  'player.idle': 'assets/player/idle.png',
-  'player.run': 'assets/player/run.png',
-  'player.jump': 'assets/player/jump.png',
-  'player.attack': 'assets/player/attack.png',
+  // 4x4 animation sheets (16 frames each) -- superseded the old one-pose-
+  // per-file player art. See src/animator.js for how a sheet's frames are
+  // grouped into named clips (PLAYER_CLIPS in render.js).
+  'player.sheet.moods': 'assets/player/moods.png',
+  'player.sheet.walkDeath': 'assets/player/walk_death.png',
+  'player.sheet.runJump': 'assets/player/run_jump.png',
+  'player.sheet.melee': 'assets/player/melee.png',
 
   'enemy.wolf': 'assets/enemies/wolf.png',
   'enemy.bandit': 'assets/enemies/bandit.png',

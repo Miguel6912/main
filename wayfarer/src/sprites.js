@@ -463,6 +463,26 @@ export function drawProjectile(ctx, facing) {
   ctx.restore();
 }
 
+// The combo finisher's forward wave -- no dedicated art for this exists
+// yet (see render.js), so a quick pale crescent-slash stands in. Kept
+// small and fast-reading rather than a big flashy effect, matching "a
+// little slice wave forward a step or 2."
+export function drawSliceWave(ctx, facing) {
+  ctx.save();
+  ctx.scale(facing, 1);
+  ctx.strokeStyle = 'rgba(230,245,255,0.9)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, 14, -0.9, 0.9);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(230,245,255,0.45)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(-5, 0, 13, -0.7, 0.7);
+  ctx.stroke();
+  ctx.restore();
+}
+
 // ---------------------------------------------------------------- actors --
 
 // Reference height the fixed pixel offsets below were authored against —
