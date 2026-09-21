@@ -43,6 +43,37 @@ window.addEventListener('keyup', (e) => {
   held.delete(action);
 });
 
+function bindTouchButton(id, action) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (!held.has(action)) justPressed.add(action);
+    held.add(action);
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      // Pointer capture isn't available/valid in every environment; the
+      // button still works via pointerup below, just without the drag-off
+      // safety net.
+    }
+  });
+  const release = (e) => {
+    e.preventDefault();
+    held.delete(action);
+  };
+  el.addEventListener('pointerup', release);
+  el.addEventListener('pointercancel', release);
+}
+
+[
+  ['touch-left', 'left'],
+  ['touch-right', 'right'],
+  ['touch-jump', 'jump'],
+  ['touch-attack', 'attack'],
+  ['touch-forge', 'interact'],
+].forEach(([id, action]) => bindTouchButton(id, action));
+
 function startNewGame() {
   const seed = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
   state = createGame(seed);
@@ -64,7 +95,9 @@ function updateHUD() {
   document.getElementById('stat-armor').textContent = `${p.armor.name} T${p.armor.tier}`;
   document.getElementById('stat-biome').textContent = `${state.level.biome[0].toUpperCase()}${state.level.biome.slice(1)}`;
   document.getElementById('stat-distance').textContent = Math.round(currentDistance());
-  document.getElementById('prompt-forge').classList.toggle('hidden', !isNearForge(state) || state.forgeOpen);
+  const showForgePrompt = isNearForge(state) && !state.forgeOpen;
+  document.getElementById('prompt-forge').classList.toggle('hidden', !showForgePrompt);
+  document.getElementById('touch-forge').classList.toggle('hidden', !showForgePrompt);
 }
 
 function updateMessages() {

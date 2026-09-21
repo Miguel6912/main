@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Wayfarer</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -42,6 +42,20 @@
             <button id="forge-close-btn" class="secondary">Close (E)</button>
           </div>
         </div>
+
+        <div id="touch-controls">
+          <div id="touch-move">
+            <button id="touch-left" class="touch-btn" aria-label="Move left">◀</button>
+            <button id="touch-right" class="touch-btn" aria-label="Move right">▶</button>
+          </div>
+          <button id="touch-forge" class="touch-btn touch-forge hidden" aria-label="Forge">⚒</button>
+          <div id="touch-actions">
+            <button id="touch-attack" class="touch-btn touch-attack" aria-label="Attack">⚔</button>
+            <button id="touch-jump" class="touch-btn touch-jump" aria-label="Jump">⤒</button>
+          </div>
+        </div>
+
+        <div id="rotate-hint">Rotate your device for a wider view</div>
       </div>
 
       <aside id="sidebar">
@@ -62,10 +76,13 @@
         <section id="help">
           <h2>Controls</h2>
           <ul>
-            <li><kbd>A</kbd>/<kbd>D</kbd> or arrows — move</li>
-            <li><kbd>W</kbd> / <kbd>Space</kbd> — jump</li>
-            <li><kbd>J</kbd> / <kbd>F</kbd> — attack</li>
-            <li><kbd>E</kbd> — forge / interact</li>
+            <li class="kbd-only"><kbd>A</kbd>/<kbd>D</kbd> or arrows — move</li>
+            <li class="kbd-only"><kbd>W</kbd> / <kbd>Space</kbd> — jump</li>
+            <li class="kbd-only"><kbd>J</kbd> / <kbd>F</kbd> — attack</li>
+            <li class="kbd-only"><kbd>E</kbd> — forge / interact</li>
+            <li class="touch-only">◀ ▶ on-screen — move</li>
+            <li class="touch-only">⤒ — jump, ⚔ — attack</li>
+            <li class="touch-only">⚒ appears near a forge — tap to open</li>
           </ul>
           <p class="hint">Fight through forest, graveyard, and castle in turn. Better gear drops as you go, or forge upgrades with scrap and gold. Falling into a pit costs health — mind your step.</p>
         </section>

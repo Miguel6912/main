@@ -2,6 +2,10 @@
   box-sizing: border-box;
 }
 
+html {
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
   background: #0a0a10;
@@ -10,6 +14,7 @@ body {
   min-height: 100vh;
   display: flex;
   justify-content: center;
+  overscroll-behavior: none;
 }
 
 #app {
@@ -84,6 +89,7 @@ button.secondary {
   background: #111017;
   border: 1px solid #33333f;
   border-radius: 4px;
+  touch-action: none;
 }
 
 #prompt-forge {
@@ -100,6 +106,149 @@ button.secondary {
 
 #prompt-forge.hidden {
   display: none;
+}
+
+/* Touch controls: hidden by default, shown only on coarse-pointer (touch)
+   devices via the media query below, so desktop/mouse users never see them. */
+#touch-controls {
+  display: none;
+}
+
+.touch-btn {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(20, 20, 30, 0.55);
+  border: 1px solid rgba(200, 200, 220, 0.35);
+  color: #f0f0f5;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.touch-btn:active {
+  background: rgba(255, 215, 106, 0.35);
+  border-color: #ffd76a;
+}
+
+#touch-move {
+  position: absolute;
+  left: 4%;
+  bottom: 8%;
+  display: flex;
+  gap: 14px;
+}
+
+#touch-move .touch-btn {
+  width: 58px;
+  height: 58px;
+}
+
+#touch-actions {
+  position: absolute;
+  right: 4%;
+  bottom: 8%;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+#touch-actions .touch-btn {
+  width: 64px;
+  height: 64px;
+}
+
+.touch-forge {
+  position: absolute;
+  right: calc(4% + 32px);
+  bottom: 26%;
+  width: 50px;
+  height: 50px;
+  transform: translateX(50%);
+  background: rgba(255, 215, 106, 0.25);
+  border-color: #ffd76a;
+}
+
+.touch-forge.hidden {
+  display: none;
+}
+
+#rotate-hint {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  background: rgba(5, 5, 8, 0.85);
+  font-size: 0.9rem;
+  z-index: 5;
+}
+
+#rotate-hint.hidden {
+  display: none !important;
+}
+
+.touch-only {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  #touch-controls {
+    display: block;
+  }
+
+  .kbd-only {
+    display: none;
+  }
+
+  .touch-only {
+    display: list-item;
+  }
+}
+
+@media (pointer: coarse) and (orientation: portrait) and (max-width: 700px) {
+  #rotate-hint {
+    display: flex;
+  }
+}
+
+/* Phone landscape: a full-width 16:9 canvas plus header would run taller
+   than the viewport and push the touch controls below the fold. Cap the
+   canvas to the available height instead so the whole play surface (and
+   its overlaid buttons) stays on screen without scrolling. */
+@media (pointer: coarse) and (max-height: 520px) {
+  #app {
+    padding: 8px;
+  }
+
+  #header {
+    margin-bottom: 6px;
+  }
+
+  #header h1 {
+    font-size: 1.1rem;
+  }
+
+  .header-stats {
+    font-size: 0.75rem;
+    gap: 8px;
+  }
+
+  #stage {
+    width: auto;
+    max-width: 100%;
+  }
+
+  #game-canvas {
+    width: auto;
+    height: min(76vh, 540px);
+    max-width: 100%;
+  }
 }
 
 #forge-modal {
