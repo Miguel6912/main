@@ -56,8 +56,8 @@ the actual weapon/armor art, not a generic icon.
 - **`structures/spikes.png`**: a repeating spike row, tiled like ground.
 - **decorations / items / weapons / armour**: aspect-ratio preserved,
   scaled to a fixed target height (documented as constants at the top of
-  `render.js` — `DECOR_TARGET_H`, `ITEM_TARGET_H`, etc.) times each prop's
-  own placement scale.
+  `render.js` — `DECOR_BASE_H` per decor type, `ITEM_TARGET_H`, etc.) times
+  each prop's own placement scale.
 
 ## If something looks off
 
