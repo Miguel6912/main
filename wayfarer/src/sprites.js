@@ -2,6 +2,8 @@
 // to the entity/prop's world position; shapes are written in local pixel
 // coordinates relative to that origin (top-left, unless noted).
 
+import { getImage } from './assets.js';
+
 export const PALETTES = {
   forest: {
     skyTop: '#bfe8ff', skyBottom: '#eaf9d8',
@@ -588,6 +590,26 @@ export function drawEnemy(ctx, enemy, walkPhase) {
 // Compact always-on readout, drawn in fixed screen space (not affected by
 // camera or shake) so HP/gold/scrap stay glanceable without looking away to
 // the sidebar -- the sidebar keeps the fuller detail (gear names, log).
+// World pickups already show real painted gold/scrap art once it's present
+// (render.js checks getImage there); the HUD mini-icons were still always
+// vector, which read as a mismatch next to the icon players just picked up.
+// Same fallback rule as everywhere else: image if present, vector if not.
+function drawHUDIcon(ctx, assetKey, cx, cy, vectorFn) {
+  const img = getImage(assetKey);
+  ctx.save();
+  if (img) {
+    const size = 15;
+    const aspect = (img.naturalWidth || 1) / (img.naturalHeight || 1);
+    const w = size * aspect;
+    ctx.drawImage(img, cx - w / 2, cy - size / 2, w, size);
+  } else {
+    ctx.translate(cx, cy);
+    ctx.scale(0.8, 0.8);
+    vectorFn(ctx);
+  }
+  ctx.restore();
+}
+
 export function drawHUD(ctx, player) {
   const x = 14;
   const y = 14;
@@ -634,21 +656,13 @@ export function drawHUD(ctx, player) {
   ctx.textBaseline = 'alphabetic';
   ctx.fillText(`${Math.max(0, Math.round(player.hp))}/${player.maxHp}`, barX + barW, barY + barH + 11);
 
-  ctx.save();
-  ctx.translate(x + 22, y + 51);
-  ctx.scale(0.8, 0.8);
-  drawGold(ctx);
-  ctx.restore();
+  drawHUDIcon(ctx, 'item.gold', x + 22, y + 51, drawGold);
   ctx.font = 'bold 12px "Courier New", monospace';
   ctx.fillStyle = '#f4d35e';
   ctx.textAlign = 'left';
   ctx.fillText(String(player.gold), x + 34, y + 54);
 
-  ctx.save();
-  ctx.translate(x + 98, y + 51);
-  ctx.scale(0.8, 0.8);
-  drawScrap(ctx);
-  ctx.restore();
+  drawHUDIcon(ctx, 'item.scrap', x + 98, y + 51, drawScrap);
   ctx.fillStyle = '#c9c9d4';
   ctx.fillText(String(player.scrap), x + 108, y + 54);
 

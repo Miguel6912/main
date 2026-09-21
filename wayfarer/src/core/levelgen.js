@@ -97,7 +97,7 @@ function buildDecorations(rng, biome, segments, levelWidth) {
   for (const seg of segments) {
     let x = seg.x0 + randInt(rng, 40, 100);
     while (x < seg.x1 - 30) {
-      foreground.push({ x, y: GROUND_Y, type: choice(rng, palette), flip: chance(rng, 0.5), scale: 0.8 + rng() * 0.5 });
+      foreground.push({ x, y: GROUND_Y, type: choice(rng, palette), flip: chance(rng, 0.5), scale: 0.65 + rng() * 0.85 });
       x += randInt(rng, 140, 240);
     }
   }

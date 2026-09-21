@@ -17,9 +17,31 @@ const BG_PARALLAX = 0.4;
 // pass tuned to look right with no real art in hand -- once actual images
 // land, these are the constants to revisit if proportions look off.
 
-const DECOR_TARGET_H = 90;
+// Per-type base heights -- a flat 90px for everything made trees read too
+// small (they should dominate) and rocks/gravestones too big (they're
+// low, incidental clutter). Each instance still multiplies this by its own
+// placement scale (levelgen.js) for size variety within a type.
+const DECOR_BASE_H = {
+  tree: 170,
+  bush: 65,
+  rock: 50,
+  gravestone: 72,
+  deadtree: 145,
+  crypt: 125,
+  pillar: 165,
+  banner: 130,
+  rubble: 75,
+};
 const ITEM_TARGET_H = 26;
 const PROJECTILE_TARGET_H = 14;
+// Was 27 (matched the vector spikeH exactly) -- against painted ground/decor
+// art that reads as a low smudge rather than a hazard. Tall enough to read
+// as spikes at a glance, still short of the player's hurtbox height (64).
+const SPIKE_H = 40;
+// Visual-only boost so the player reads clearly against enemy art -- the
+// hitbox (38x64) is unchanged, this only scales what's drawn, anchored on
+// the same bottom-center point so it doesn't shift where hits register.
+const PLAYER_VISUAL_SCALE = 1.3;
 
 // Anchored at (x, y) = bottom-center, matching every vector prop's own
 // translate() convention, so swapping one prop from vector to image never
@@ -37,11 +59,16 @@ function drawAnchoredImage(ctx, img, x, y, targetH, flip) {
 
 // Fills a specific w x h box (an entity's actual hitbox) instead of an
 // aspect-derived size, so the sprite always matches where hits register.
-function drawBoxImage(ctx, img, x, y, w, h, flip) {
+// visualScale grows the drawn box around the same bottom-center anchor
+// without touching w/h themselves -- for when the art needs to read
+// bigger than the actual collision box (see PLAYER_VISUAL_SCALE).
+function drawBoxImage(ctx, img, x, y, w, h, flip, visualScale = 1) {
+  const dw = w * visualScale;
+  const dh = h * visualScale;
   ctx.save();
   ctx.translate(x, y);
   if (flip) ctx.scale(-1, 1);
-  ctx.drawImage(img, -w / 2, -h, w, h);
+  ctx.drawImage(img, -dw / 2, -dh, dw, dh);
   ctx.restore();
 }
 
@@ -94,6 +121,30 @@ function drawStretchImage(ctx, img, x0, x1, top, h) {
   ctx.drawImage(img, x0, top, x1 - x0, h);
 }
 
+// The attack telegraph (pulsing ring + "!") was only ever drawn inside the
+// vector drawEnemy() path in sprites.js -- with a real enemy image active
+// it silently never showed at all, quietly undoing the earlier fairness
+// work (a windup with no visible tell is just an unavoidable hit). Drawn
+// here instead, once per enemy regardless of which body art is active.
+const ENEMY_WINDUP_REFERENCE = 0.35;
+function drawWindupTelegraph(ctx, sx, enemy, walkPhase) {
+  const cx = sx + enemy.w / 2;
+  const cy = enemy.y + enemy.h * 0.4;
+  const urgency = 1 - enemy.windup / ENEMY_WINDUP_REFERENCE;
+  const pulse = 0.5 + 0.5 * Math.sin(walkPhase * 26);
+  ctx.save();
+  ctx.strokeStyle = `rgba(255,70,60,${0.35 + 0.4 * urgency})`;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, enemy.w * 0.55 + pulse * 4, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,90,70,0.9)';
+  ctx.font = `bold ${Math.round(enemy.h * 0.36)}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('!', cx, enemy.y - enemy.h * 0.08);
+  ctx.restore();
+}
+
 function playerPoseKey(player) {
   if (player.swingFlash > 0) return 'player.attack';
   if (!player.onGround) return 'player.jump';
@@ -136,7 +187,7 @@ export function renderGame(canvas, state, time) {
     ctx.save();
     ctx.globalAlpha = 0.45;
     if (img) {
-      drawAnchoredImage(ctx, img, sx, groundScreenY + 6, DECOR_TARGET_H * d.scale, false);
+      drawAnchoredImage(ctx, img, sx, groundScreenY + 6, (DECOR_BASE_H[d.type] || 90) * d.scale, false);
     } else {
       ctx.translate(sx, groundScreenY + 6);
       drawDecoration(ctx, d.type, false, d.scale);
@@ -173,8 +224,18 @@ export function renderGame(canvas, state, time) {
     const sx0 = hz.x0 - camera;
     const sx1 = hz.x1 - camera;
     if (sx1 < 0 || sx0 > VIEW_WIDTH) continue;
-    if (spikeImg) drawTiledImage(ctx, spikeImg, sx0, sx1, groundScreenY - 27, 27);
-    else drawHazard(ctx, sx0, sx1, groundScreenY);
+    if (spikeImg) {
+      // At the same ~27px height as everything else on the ground, painted
+      // spikes read as a texture smudge, not a threat -- the user could see
+      // the *effect* (getting hit) but not the hazard itself. Drawn taller,
+      // plus the same red warning strip the vector fallback uses along the
+      // top edge, so it reads as "danger" even glanced at from a distance.
+      ctx.fillStyle = 'rgba(255,60,50,0.6)';
+      ctx.fillRect(sx0 - 3, groundScreenY - SPIKE_H - 3, sx1 - sx0 + 6, 4);
+      drawTiledImage(ctx, spikeImg, sx0, sx1, groundScreenY - SPIKE_H, SPIKE_H);
+    } else {
+      drawHazard(ctx, sx0, sx1, groundScreenY);
+    }
   }
 
   for (const d of level.decor.foreground) {
@@ -182,7 +243,7 @@ export function renderGame(canvas, state, time) {
     if (sx < -60 || sx > VIEW_WIDTH + 60) continue;
     const img = getImage(`decor.${d.type}`);
     if (img) {
-      drawAnchoredImage(ctx, img, sx, d.y, DECOR_TARGET_H * d.scale, d.flip);
+      drawAnchoredImage(ctx, img, sx, d.y, (DECOR_BASE_H[d.type] || 90) * d.scale, d.flip);
     } else {
       ctx.save();
       ctx.translate(sx, d.y);
@@ -257,12 +318,21 @@ export function renderGame(canvas, state, time) {
     const sx = enemy.x - camera;
     if (sx < -60 || sx > VIEW_WIDTH + 60) continue;
     const img = getImage(`enemy.${enemy.type}`);
+    // A static pose translated in a straight line reads as sliding, not
+    // walking. Bob phase is driven by the enemy's own x, not wall-clock
+    // time, so the "step" rate naturally matches how fast it's actually
+    // moving and freezes cleanly the instant it stops (windup/hitstun).
+    const moving = (enemy.state === 'chase' || enemy.state === 'patrol') && enemy.windup <= 0 && enemy.hitstun <= 0;
+    const bob = moving ? -Math.abs(Math.sin(enemy.x * 0.05)) * 3 : 0;
     if (img) {
-      const bob = enemy.state === 'chase' ? Math.sin(time * 9) * 2 : 0;
       ctx.save();
       if (enemy.hitFlash > 0) ctx.globalAlpha = 0.55;
       drawBoxImage(ctx, img, sx + enemy.w / 2, enemy.y + enemy.h + bob, enemy.w, enemy.h, enemy.dir < 0);
       ctx.restore();
+      // The vector path (drawEnemy in sprites.js) draws its own windup
+      // ring internally -- only add it here for the image path, so it's
+      // never drawn twice.
+      if (enemy.windup > 0) drawWindupTelegraph(ctx, sx, enemy, time);
     } else {
       ctx.save();
       ctx.translate(-camera, 0);
@@ -281,10 +351,12 @@ export function renderGame(canvas, state, time) {
   const playerSx = player.x - camera;
   const playerImg = getImage(playerPoseKey(player));
   if (playerImg) {
+    const running = player.onGround && Math.abs(player.vx) > 5;
+    const bob = running ? -Math.abs(Math.sin(player.x * 0.045)) * 4 : 0;
     ctx.save();
     if (player.hitFlash > 0) ctx.globalAlpha = 0.6;
     if (player.invuln > 0) ctx.globalAlpha = Math.max(0.4, ctx.globalAlpha - 0.25 * (Math.sin(player.invuln * 30) * 0.5 + 0.5));
-    drawBoxImage(ctx, playerImg, playerSx + player.w / 2, player.y + player.h, player.w, player.h, player.facing < 0);
+    drawBoxImage(ctx, playerImg, playerSx + player.w / 2, player.y + player.h + bob, player.w, player.h, player.facing < 0, PLAYER_VISUAL_SCALE);
     ctx.restore();
   } else {
     ctx.save();
