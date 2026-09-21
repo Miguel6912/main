@@ -1,10 +1,10 @@
 import { randInt, choice } from './rng.js';
 
 export const WEAPON_CATALOG = [
-  { id: 'dagger', name: 'Rusty Dagger', damage: 4, range: 40, cooldown: 0.32, type: 'melee' },
-  { id: 'sword', name: 'Iron Sword', damage: 7, range: 46, cooldown: 0.42, type: 'melee' },
-  { id: 'axe', name: 'War Axe', damage: 10, range: 42, cooldown: 0.58, type: 'melee' },
-  { id: 'greatsword', name: 'Greatsword', damage: 15, range: 52, cooldown: 0.75, type: 'melee' },
+  { id: 'dagger', name: 'Rusty Dagger', damage: 4, range: 60, cooldown: 0.32, type: 'melee' },
+  { id: 'sword', name: 'Iron Sword', damage: 7, range: 70, cooldown: 0.42, type: 'melee' },
+  { id: 'axe', name: 'War Axe', damage: 10, range: 66, cooldown: 0.58, type: 'melee' },
+  { id: 'greatsword', name: 'Greatsword', damage: 15, range: 84, cooldown: 0.75, type: 'melee' },
   { id: 'bow', name: "Hunter's Bow", damage: 6, range: 640, cooldown: 0.5, type: 'ranged', projectileSpeed: 560 },
 ];
 

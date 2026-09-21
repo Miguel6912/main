@@ -116,6 +116,9 @@ button.secondary {
 
 .touch-btn {
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
   user-select: none;
   touch-action: none;
   display: flex;
@@ -127,6 +130,7 @@ button.secondary {
   color: #f0f0f5;
   font-size: 1.4rem;
   line-height: 1;
+  cursor: pointer;
 }
 
 .touch-btn:active {

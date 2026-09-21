@@ -46,6 +46,10 @@ window.addEventListener('keyup', (e) => {
 function bindTouchButton(id, action) {
   const el = document.getElementById(id);
   if (!el) return;
+  // Belt-and-braces against the iOS long-press "Copy" callout: CSS
+  // -webkit-touch-callout handles it in most cases, but some WebViews still
+  // fire a contextmenu event for a held press on a text-bearing button.
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
   el.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     if (!held.has(action)) justPressed.add(action);

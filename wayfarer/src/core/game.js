@@ -16,7 +16,10 @@ import {
 export const GRAVITY = 1800;
 export const JUMP_VELOCITY = -620;
 export const MOVE_SPEED = 220;
-export const PIT_Y = GROUND_Y + 260;
+export const MAX_JUMPS = 2;
+// Kept short so falling into a gap reads as a quick, punchy mistake rather
+// than a long empty drop before the recovery kicks in.
+export const PIT_Y = GROUND_Y + 130;
 const FALL_DAMAGE = 4;
 const HAZARD_DAMAGE = 6;
 const INVULN_DURATION = 0.75;
@@ -48,6 +51,7 @@ function loadLevel(state, levelIndex) {
   player.vx = 0;
   player.vy = 0;
   player.onGround = true;
+  player.jumpsUsed = 0;
   player.lastSafeX = player.x;
   player.lastSafeY = player.y;
   addMessage(state, `Entered the ${level.biome} — tier ${level.tier}.`);
@@ -174,6 +178,7 @@ function updatePhysics(state, dt) {
       player.y = landingY - player.h;
       player.vy = 0;
       player.onGround = true;
+      player.jumpsUsed = 0;
       player.lastSafeX = player.x;
       player.lastSafeY = player.y;
     }
@@ -186,6 +191,7 @@ function updatePhysics(state, dt) {
     player.vx = 0;
     player.vy = 0;
     player.onGround = true;
+    player.jumpsUsed = 0;
   }
 
   for (const hazard of level.hazards) {
@@ -310,9 +316,10 @@ export function update(state, input, dt) {
   player.vx = dir * MOVE_SPEED;
   if (dir !== 0) player.facing = dir;
 
-  if (input.jumpPressed && player.onGround) {
+  if (input.jumpPressed && player.jumpsUsed < MAX_JUMPS) {
     player.vy = JUMP_VELOCITY;
     player.onGround = false;
+    player.jumpsUsed += 1;
   }
 
   if (input.attackPressed && player.attackCooldown <= 0) {

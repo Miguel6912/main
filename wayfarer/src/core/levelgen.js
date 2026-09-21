@@ -52,7 +52,10 @@ function buildPlatforms(rng, levelWidth) {
   for (let i = 0; i < count; i++) {
     const width = randInt(rng, 80, 160);
     const x0 = randInt(rng, 380, Math.max(400, levelWidth - 300 - width));
-    const height = randInt(rng, 90, 210);
+    // Capped comfortably under the ~213px double-jump ceiling (two ~107px
+    // arcs at JUMP_VELOCITY/GRAVITY from game.js) so every platform is
+    // reachable even without frame-perfect double-jump timing.
+    const height = randInt(rng, 70, 170);
     platforms.push({ x0, x1: x0 + width, y: GROUND_Y - height });
   }
   return platforms;

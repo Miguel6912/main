@@ -1,8 +1,12 @@
 import { choice } from './rng.js';
 import { instantiateWeapon, instantiateArmor } from './items.js';
 
-export const PLAYER_WIDTH = 26;
-export const PLAYER_HEIGHT = 44;
+// Scaled up ~1.45x from the original 26x44 so characters read clearly
+// against the level — see sprites.js drawPlayer, which scales its
+// (fixed-offset) body art by player.h against this same reference height.
+export const PLAYER_WIDTH = 38;
+export const PLAYER_HEIGHT = 64;
+export const PLAYER_REFERENCE_HEIGHT = 44;
 
 export function createPlayer(x, y) {
   return {
@@ -24,18 +28,19 @@ export function createPlayer(x, y) {
     swingFlash: 0,
     invuln: 0,
     hitFlash: 0,
+    jumpsUsed: 0,
     lastSafeX: x,
     lastSafeY: y,
   };
 }
 
 const ENEMY_TYPES = {
-  wolf: { w: 34, h: 26, hpBase: 8, hpPerTier: 2, dmgBase: 3, dmgPerTier: 1, speed: 150, aggro: 230, range: 32, cooldown: 0.55 },
-  bandit: { w: 26, h: 42, hpBase: 14, hpPerTier: 3, dmgBase: 5, dmgPerTier: 1, speed: 100, aggro: 200, range: 34, cooldown: 0.8 },
-  skeleton: { w: 24, h: 42, hpBase: 12, hpPerTier: 3, dmgBase: 5, dmgPerTier: 1, speed: 95, aggro: 210, range: 34, cooldown: 0.7 },
-  zombie: { w: 28, h: 42, hpBase: 22, hpPerTier: 4, dmgBase: 7, dmgPerTier: 1, speed: 60, aggro: 160, range: 34, cooldown: 1.0 },
-  guard: { w: 28, h: 44, hpBase: 20, hpPerTier: 4, dmgBase: 6, dmgPerTier: 1, speed: 95, aggro: 220, range: 36, cooldown: 0.7 },
-  gargoyle: { w: 32, h: 38, hpBase: 30, hpPerTier: 5, dmgBase: 9, dmgPerTier: 1, speed: 75, aggro: 200, range: 36, cooldown: 0.9 },
+  wolf: { w: 49, h: 38, hpBase: 8, hpPerTier: 2, dmgBase: 3, dmgPerTier: 1, speed: 150, aggro: 230, range: 40, cooldown: 0.55 },
+  bandit: { w: 38, h: 61, hpBase: 14, hpPerTier: 3, dmgBase: 5, dmgPerTier: 1, speed: 100, aggro: 200, range: 42, cooldown: 0.8 },
+  skeleton: { w: 35, h: 61, hpBase: 12, hpPerTier: 3, dmgBase: 5, dmgPerTier: 1, speed: 95, aggro: 210, range: 42, cooldown: 0.7 },
+  zombie: { w: 41, h: 61, hpBase: 22, hpPerTier: 4, dmgBase: 7, dmgPerTier: 1, speed: 60, aggro: 160, range: 42, cooldown: 1.0 },
+  guard: { w: 41, h: 64, hpBase: 20, hpPerTier: 4, dmgBase: 6, dmgPerTier: 1, speed: 95, aggro: 220, range: 44, cooldown: 0.7 },
+  gargoyle: { w: 46, h: 55, hpBase: 30, hpPerTier: 5, dmgBase: 9, dmgPerTier: 1, speed: 75, aggro: 200, range: 44, cooldown: 0.9 },
 };
 
 export const BIOME_ENEMIES = {

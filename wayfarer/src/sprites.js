@@ -282,11 +282,16 @@ export function drawProjectile(ctx, facing) {
 
 // ---------------------------------------------------------------- actors --
 
+// Reference height the fixed pixel offsets below were authored against —
+// keep in sync with entities.js PLAYER_REFERENCE_HEIGHT.
+const PLAYER_ART_REFERENCE_HEIGHT = 44;
+
 export function drawPlayer(ctx, player, walkPhase) {
   const facing = player.facing;
+  const bodyScale = player.h / PLAYER_ART_REFERENCE_HEIGHT;
   ctx.save();
   ctx.translate(player.x + player.w / 2, player.y + player.h);
-  ctx.scale(facing, 1);
+  ctx.scale(facing * bodyScale, bodyScale);
   if (player.hitFlash > 0) ctx.globalAlpha = 0.6;
   if (player.invuln > 0) ctx.globalAlpha = Math.max(0.4, ctx.globalAlpha - 0.25 * (Math.sin(player.invuln * 30) * 0.5 + 0.5));
 
@@ -316,7 +321,7 @@ export function drawPlayer(ctx, player, walkPhase) {
     ctx.strokeStyle = 'rgba(230,230,255,0.9)';
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.arc(10, -26, player.weapon.range * 0.7, -0.9, 0.9);
+    ctx.arc(10, -26, player.weapon.range * 0.85, -0.9, 0.9);
     ctx.stroke();
   } else {
     ctx.save();
