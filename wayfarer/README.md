@@ -3,10 +3,11 @@
 A tiny 2D side-scrolling action-platformer. Dependency-free HTML/CSS/JS
 (ES modules) and the Canvas API — no build step, no `npm install`.
 
-Fight your way rightward through procedurally generated forest, graveyard,
-and castle realms in rotation, each tougher than the last. Kill enemies and
-find chests for gold, scrap, and gear; forge upgrades at anvils along the
-way; reach the glowing gate at the end of a realm to press on.
+Fight your way rightward through five procedurally generated realms in
+rotation — forest, graveyard, castle, frostmarch, and swamp — each tougher
+than the last. Kill enemies and find chests for gold, scrap, and gear;
+forge upgrades at anvils along the way; reach the glowing gate at the end
+of a realm to press on.
 
 ## Running it
 

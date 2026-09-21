@@ -3,7 +3,13 @@ import { pickEnemyType, createEnemy } from './entities.js';
 import { randomWeaponDrop, randomArmorDrop } from './items.js';
 
 export const GROUND_Y = 460;
-export const BIOMES = ['forest', 'graveyard', 'castle'];
+// Appending here (rather than interleaving) keeps forest/graveyard/castle's
+// established order and tier-1 story beats exactly where they were --
+// frostmarch and swamp just extend the loop so it takes 5 levels to repeat
+// instead of 3, not 3 as often. tierForLevel scales with BIOMES.length
+// automatically, so this alone is what slows the difficulty ramp down to
+// match the longer lap.
+export const BIOMES = ['forest', 'graveyard', 'castle', 'frostmarch', 'swamp'];
 
 export function biomeForLevel(levelIndex) {
   return BIOMES[levelIndex % BIOMES.length];
@@ -24,6 +30,8 @@ const FOREGROUND_DECOR = {
   forest: ['tree', 'bush', 'rock'],
   graveyard: ['gravestone', 'deadtree', 'crypt'],
   castle: ['pillar', 'banner', 'rubble'],
+  frostmarch: ['icetree', 'icespike', 'frostcairn'],
+  swamp: ['mangrove', 'reeds', 'bogstone'],
 };
 
 function buildGround(rng, levelWidth) {

@@ -45,12 +45,21 @@ const ENEMY_TYPES = {
   zombie: { w: 41, h: 61, hpBase: 22, hpPerTier: 4, dmgBase: 8, dmgPerTier: 1, speed: 65, aggro: 190, range: 42, cooldown: 0.95 },
   guard: { w: 41, h: 64, hpBase: 20, hpPerTier: 4, dmgBase: 7, dmgPerTier: 1, speed: 100, aggro: 250, range: 44, cooldown: 0.65 },
   gargoyle: { w: 46, h: 55, hpBase: 30, hpPerTier: 5, dmgBase: 10, dmgPerTier: 1, speed: 80, aggro: 230, range: 44, cooldown: 0.85 },
+  // frostmarch/swamp -- roughly wolf/bandit-tier and zombie/guard-tier
+  // respectively, scaled up slightly (harsher terrain, later in the
+  // rotation) rather than introducing a whole new difficulty curve.
+  frostwolf: { w: 49, h: 38, hpBase: 10, hpPerTier: 2, dmgBase: 5, dmgPerTier: 1, speed: 150, aggro: 260, range: 40, cooldown: 0.5 },
+  revenant: { w: 41, h: 64, hpBase: 24, hpPerTier: 4, dmgBase: 8, dmgPerTier: 1, speed: 75, aggro: 220, range: 44, cooldown: 0.85 },
+  bogling: { w: 34, h: 30, hpBase: 6, hpPerTier: 2, dmgBase: 3, dmgPerTier: 1, speed: 140, aggro: 220, range: 36, cooldown: 0.45 },
+  drowned: { w: 42, h: 62, hpBase: 26, hpPerTier: 4, dmgBase: 9, dmgPerTier: 1, speed: 70, aggro: 200, range: 44, cooldown: 0.9 },
 };
 
 export const BIOME_ENEMIES = {
   forest: ['wolf', 'bandit'],
   graveyard: ['skeleton', 'zombie'],
   castle: ['guard', 'gargoyle'],
+  frostmarch: ['frostwolf', 'revenant'],
+  swamp: ['bogling', 'drowned'],
 };
 
 let nextEnemyId = 1;

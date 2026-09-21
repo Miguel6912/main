@@ -20,6 +20,16 @@ export const PALETTES = {
     farHill: '#3a3a4c', ground: '#54545f', groundTop: '#75757f',
     accent: '#28282f',
   },
+  frostmarch: {
+    skyTop: '#dceaf5', skyBottom: '#a8c4d8',
+    farHill: '#6a8098', ground: '#4a5868', groundTop: '#c8d8e0',
+    accent: '#2a3644',
+  },
+  swamp: {
+    skyTop: '#8a9a7a', skyBottom: '#5a6a4a',
+    farHill: '#4a5a3a', ground: '#3a3428', groundTop: '#5a5238',
+    accent: '#241f16',
+  },
 };
 
 function poly(ctx, points) {
@@ -114,6 +124,8 @@ const DECOR_COLORS = {
   tree: '#2d5a24', bush: '#3f7a34', rock: '#7a7a72',
   gravestone: '#9a9aa2', deadtree: '#3a332c', crypt: '#6a6a72',
   pillar: '#82828c', banner: '#8a2f38', rubble: '#5a5a62',
+  icetree: '#a8c8d8', icespike: '#cfe4ee', frostcairn: '#7d92a2',
+  mangrove: '#3a3020', reeds: '#6a7a3e', bogstone: '#5a5a44',
 };
 
 export function drawDecoration(ctx, type, flip, scale) {
@@ -192,6 +204,82 @@ export function drawDecoration(ctx, type, flip, scale) {
     poly(ctx, [[-20, 0], [-10, -16], [6, -10], [18, 0]]);
     ctx.fill();
     poly(ctx, [[4, 0], [12, -20], [24, -6], [22, 0]]);
+    ctx.fill();
+  } else if (type === 'icetree') {
+    ctx.strokeStyle = '#a8c8d8';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, -50);
+    ctx.moveTo(0, -30);
+    ctx.lineTo(-20, -55);
+    ctx.moveTo(0, -40);
+    ctx.lineTo(18, -62);
+    ctx.moveTo(0, -50);
+    ctx.lineTo(-14, -70);
+    ctx.stroke();
+    ctx.fillStyle = '#e8f4fa';
+    poly(ctx, [[-2, -38], [2, -38], [4, -22]]);
+    ctx.fill();
+    poly(ctx, [[10, -46], [14, -46], [16, -32]]);
+    ctx.fill();
+  } else if (type === 'icespike') {
+    const grad = ctx.createLinearGradient(0, 0, 0, -46);
+    grad.addColorStop(0, '#7d92a2');
+    grad.addColorStop(1, '#eaf4fa');
+    ctx.fillStyle = grad;
+    poly(ctx, [[-16, 0], [-4, -46], [4, -30], [16, 0]]);
+    ctx.fill();
+  } else if (type === 'frostcairn') {
+    ctx.fillStyle = '#7d92a2';
+    circle(ctx, 0, -10, 18);
+    ctx.fill();
+    ctx.fillStyle = '#96a8b6';
+    circle(ctx, -3, -30, 13);
+    ctx.fill();
+    ctx.fillStyle = '#cfe4ee';
+    circle(ctx, 2, -44, 8);
+    ctx.fill();
+  } else if (type === 'mangrove') {
+    ctx.strokeStyle = '#3a3020';
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-4, -46);
+    ctx.moveTo(-4, -46);
+    ctx.lineTo(-22, -66);
+    ctx.moveTo(-4, -46);
+    ctx.lineTo(16, -64);
+    ctx.stroke();
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-14, 10);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(12, 12);
+    ctx.stroke();
+    ctx.fillStyle = '#4a5a2e';
+    circle(ctx, -14, -60, 16);
+    ctx.fill();
+    circle(ctx, 12, -58, 15);
+    ctx.fill();
+  } else if (type === 'reeds') {
+    ctx.strokeStyle = '#6a7a3e';
+    ctx.lineWidth = 2.5;
+    for (const dx of [-10, -3, 4, 11]) {
+      ctx.beginPath();
+      ctx.moveTo(dx, 0);
+      ctx.quadraticCurveTo(dx + 4, -24, dx + 2, -44);
+      ctx.stroke();
+    }
+  } else if (type === 'bogstone') {
+    ctx.fillStyle = '#5a5a44';
+    poly(ctx, [[-17, 0], [-16, -14], [2, -20], [16, -8], [12, 0]]);
+    ctx.fill();
+    ctx.fillStyle = '#6a7a3e';
+    circle(ctx, -6, -14, 4);
+    ctx.fill();
+    circle(ctx, 5, -12, 3);
     ctx.fill();
   }
   ctx.restore();
@@ -580,6 +668,76 @@ export function drawEnemy(ctx, enemy, walkPhase) {
     ctx.fill();
     circle(ctx, w * 0.1, -h * 0.86, 2.4);
     ctx.fill();
+  } else if (enemy.type === 'frostwolf') {
+    // Same silhouette as the wolf (it's the same animal, out here it's just
+    // colder) -- pale coat, frost-blue eyes instead of ember-red.
+    ctx.fillStyle = '#c4d6e2';
+    ctx.strokeStyle = '#6a8098';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, -h * 0.4, w * 0.5, h * 0.32, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    circle(ctx, w * 0.42, -h * 0.5, h * 0.22);
+    ctx.fill();
+    ctx.stroke();
+    poly(ctx, [[w * 0.3, -h * 0.68], [w * 0.4, -h * 0.85], [w * 0.5, -h * 0.66]]);
+    ctx.fill();
+    ctx.fillStyle = '#7ad4f0';
+    circle(ctx, w * 0.52, -h * 0.52, 2.5);
+    ctx.fill();
+  } else if (enemy.type === 'revenant') {
+    drawBipedBase(ctx, w, h, '#c8d8e0', '#5a7286', '#4a6478');
+    ctx.fillStyle = '#e4eef4';
+    circle(ctx, 0, -h * 0.92, w * 0.3);
+    ctx.fill();
+    ctx.fillStyle = '#7ad4f0';
+    circle(ctx, -w * 0.09, -h * 0.93, 2.4);
+    ctx.fill();
+    circle(ctx, w * 0.13, -h * 0.9, 2.4);
+    ctx.fill();
+    // A little rime clinging to the shoulders -- the one visual cue that
+    // separates it from a plain skeleton at a glance.
+    ctx.fillStyle = 'rgba(228,238,244,0.8)';
+    circle(ctx, -w * 0.28, -h * 0.78, 5);
+    ctx.fill();
+    circle(ctx, w * 0.3, -h * 0.76, 4);
+    ctx.fill();
+  } else if (enemy.type === 'bogling') {
+    ctx.fillStyle = '#5a6a3e';
+    ctx.strokeStyle = '#333f22';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, -h * 0.35, w * 0.48, h * 0.35, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#d8e8a0';
+    circle(ctx, -w * 0.16, -h * 0.55, 5);
+    ctx.fill();
+    circle(ctx, w * 0.16, -h * 0.55, 5);
+    ctx.fill();
+    ctx.fillStyle = '#232a14';
+    circle(ctx, -w * 0.16, -h * 0.55, 2);
+    ctx.fill();
+    circle(ctx, w * 0.16, -h * 0.55, 2);
+    ctx.fill();
+  } else if (enemy.type === 'drowned') {
+    drawBipedBase(ctx, w * 1.05, h, '#5a6a5e', '#2c342e', '#242a24');
+    ctx.fillStyle = '#4a5a4e';
+    circle(ctx, 0, -h * 0.92, w * 0.32);
+    ctx.fill();
+    ctx.fillStyle = '#9ac4b0';
+    circle(ctx, -w * 0.1, -h * 0.94, 2);
+    ctx.fill();
+    circle(ctx, w * 0.14, -h * 0.9, 2);
+    ctx.fill();
+    // Weed trailing off one arm -- reads "waterlogged" at a glance.
+    ctx.strokeStyle = '#4a6a3e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(w * 0.32, -h * 0.5);
+    ctx.quadraticCurveTo(w * 0.44, -h * 0.36, w * 0.36, -h * 0.2);
+    ctx.stroke();
   }
 
   ctx.restore();

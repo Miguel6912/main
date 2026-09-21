@@ -12,7 +12,7 @@ import {
   forgeCost,
   canAffordUpgrade,
 } from './items.js';
-import { FORGE_INTRO_LINES, CASTLE_APPROACH_LINE } from './story.js';
+import { FORGE_INTRO_LINES, BIOME_FIRST_ENTRY_LINES } from './story.js';
 
 export const GRAVITY = 1800;
 export const JUMP_VELOCITY = -620;
@@ -81,7 +81,8 @@ function loadLevel(state, levelIndex) {
   player.lastSafeX = player.x;
   player.lastSafeY = player.y;
   addMessage(state, `Entered the ${level.biome} — tier ${level.tier}.`);
-  if (level.biome === 'castle' && level.tier === 1) addMessage(state, CASTLE_APPROACH_LINE);
+  const firstEntryLine = BIOME_FIRST_ENTRY_LINES[level.biome];
+  if (firstEntryLine && level.tier === 1) addMessage(state, firstEntryLine);
 }
 
 export function createGame(seed) {

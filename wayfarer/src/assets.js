@@ -18,6 +18,13 @@ export const ASSET_PATHS = {
   'enemy.zombie': 'assets/enemies/zombie.png',
   'enemy.guard': 'assets/enemies/guard.png',
   'enemy.gargoyle': 'assets/enemies/gargoyle.png',
+  // Not delivered yet -- frostmarch/swamp render on their vector fallback
+  // (sprites.js drawEnemy) until real art lands at these paths, exactly
+  // like every other sprite here before its art existed.
+  'enemy.frostwolf': 'assets/enemies/frostwolf.png',
+  'enemy.revenant': 'assets/enemies/revenant.png',
+  'enemy.bogling': 'assets/enemies/bogling.png',
+  'enemy.drowned': 'assets/enemies/drowned.png',
 
   'biome.forest.background': 'assets/forest/background.png',
   'biome.forest.ground': 'assets/forest/ground.png',
@@ -28,6 +35,14 @@ export const ASSET_PATHS = {
   'biome.castle.background': 'assets/castle/background.png',
   'biome.castle.ground': 'assets/castle/ground.png',
   'biome.castle.platform': 'assets/castle/platform.png',
+  // Also not delivered yet -- same vector-fallback story as the enemies
+  // above.
+  'biome.frostmarch.background': 'assets/frostmarch/background.png',
+  'biome.frostmarch.ground': 'assets/frostmarch/ground.png',
+  'biome.frostmarch.platform': 'assets/frostmarch/platform.png',
+  'biome.swamp.background': 'assets/swamp/background.png',
+  'biome.swamp.ground': 'assets/swamp/ground.png',
+  'biome.swamp.platform': 'assets/swamp/platform.png',
 
   'decor.tree': 'assets/forest/tree.png',
   'decor.bush': 'assets/forest/bush.png',
@@ -38,6 +53,12 @@ export const ASSET_PATHS = {
   'decor.pillar': 'assets/castle/pillar.png',
   'decor.banner': 'assets/castle/banner.png',
   'decor.rubble': 'assets/castle/rubble.png',
+  'decor.icetree': 'assets/frostmarch/icetree.png',
+  'decor.icespike': 'assets/frostmarch/icespike.png',
+  'decor.frostcairn': 'assets/frostmarch/frostcairn.png',
+  'decor.mangrove': 'assets/swamp/mangrove.png',
+  'decor.reeds': 'assets/swamp/reeds.png',
+  'decor.bogstone': 'assets/swamp/bogstone.png',
 
   'item.gold': 'assets/items/coins.png',
   'item.scrap': 'assets/items/scrap.png',

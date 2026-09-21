@@ -37,11 +37,19 @@ export const FORGE_INTRO_LINES = {
   ],
 };
 
-// Printed once, right after the level-enter message, the first time the
-// castle is reached (tier 1 only -- the biome loop revisits it every third
-// level after that at a higher tier, and the joke doesn't need repeating).
-export const CASTLE_APPROACH_LINE =
-  "The castle looms ahead: broken towers, worse company, and somewhere at the top, a king who used to throw much better parties. Elara's counting on you not to disappoint twice in one week.";
+// Printed once, right after the level-enter message, the first time each
+// biome is reached (tier 1 only -- the loop revisits every biome at a
+// higher tier every lap after that, and none of these need repeating).
+// Not every biome has a line; forest and graveyard don't need one, the
+// opening plea (INTRO_LINES) already covers them.
+export const BIOME_FIRST_ENTRY_LINES = {
+  castle:
+    "The castle looms ahead: broken towers, worse company, and somewhere at the top, a king who used to throw much better parties. Elara's counting on you not to disappoint twice in one week.",
+  frostmarch:
+    "Nobody mentioned a frostmarch. Elara's maps clearly stop at the castle gate -- you're off the edge of them now, and so, it turns out, is the temperature.",
+  swamp:
+    "Nobody mentioned a swamp either. At this rate the maps back home are less \"incomplete\" and more \"aspirational.\"",
+};
 
 // ---------------------------------------------------------------- bosses --
 // Content only for now -- there's no city biome and no boss-encounter
@@ -52,9 +60,7 @@ export const CASTLE_APPROACH_LINE =
 //     city after that boss falls -- who you just fought, who's next.
 //     Intended trigger: entering the city with defeatedBosses.has(id) newly
 //     true for that entry and not yet acknowledged.
-//   - FOREST_SURPRISE_BOSS: not in the roster and Elara never mentions it --
-//     you find this one yourself. encounterLines are meant to print the
-//     moment the fight starts, before the reveal.
+//   - MICRO_BOSSES[n]: secondary, non-court encounters -- see below.
 
 export const BOSS_ROSTER = [
   {
@@ -99,14 +105,33 @@ export const BOSS_ROSTER = [
   },
 ];
 
-// A palate-cleanser between the court's escalating titles: no rank, no
-// warning, Elara has genuinely never heard of it. Second boss you actually
-// run into, not second in the roster -- it isn't in the roster at all.
-export const FOREST_SURPRISE_BOSS = {
-  id: 'hollow_hare',
-  name: 'the Hollow Hare',
-  encounterLines: [
-    "Huh. A rabbit.",
-    "...that is a lot of teeth for a rabbit.",
-  ],
-};
+// ---------------------------------------------------------- micro-bosses --
+// A second, looser tier below BOSS_ROSTER: no rank, no chain of command,
+// not necessarily something Elara has ever heard of. A stronger, named
+// encounter you stumble into (or that recurs) without it counting as "the
+// next thing standing between you and the King." This is the list to keep
+// growing as more enemy art lands -- append here, don't stretch
+// BOSS_ROSTER to cover anything that isn't actually part of the court.
+//
+// Shape per entry:
+//   id              stable key (mirrors the eventual enemy/asset key)
+//   name            display name
+//   biome           where it can turn up (not wired to spawning yet)
+//   encounterLines  optional -- printed the moment its fight starts, for
+//                   ones with a reveal worth building up to (the Hare's
+//                   "small and harmless" bait-and-switch). Skip this field
+//                   for a micro-boss that doesn't need one.
+//   elaraLine       optional -- only for one she'd actually have an
+//                   opinion on. Leave it out for anything she has no
+//                   reason to know about, same as the Hare.
+export const MICRO_BOSSES = [
+  {
+    id: 'hollow_hare',
+    name: 'the Hollow Hare',
+    biome: 'forest',
+    encounterLines: [
+      "Huh. A rabbit.",
+      "...that is a lot of teeth for a rabbit.",
+    ],
+  },
+];

@@ -40,6 +40,20 @@ alternate_versions/
                  look; the primary version stays as an unused file either way.
 ```
 
+### Not delivered yet (two newer biomes, playing on vector fallback)
+
+Two more biomes exist in the rotation (`src/core/levelgen.js` `BIOMES`) with
+no art behind them yet -- same story every other biome went through before
+its art landed: fully playable now on hand-drawn vector fallback
+(`src/sprites.js`), ready to take over instantly the moment files show up
+at these paths, zero code changes needed either way.
+
+```
+enemies/         + frostwolf, revenant (frostmarch), bogling, drowned (swamp)
+frostmarch/      background, ground, platform, icetree, icespike, frostcairn
+swamp/           background, ground, platform, mangrove, reeds, bogstone
+```
+
 `weapons/` and `armour/` are keyed by the item's catalog id (see
 `WEAPON_CATALOG`/`ARMOR_CATALOG` in `src/core/items.js`), not by filename
 pattern — dagger→rusty_dagger, sword→iron_sword, axe→war_axe,

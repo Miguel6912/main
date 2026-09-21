@@ -60,6 +60,12 @@ const DECOR_BASE_H = {
   pillar: 165,
   banner: 130,
   rubble: 58,
+  icetree: 145,
+  icespike: 50,
+  frostcairn: 70,
+  mangrove: 140,
+  reeds: 40,
+  bogstone: 42,
 };
 const ITEM_TARGET_H = 26;
 const PROJECTILE_TARGET_H = 14;
