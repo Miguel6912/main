@@ -47,11 +47,24 @@ src/
     entities.js           player/enemy factories and stats
     levelgen.js           procedural terrain, hazards, spawns per biome
     game.js               real-time physics/combat/AI update loop (pure, DOM-free)
+    story.js               dialogue content (intro + per-biome blacksmith lines)
 ```
 
 `core/` has no DOM dependency, so its physics and combat logic can be
 exercised headlessly — e.g. a `node` script stepping `update(state, input, dt)`
 thousands of times with scripted input — when making changes.
+
+## Story
+
+A dismissible intro screen (once per page load) opens with Princess Elara
+hiring you to find her father, the Hollow King, and undo whatever's
+rotting the realm. Doran Emberfist, the dwarf blacksmith behind every
+forge, gets a short round of dialogue the first time you reach his forge
+in each biome per run — same character throughout, printed through the
+existing message log (`src/core/game.js`'s `addMessage`), not a separate
+dialogue system. All the actual lines live in `src/core/story.js`, kept
+apart from the physics/combat code so editing dialogue never touches
+simulation logic.
 
 ## Art
 
