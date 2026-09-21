@@ -10,6 +10,23 @@ export const VIEW_WIDTH = 960;
 export const VIEW_HEIGHT = 540;
 const BG_PARALLAX = 0.4;
 
+// Camera zoom: the canvas stays 960x540, but everything is drawn into a
+// smaller world-space window that gets scaled up to fill it -- so the world
+// (and everyone in it) reads bigger on screen without changing anything's
+// actual size relative to everything else. SCREEN_W/SCREEN_H are that
+// window's size in world px; SCREEN_TOP/SCREEN_BOTTOM are its world-y
+// extents. There's no vertical scroll (the ground never moves), so the
+// window is pinned to the ground line rather than following the player.
+const ZOOM = 1.6;
+const SCREEN_W = VIEW_WIDTH / ZOOM;
+const SCREEN_H = VIEW_HEIGHT / ZOOM;
+// How much ground/pit stays visible below the ground line -- the rest of
+// the window goes above it, which comfortably covers the tallest platform
+// (170) plus a full jump arc without needing to track the player vertically.
+const BELOW_GROUND_MARGIN = 50;
+const SCREEN_TOP = GROUND_Y + BELOW_GROUND_MARGIN - SCREEN_H;
+const SCREEN_BOTTOM = SCREEN_TOP + SCREEN_H;
+
 // --------------------------------------------------------- image fallback --
 // Every draw call below tries an image first and falls back to the existing
 // vector art (sprites.js) when that asset hasn't been dropped in yet, so the
@@ -153,8 +170,8 @@ function playerPoseKey(player) {
 }
 
 export function computeCamera(state) {
-  const target = state.player.x + state.player.w / 2 - VIEW_WIDTH / 2;
-  return Math.max(0, Math.min(Math.max(0, state.level.width - VIEW_WIDTH), target));
+  const target = state.player.x + state.player.w / 2 - SCREEN_W / 2;
+  return Math.max(0, Math.min(Math.max(0, state.level.width - SCREEN_W), target));
 }
 
 export function renderGame(canvas, state, time) {
@@ -171,18 +188,23 @@ export function renderGame(canvas, state, time) {
   if (state.shake > 0) {
     ctx.translate((Math.random() - 0.5) * state.shake * 7, (Math.random() - 0.5) * state.shake * 5);
   }
+  ctx.scale(ZOOM, ZOOM);
+  ctx.translate(0, -SCREEN_TOP);
 
   const bgImg = getImage(`biome.${biome}.background`);
+  ctx.save();
+  ctx.translate(0, SCREEN_TOP);
   if (bgImg) {
-    drawCoverBackground(ctx, bgImg, VIEW_WIDTH, VIEW_HEIGHT, camera * BG_PARALLAX * 0.15);
+    drawCoverBackground(ctx, bgImg, SCREEN_W, SCREEN_H, camera * BG_PARALLAX * 0.15);
   } else {
-    drawSky(ctx, biome, VIEW_WIDTH, VIEW_HEIGHT);
-    drawFarHill(ctx, biome, -camera * BG_PARALLAX * 0.5, groundScreenY, VIEW_WIDTH * 1.4);
+    drawSky(ctx, biome, SCREEN_W, SCREEN_H);
+    drawFarHill(ctx, biome, -camera * BG_PARALLAX * 0.5, groundScreenY - SCREEN_TOP, SCREEN_W * 1.4);
   }
+  ctx.restore();
 
   for (const d of level.decor.background) {
     const sx = d.x - camera * BG_PARALLAX;
-    if (sx < -80 || sx > VIEW_WIDTH + 80) continue;
+    if (sx < -80 || sx > SCREEN_W + 80) continue;
     const img = getImage(`decor.${d.type}`);
     ctx.save();
     ctx.globalAlpha = 0.45;
@@ -195,26 +217,26 @@ export function renderGame(canvas, state, time) {
     ctx.restore();
   }
 
-  const pitGrad = ctx.createLinearGradient(0, groundScreenY, 0, VIEW_HEIGHT);
+  const pitGrad = ctx.createLinearGradient(0, groundScreenY, 0, SCREEN_BOTTOM);
   pitGrad.addColorStop(0, '#151018');
   pitGrad.addColorStop(1, '#050408');
   ctx.fillStyle = pitGrad;
-  ctx.fillRect(0, groundScreenY, VIEW_WIDTH, VIEW_HEIGHT - groundScreenY);
+  ctx.fillRect(0, groundScreenY, SCREEN_W, SCREEN_BOTTOM - groundScreenY);
 
   const groundImg = getImage(`biome.${biome}.ground`);
   for (const seg of level.segments) {
     const sx0 = seg.x0 - camera;
     const sx1 = seg.x1 - camera;
-    if (sx1 < 0 || sx0 > VIEW_WIDTH) continue;
-    drawGround(ctx, biome, sx0, sx1, groundScreenY, VIEW_HEIGHT);
-    if (groundImg) drawTiledImage(ctx, groundImg, sx0, sx1, groundScreenY, VIEW_HEIGHT - groundScreenY);
+    if (sx1 < 0 || sx0 > SCREEN_W) continue;
+    drawGround(ctx, biome, sx0, sx1, groundScreenY, SCREEN_BOTTOM);
+    if (groundImg) drawTiledImage(ctx, groundImg, sx0, sx1, groundScreenY, SCREEN_BOTTOM - groundScreenY);
   }
 
   const platformImg = getImage(`biome.${biome}.platform`);
   for (const plat of level.platforms) {
     const sx0 = plat.x0 - camera;
     const sx1 = plat.x1 - camera;
-    if (sx1 < 0 || sx0 > VIEW_WIDTH) continue;
+    if (sx1 < 0 || sx0 > SCREEN_W) continue;
     drawPlatform(ctx, biome, sx0, sx1, plat.y);
     if (platformImg) drawStretchImage(ctx, platformImg, sx0, sx1, plat.y - 4, 24);
   }
@@ -223,7 +245,7 @@ export function renderGame(canvas, state, time) {
   for (const hz of level.hazards) {
     const sx0 = hz.x0 - camera;
     const sx1 = hz.x1 - camera;
-    if (sx1 < 0 || sx0 > VIEW_WIDTH) continue;
+    if (sx1 < 0 || sx0 > SCREEN_W) continue;
     if (spikeImg) {
       // At the same ~27px height as everything else on the ground, painted
       // spikes read as a texture smudge, not a threat -- the user could see
@@ -240,7 +262,7 @@ export function renderGame(canvas, state, time) {
 
   for (const d of level.decor.foreground) {
     const sx = d.x - camera;
-    if (sx < -60 || sx > VIEW_WIDTH + 60) continue;
+    if (sx < -60 || sx > SCREEN_W + 60) continue;
     const img = getImage(`decor.${d.type}`);
     if (img) {
       drawAnchoredImage(ctx, img, sx, d.y, (DECOR_BASE_H[d.type] || 90) * d.scale, d.flip);
@@ -254,7 +276,7 @@ export function renderGame(canvas, state, time) {
 
   if (level.forge) {
     const sx = level.forge.x - camera;
-    if (sx > -60 && sx < VIEW_WIDTH + 60) {
+    if (sx > -60 && sx < SCREEN_W + 60) {
       const img = getImage('structure.forge');
       if (img) {
         drawAnchoredImage(ctx, img, sx, level.forge.y, 100, false);
@@ -268,7 +290,7 @@ export function renderGame(canvas, state, time) {
   }
 
   const gateSx = level.gateX - camera;
-  if (gateSx > -60 && gateSx < VIEW_WIDTH + 60) {
+  if (gateSx > -60 && gateSx < SCREEN_W + 60) {
     const gateImg = getImage('structure.gate');
     if (gateImg) {
       drawAnchoredImage(ctx, gateImg, gateSx, groundScreenY, 120, false);
@@ -283,7 +305,7 @@ export function renderGame(canvas, state, time) {
   const pickupImgKeys = { gold: 'item.gold', scrap: 'item.scrap', potion: 'item.potion' };
   for (const p of state.pickups) {
     const sx = p.x - camera;
-    if (sx < -30 || sx > VIEW_WIDTH + 30) continue;
+    if (sx < -30 || sx > SCREEN_W + 30) continue;
     const imgKey = p.kind === 'weapon' || p.kind === 'armor' ? `${p.kind}.${p.item.id}` : pickupImgKeys[p.kind];
     const img = getImage(imgKey);
     if (img) {
@@ -302,7 +324,7 @@ export function renderGame(canvas, state, time) {
   const arrowImg = getImage('item.arrow');
   for (const proj of state.projectiles) {
     const sx = proj.x - camera;
-    if (sx < -20 || sx > VIEW_WIDTH + 20) continue;
+    if (sx < -20 || sx > SCREEN_W + 20) continue;
     const facing = Math.sign(proj.vx) || 1;
     if (arrowImg) {
       drawAnchoredImage(ctx, arrowImg, sx, proj.y + PROJECTILE_TARGET_H / 2, PROJECTILE_TARGET_H, facing < 0);
@@ -316,7 +338,7 @@ export function renderGame(canvas, state, time) {
 
   for (const enemy of state.enemies) {
     const sx = enemy.x - camera;
-    if (sx < -60 || sx > VIEW_WIDTH + 60) continue;
+    if (sx < -60 || sx > SCREEN_W + 60) continue;
     const img = getImage(`enemy.${enemy.type}`);
     // A static pose translated in a straight line reads as sliding, not
     // walking. Bob phase is driven by the enemy's own x, not wall-clock
@@ -327,7 +349,12 @@ export function renderGame(canvas, state, time) {
     if (img) {
       ctx.save();
       if (enemy.hitFlash > 0) ctx.globalAlpha = 0.55;
-      drawBoxImage(ctx, img, sx + enemy.w / 2, enemy.y + enemy.h + bob, enemy.w, enemy.h, enemy.dir < 0);
+      // Every painted enemy faces left by default (the source art), the
+      // opposite of the old vector sprites it replaced -- flipping on
+      // dir < 0 (the vector convention) mirrored it backwards: facing left
+      // while moving right and vice versa, i.e. walking backwards. Flip on
+      // dir > 0 instead so it only mirrors when actually moving right.
+      drawBoxImage(ctx, img, sx + enemy.w / 2, enemy.y + enemy.h + bob, enemy.w, enemy.h, enemy.dir > 0);
       ctx.restore();
       // The vector path (drawEnemy in sprites.js) draws its own windup
       // ring internally -- only add it here for the image path, so it's
@@ -369,7 +396,7 @@ export function renderGame(canvas, state, time) {
   ctx.textAlign = 'center';
   for (const f of state.floatingTexts) {
     const sx = f.x - camera;
-    if (sx < -40 || sx > VIEW_WIDTH + 40) continue;
+    if (sx < -40 || sx > SCREEN_W + 40) continue;
     ctx.globalAlpha = Math.max(0, Math.min(1, f.life / 0.35));
     ctx.fillStyle = f.color;
     ctx.fillText(f.text, sx, f.y);
