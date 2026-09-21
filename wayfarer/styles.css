@@ -19,7 +19,7 @@ body {
 
 #app {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1620px;
   padding: 16px;
 }
 
@@ -76,16 +76,23 @@ button.secondary {
 
 #stage {
   position: relative;
-  flex-shrink: 0;
-  width: 960px;
-  max-width: 100%;
+  /* Preferred size was bumped from 960px to match the canvas's bigger
+     internal resolution (src/render.js VIEW_WIDTH/VIEW_HEIGHT), so the
+     play area actually occupies more of the page rather than just
+     rendering the same on-screen size at a higher resolution. Unlike the
+     old fixed, non-shrinking width, this one CAN shrink (flex-basis, not a
+     hard width) so it keeps sharing the row with the sidebar -- rather
+     than overflowing it -- on windows narrower than stage+sidebar's
+     combined preferred width. */
+  flex: 0 1 1280px;
+  max-width: 1280px;
 }
 
 #game-canvas {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 960 / 540;
+  aspect-ratio: 1280 / 720;
   background: #111017;
   border: 1px solid #33333f;
   border-radius: 4px;
@@ -252,7 +259,7 @@ button.secondary {
 
   #game-canvas {
     width: auto;
-    height: min(76vh, 540px);
+    height: min(76vh, 720px);
     max-width: 100%;
   }
 }
@@ -447,7 +454,7 @@ kbd {
   margin-top: 12px;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 900px) {
   #layout {
     flex-direction: column;
   }

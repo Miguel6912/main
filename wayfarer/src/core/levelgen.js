@@ -72,8 +72,8 @@ function buildHazards(rng, segments, avoidX) {
   const hazards = [];
   for (let i = 1; i < segments.length; i++) {
     const seg = segments[i];
-    if (seg.x1 - seg.x0 < 160) continue;
-    if (!chance(rng, 0.3)) continue;
+    if (seg.x1 - seg.x0 < 220) continue;
+    if (!chance(rng, 0.15)) continue;
     const width = randInt(rng, 36, 64);
     const x0 = randInt(rng, seg.x0 + 40, seg.x1 - width - 40);
     const x1 = x0 + width;
@@ -97,7 +97,7 @@ function buildDecorations(rng, biome, segments, levelWidth) {
   for (const seg of segments) {
     let x = seg.x0 + randInt(rng, 40, 100);
     while (x < seg.x1 - 30) {
-      foreground.push({ x, y: GROUND_Y, type: choice(rng, palette), flip: chance(rng, 0.5), scale: 0.65 + rng() * 0.85 });
+      foreground.push({ x, y: GROUND_Y, type: choice(rng, palette), flip: chance(rng, 0.5), scale: 0.65 + rng() * 0.55 });
       x += randInt(rng, 140, 240);
     }
   }

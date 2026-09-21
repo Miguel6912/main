@@ -6,18 +6,26 @@ import {
 } from './sprites.js';
 import { getImage } from './assets.js';
 
-export const VIEW_WIDTH = 960;
-export const VIEW_HEIGHT = 540;
+// Bumped from 960x540 -- at the old size, making things read bigger meant
+// zooming into the same on-screen area, which necessarily showed less of
+// the level at once (a smaller play window, correctly flagged as feeling
+// cramped). A bigger canvas plus a milder zoom (below) gets a bigger view
+// on the page AND keeps roughly as much world visible as before.
+export const VIEW_WIDTH = 1280;
+export const VIEW_HEIGHT = 720;
 const BG_PARALLAX = 0.4;
 
-// Camera zoom: the canvas stays 960x540, but everything is drawn into a
-// smaller world-space window that gets scaled up to fill it -- so the world
-// (and everyone in it) reads bigger on screen without changing anything's
-// actual size relative to everything else. SCREEN_W/SCREEN_H are that
-// window's size in world px; SCREEN_TOP/SCREEN_BOTTOM are its world-y
-// extents. There's no vertical scroll (the ground never moves), so the
-// window is pinned to the ground line rather than following the player.
-const ZOOM = 1.6;
+// Camera zoom: the canvas is drawn into a slightly smaller world-space
+// window that gets scaled up to fill it, so the world (and everyone in it)
+// reads bigger without changing anything's size relative to anything else.
+// SCREEN_W/SCREEN_H are that window's size in world px; SCREEN_TOP/
+// SCREEN_BOTTOM are its world-y extents. There's no vertical scroll (the
+// ground never moves), so the window is pinned to the ground line rather
+// than following the player. At 1.3x here on a 1280-wide canvas, the
+// visible world window (~985px) comes out close to the old un-zoomed
+// 960px view -- the size boost comes from the bigger canvas, not from
+// shrinking how much of the level you can see.
+const ZOOM = 1.3;
 const SCREEN_W = VIEW_WIDTH / ZOOM;
 const SCREEN_H = VIEW_HEIGHT / ZOOM;
 // How much ground/pit stays visible below the ground line -- the rest of
@@ -37,28 +45,45 @@ const SCREEN_BOTTOM = SCREEN_TOP + SCREEN_H;
 // Per-type base heights -- a flat 90px for everything made trees read too
 // small (they should dominate) and rocks/gravestones too big (they're
 // low, incidental clutter). Each instance still multiplies this by its own
-// placement scale (levelgen.js) for size variety within a type.
+// placement scale (levelgen.js) for size variety within a type. Small
+// clutter (rock/gravestone/rubble) is capped low enough that even the
+// tallest scale roll (1.2x, see levelgen.js) stays under the player's own
+// drawn height (~83, see PLAYER_VISUAL_SCALE below) -- these should read
+// as ankle-height set dressing, never tower over the character.
 const DECOR_BASE_H = {
   tree: 170,
-  bush: 65,
-  rock: 50,
-  gravestone: 72,
+  bush: 60,
+  rock: 42,
+  gravestone: 56,
   deadtree: 145,
   crypt: 125,
   pillar: 165,
   banner: 130,
-  rubble: 75,
+  rubble: 58,
 };
 const ITEM_TARGET_H = 26;
 const PROJECTILE_TARGET_H = 14;
-// Was 27 (matched the vector spikeH exactly) -- against painted ground/decor
-// art that reads as a low smudge rather than a hazard. Tall enough to read
-// as spikes at a glance, still short of the player's hurtbox height (64).
-const SPIKE_H = 40;
+// Was 27, then 40 -- 40 (tuned to be visible against painted ground) ended
+// up reading as oversized once actually in play. Settled between the two:
+// tall enough to read as a threat, well short of the player's hurtbox (64).
+const SPIKE_H = 30;
 // Visual-only boost so the player reads clearly against enemy art -- the
 // hitbox (38x64) is unchanged, this only scales what's drawn, anchored on
 // the same bottom-center point so it doesn't shift where hits register.
 const PLAYER_VISUAL_SCALE = 1.3;
+// Same idea per humanoid enemy type -- their hitboxes (entities.js) sit
+// noticeably shorter than the player's own scaled-up height, which read as
+// "enemies smaller than the player" even though the wolf (left unscaled;
+// its low, stocky hitbox already reads fine) was never the complaint.
+// Purely cosmetic, like PLAYER_VISUAL_SCALE: collision/AI ranges are
+// unaffected.
+const ENEMY_VISUAL_SCALE = {
+  bandit: 1.35,
+  skeleton: 1.35,
+  zombie: 1.35,
+  guard: 1.3,
+  gargoyle: 1.4,
+};
 
 // Anchored at (x, y) = bottom-center, matching every vector prop's own
 // translate() convention, so swapping one prop from vector to image never
@@ -91,9 +116,12 @@ function drawBoxImage(ctx, img, x, y, w, h, flip, visualScale = 1) {
 
 // Tiles an image horizontally across [x0, x1), stretched to bandH tall --
 // used for ground/platform strips of arbitrary width, and (with a scroll
-// offset) the parallax background layer. Always drawn over a solid-color
-// fill underneath (from the vector path) for ground/platform, so there's
-// never a gap if a real tile image turns out shorter than the visible band.
+// offset) the parallax background layer. Every tile is drawn at exactly
+// bandH regardless of the source image's own aspect ratio, so it always
+// fully covers the target band -- drawing the vector fallback underneath
+// as a permanent safety net (the original design, before real art existed)
+// turned out to actively hurt once real art landed: any translucent edge
+// pixel on the image let that flat vector fill show through as a seam.
 // Clips to the target rect and draws whole tiles across it rather than
 // cropping source rects per tile -- much simpler, and correctness-critical
 // for ground/platform since a tile must never bleed past a segment's real
@@ -228,8 +256,8 @@ export function renderGame(canvas, state, time) {
     const sx0 = seg.x0 - camera;
     const sx1 = seg.x1 - camera;
     if (sx1 < 0 || sx0 > SCREEN_W) continue;
-    drawGround(ctx, biome, sx0, sx1, groundScreenY, SCREEN_BOTTOM);
     if (groundImg) drawTiledImage(ctx, groundImg, sx0, sx1, groundScreenY, SCREEN_BOTTOM - groundScreenY);
+    else drawGround(ctx, biome, sx0, sx1, groundScreenY, SCREEN_BOTTOM);
   }
 
   const platformImg = getImage(`biome.${biome}.platform`);
@@ -237,8 +265,8 @@ export function renderGame(canvas, state, time) {
     const sx0 = plat.x0 - camera;
     const sx1 = plat.x1 - camera;
     if (sx1 < 0 || sx0 > SCREEN_W) continue;
-    drawPlatform(ctx, biome, sx0, sx1, plat.y);
     if (platformImg) drawStretchImage(ctx, platformImg, sx0, sx1, plat.y - 4, 24);
+    else drawPlatform(ctx, biome, sx0, sx1, plat.y);
   }
 
   const spikeImg = getImage('hazard.spike');
@@ -247,13 +275,17 @@ export function renderGame(canvas, state, time) {
     const sx1 = hz.x1 - camera;
     if (sx1 < 0 || sx0 > SCREEN_W) continue;
     if (spikeImg) {
-      // At the same ~27px height as everything else on the ground, painted
-      // spikes read as a texture smudge, not a threat -- the user could see
-      // the *effect* (getting hit) but not the hazard itself. Drawn taller,
-      // plus the same red warning strip the vector fallback uses along the
-      // top edge, so it reads as "danger" even glanced at from a distance.
-      ctx.fillStyle = 'rgba(255,60,50,0.6)';
-      ctx.fillRect(sx0 - 3, groundScreenY - SPIKE_H - 3, sx1 - sx0 + 6, 4);
+      // A floating red bar above the hazard made it visible, but a thin
+      // horizontal black-then-red rect hovering over something is exactly
+      // the shape of this game's own enemy HP bars -- read as one at a
+      // glance. A glow hugging the spikes' own silhouette instead reads as
+      // ambient danger lighting, not a UI element, while still popping
+      // against the painted ground.
+      const glow = ctx.createLinearGradient(0, groundScreenY - SPIKE_H, 0, groundScreenY);
+      glow.addColorStop(0, 'rgba(255,60,50,0)');
+      glow.addColorStop(1, 'rgba(255,60,50,0.4)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(sx0 - 4, groundScreenY - SPIKE_H, sx1 - sx0 + 8, SPIKE_H);
       drawTiledImage(ctx, spikeImg, sx0, sx1, groundScreenY - SPIKE_H, SPIKE_H);
     } else {
       drawHazard(ctx, sx0, sx1, groundScreenY);
@@ -293,11 +325,15 @@ export function renderGame(canvas, state, time) {
   if (gateSx > -60 && gateSx < SCREEN_W + 60) {
     const gateImg = getImage('structure.gate');
     if (gateImg) {
-      drawAnchoredImage(ctx, gateImg, gateSx, groundScreenY, 120, false);
+      // Was 120 -- small enough that the actual glowing "doorway" inside
+      // the archway read as a tiny detail, not a destination, so it felt
+      // like you had to walk almost on top of the art before it registered
+      // as the level exit.
+      drawAnchoredImage(ctx, gateImg, gateSx, groundScreenY, 190, false);
     } else {
       ctx.save();
       ctx.translate(gateSx, groundScreenY);
-      drawGate(ctx, 120);
+      drawGate(ctx, 190);
       ctx.restore();
     }
   }
@@ -354,7 +390,7 @@ export function renderGame(canvas, state, time) {
       // dir < 0 (the vector convention) mirrored it backwards: facing left
       // while moving right and vice versa, i.e. walking backwards. Flip on
       // dir > 0 instead so it only mirrors when actually moving right.
-      drawBoxImage(ctx, img, sx + enemy.w / 2, enemy.y + enemy.h + bob, enemy.w, enemy.h, enemy.dir > 0);
+      drawBoxImage(ctx, img, sx + enemy.w / 2, enemy.y + enemy.h + bob, enemy.w, enemy.h, enemy.dir > 0, ENEMY_VISUAL_SCALE[enemy.type] || 1);
       ctx.restore();
       // The vector path (drawEnemy in sprites.js) draws its own windup
       // ring internally -- only add it here for the image path, so it's
