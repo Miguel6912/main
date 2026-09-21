@@ -12,6 +12,7 @@ import {
   forgeCost,
   canAffordUpgrade,
 } from './items.js';
+import { FORGE_INTRO_LINES, CASTLE_APPROACH_LINE } from './story.js';
 
 export const GRAVITY = 1800;
 export const JUMP_VELOCITY = -620;
@@ -80,6 +81,7 @@ function loadLevel(state, levelIndex) {
   player.lastSafeX = player.x;
   player.lastSafeY = player.y;
   addMessage(state, `Entered the ${level.biome} — tier ${level.tier}.`);
+  if (level.biome === 'castle' && level.tier === 1) addMessage(state, CASTLE_APPROACH_LINE);
 }
 
 export function createGame(seed) {
@@ -94,6 +96,7 @@ export function createGame(seed) {
     forgeOpen: false,
     gameOver: false,
     messages: [],
+    seenForgeBiomes: new Set(),
     totalDistance: 0,
     floatingTexts: [],
     shake: 0,
@@ -418,6 +421,13 @@ export function update(state, input, dt) {
 
   if (input.interactPressed && isNearForge(state)) {
     state.forgeOpen = true;
+    // Doran gets one round of dialogue the first time you reach his forge
+    // in a given biome per run -- not every single forge, since there's one
+    // in every level and he'd never stop talking otherwise.
+    if (!state.seenForgeBiomes.has(state.level.biome)) {
+      state.seenForgeBiomes.add(state.level.biome);
+      for (const line of FORGE_INTRO_LINES[state.level.biome] || []) addMessage(state, line);
+    }
   }
 
   const cx = player.x + player.w / 2;

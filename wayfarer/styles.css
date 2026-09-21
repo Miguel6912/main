@@ -430,6 +430,7 @@ kbd {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 16px;
   z-index: 10;
 }
 
@@ -443,6 +444,10 @@ kbd {
   border-radius: 8px;
   padding: 32px 40px;
   text-align: center;
+  /* Same fixed-parent-with-no-scroll risk as .story-card -- guard against
+     the Try Again button landing off-screen on a short viewport. */
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .game-over-card h2 {
@@ -452,6 +457,52 @@ kbd {
 
 .game-over-card button {
   margin-top: 12px;
+}
+
+#story-intro {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 5, 8, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10;
+}
+
+#story-intro.hidden {
+  display: none;
+}
+
+.story-card {
+  background: #16161f;
+  border: 1px solid #3a3a4c;
+  border-radius: 8px;
+  padding: 32px 40px;
+  max-width: 480px;
+  width: 90%;
+  /* On short viewports (a landscape phone especially) five paragraphs plus
+     a button can be taller than the screen; a fixed-position parent with no
+     scroll of its own would strand the Begin button off-screen with no way
+     to reach it. Scroll within the card instead of overflowing it. */
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.story-card h2 {
+  color: #ffd76a;
+  margin-top: 0;
+}
+
+.story-card p {
+  color: #d8d8e0;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.story-card button {
+  margin-top: 8px;
+  width: 100%;
 }
 
 @media (max-width: 900px) {

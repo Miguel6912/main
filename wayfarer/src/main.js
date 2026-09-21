@@ -1,5 +1,6 @@
 import { createGame, update, upgradeWeapon, upgradeArmor, isNearForge } from './core/game.js';
 import { forgeCost, canAffordUpgrade } from './core/items.js';
+import { INTRO_LINES } from './core/story.js';
 import { renderGame } from './render.js';
 import { preloadAssets } from './assets.js';
 
@@ -11,6 +12,11 @@ let state = null;
 let lastTime = 0;
 let held = new Set();
 let justPressed = new Set();
+// Shown once per page load, not per run -- gates the physics/AI update loop
+// (rendering still runs, so the opening scene sits frozen behind the text
+// instead of a blank canvas) until "Begin the journey" is clicked. Restarts
+// via New Run/Try Again skip straight back into play.
+let introShown = true;
 
 function getBestDistance() {
   return Number(localStorage.getItem(BEST_DISTANCE_KEY) || 0);
@@ -160,7 +166,7 @@ function loop(now) {
   const dt = Math.min(0.05, (now - lastTime) / 1000);
   lastTime = now;
 
-  if (!state.gameOver) {
+  if (!state.gameOver && !introShown) {
     const input = {
       left: held.has('left'),
       right: held.has('right'),
@@ -195,6 +201,17 @@ document.getElementById('forge-close-btn').addEventListener('click', () => {
 });
 document.getElementById('restart-btn').addEventListener('click', startNewGame);
 document.getElementById('new-run-btn').addEventListener('click', startNewGame);
+
+const storyLines = document.getElementById('story-lines');
+for (const line of INTRO_LINES) {
+  const p = document.createElement('p');
+  p.textContent = line;
+  storyLines.appendChild(p);
+}
+document.getElementById('begin-btn').addEventListener('click', () => {
+  introShown = false;
+  document.getElementById('story-intro').classList.add('hidden');
+});
 
 window.addEventListener('keydown', (e) => {
   if (state && state.gameOver && (e.key === 'r' || e.key === 'R')) startNewGame();
