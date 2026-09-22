@@ -9,7 +9,7 @@
 ## Phase 1 — Combat Foundation
 *Target: combat is enjoyable even in an empty test arena. This is the closest phase to done — finish it before starting Phase 2.*
 
-- [ ] **1.1 Dodge / roll** — new input (key + a new touch button), a short dash with a brief invulnerability window, on a cooldown. Wires up the `dodge` clip that already exists unused in `PLAYER_CLIPS` (`render.js`) — no new art needed.
+- [x] **1.1 Dodge / roll** — `K`/`Shift` or a new touch button, ground-only dash toward held direction (defaults to facing), brief invulnerability (reuses the existing `invuln` field), separate cooldown. Wires up the `dodge` clip that already existed unused in `PLAYER_CLIPS`. Shipped in `c6d2fe5`.
 - [ ] **1.2 Enemy defense + player crit** — add a `defense`/`armor` stat to `ENEMY_TYPES` (`entities.js`) and thread it through `resolveDamage` (`items.js`); add a crit chance/multiplier on the player's side. Needed before 1.3's axe hook can mean anything.
 - [ ] **1.3 Weapon identity, pass one** — pick 2 of the 5 existing weapons and give each one real mechanical hook (not just different numbers): e.g. dagger — bonus crit on the attack right after a dodge; axe — bonus damage vs. enemy defense (needs 1.2). Prove the pattern on two before doing all five.
 - [ ] **1.4 Weapon identity, pass two** — sword, greatsword, bow get their own hooks once the pattern from 1.3 is proven out.
