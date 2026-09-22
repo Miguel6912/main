@@ -58,20 +58,28 @@ export function createPlayer(x, y) {
 // they can afford to hit harder and notice you from further off than before
 // without feeling cheap -- the counterplay is dodging the tell, not just
 // trading blows.
+// defense (ROADMAP.md Phase 1.2) subtracts straight off incoming damage in
+// resolveDamage, same as the player's own armor already does against enemy
+// hits -- so it's the thing an axe's future "bonus vs. defense" hook (1.3)
+// will actually have something to bite into. Kept light (0-3) rather than
+// rebalancing the whole roster around it: unarmored beasts (wolf,
+// frostwolf, bogling) and brittle skeletons stay at 0, armored/thick-hided
+// types (guard, gargoyle, revenant, zombie, drowned) get enough to feel
+// tougher per hit without turning them into early-game damage sponges.
 const ENEMY_TYPES = {
-  wolf: { w: 49, h: 38, hpBase: 8, hpPerTier: 2, dmgBase: 4, dmgPerTier: 1, speed: 160, aggro: 260, range: 40, cooldown: 0.5 },
-  bandit: { w: 38, h: 61, hpBase: 14, hpPerTier: 3, dmgBase: 6, dmgPerTier: 1, speed: 105, aggro: 230, range: 42, cooldown: 0.75 },
-  skeleton: { w: 35, h: 61, hpBase: 12, hpPerTier: 3, dmgBase: 6, dmgPerTier: 1, speed: 100, aggro: 240, range: 42, cooldown: 0.65 },
-  zombie: { w: 41, h: 61, hpBase: 22, hpPerTier: 4, dmgBase: 8, dmgPerTier: 1, speed: 65, aggro: 190, range: 42, cooldown: 0.95 },
-  guard: { w: 41, h: 64, hpBase: 20, hpPerTier: 4, dmgBase: 7, dmgPerTier: 1, speed: 100, aggro: 250, range: 44, cooldown: 0.65 },
-  gargoyle: { w: 46, h: 55, hpBase: 30, hpPerTier: 5, dmgBase: 10, dmgPerTier: 1, speed: 80, aggro: 230, range: 44, cooldown: 0.85 },
+  wolf: { w: 49, h: 38, hpBase: 8, hpPerTier: 2, dmgBase: 4, dmgPerTier: 1, speed: 160, aggro: 260, range: 40, cooldown: 0.5, defense: 0 },
+  bandit: { w: 38, h: 61, hpBase: 14, hpPerTier: 3, dmgBase: 6, dmgPerTier: 1, speed: 105, aggro: 230, range: 42, cooldown: 0.75, defense: 1 },
+  skeleton: { w: 35, h: 61, hpBase: 12, hpPerTier: 3, dmgBase: 6, dmgPerTier: 1, speed: 100, aggro: 240, range: 42, cooldown: 0.65, defense: 0 },
+  zombie: { w: 41, h: 61, hpBase: 22, hpPerTier: 4, dmgBase: 8, dmgPerTier: 1, speed: 65, aggro: 190, range: 42, cooldown: 0.95, defense: 1 },
+  guard: { w: 41, h: 64, hpBase: 20, hpPerTier: 4, dmgBase: 7, dmgPerTier: 1, speed: 100, aggro: 250, range: 44, cooldown: 0.65, defense: 2 },
+  gargoyle: { w: 46, h: 55, hpBase: 30, hpPerTier: 5, dmgBase: 10, dmgPerTier: 1, speed: 80, aggro: 230, range: 44, cooldown: 0.85, defense: 3 },
   // frostmarch/swamp -- roughly wolf/bandit-tier and zombie/guard-tier
   // respectively, scaled up slightly (harsher terrain, later in the
   // rotation) rather than introducing a whole new difficulty curve.
-  frostwolf: { w: 49, h: 38, hpBase: 10, hpPerTier: 2, dmgBase: 5, dmgPerTier: 1, speed: 150, aggro: 260, range: 40, cooldown: 0.5 },
-  revenant: { w: 41, h: 64, hpBase: 24, hpPerTier: 4, dmgBase: 8, dmgPerTier: 1, speed: 75, aggro: 220, range: 44, cooldown: 0.85 },
-  bogling: { w: 34, h: 30, hpBase: 6, hpPerTier: 2, dmgBase: 3, dmgPerTier: 1, speed: 140, aggro: 220, range: 36, cooldown: 0.45 },
-  drowned: { w: 42, h: 62, hpBase: 26, hpPerTier: 4, dmgBase: 9, dmgPerTier: 1, speed: 70, aggro: 200, range: 44, cooldown: 0.9 },
+  frostwolf: { w: 49, h: 38, hpBase: 10, hpPerTier: 2, dmgBase: 5, dmgPerTier: 1, speed: 150, aggro: 260, range: 40, cooldown: 0.5, defense: 0 },
+  revenant: { w: 41, h: 64, hpBase: 24, hpPerTier: 4, dmgBase: 8, dmgPerTier: 1, speed: 75, aggro: 220, range: 44, cooldown: 0.85, defense: 2 },
+  bogling: { w: 34, h: 30, hpBase: 6, hpPerTier: 2, dmgBase: 3, dmgPerTier: 1, speed: 140, aggro: 220, range: 36, cooldown: 0.45, defense: 0 },
+  drowned: { w: 42, h: 62, hpBase: 26, hpPerTier: 4, dmgBase: 9, dmgPerTier: 1, speed: 70, aggro: 200, range: 44, cooldown: 0.9, defense: 1 },
 };
 
 export const BIOME_ENEMIES = {
@@ -97,6 +105,7 @@ export function createEnemy(type, x, groundY, patrolMin, patrolMax, tier, rng) {
     hp,
     maxHp: hp,
     damage: def.dmgBase + def.dmgPerTier * (tier - 1),
+    defense: def.defense,
     speed: def.speed,
     aggroRange: def.aggro,
     attackRange: def.range,

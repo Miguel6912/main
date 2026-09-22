@@ -75,6 +75,14 @@ const ENEMY_HITSTUN = 0.18;
 const SHAKE_DECAY = 7;
 const SHAKE_ON_HIT = 0.16;
 const SHAKE_ON_KILL = 0.32;
+// Crit system (ROADMAP.md Phase 1.2). A flat baseline for now -- every
+// player attack (melee or ranged) has the same chance and multiplier,
+// regardless of weapon. This is deliberately the whole system for this
+// step; Phase 1.3's weapon-identity hooks are what will make specific
+// weapons push these numbers around (e.g. a dagger raising its own chance
+// right after a dodge) rather than this file growing per-weapon branches.
+const PLAYER_CRIT_CHANCE = 0.12;
+const PLAYER_CRIT_MULT = 1.75;
 const SHAKE_ON_HURT = 0.28;
 const FLOATING_TEXT_LIFE = 0.7;
 
@@ -226,7 +234,9 @@ function killEnemy(state, enemy) {
 }
 
 function applyDamageToEnemy(state, enemy, rawDamage, knockbackDir) {
-  const dmg = resolveDamage(rawDamage, 0, state.rng);
+  const isCrit = chance(state.rng, PLAYER_CRIT_CHANCE);
+  const attackDamage = isCrit ? Math.round(rawDamage * PLAYER_CRIT_MULT) : rawDamage;
+  const dmg = resolveDamage(attackDamage, enemy.defense, state.rng);
   enemy.hp -= dmg;
   enemy.hitFlash = 0.2;
   // Hitstun pauses an in-progress windup (it isn't ticked down while
@@ -236,8 +246,9 @@ function applyDamageToEnemy(state, enemy, rawDamage, knockbackDir) {
   enemy.hitstun = ENEMY_HITSTUN;
   const pushed = enemy.x + knockbackDir * ENEMY_KNOCKBACK;
   enemy.x = Math.max(enemy.patrolMin - 60, Math.min(enemy.patrolMax - enemy.w + 60, pushed));
-  spawnFloatingText(state, enemy.x + enemy.w / 2, enemy.y, `${dmg}`, '#ffffff');
-  addShake(state, SHAKE_ON_HIT);
+  const label = isCrit ? `${dmg}!` : `${dmg}`;
+  spawnFloatingText(state, enemy.x + enemy.w / 2, enemy.y, label, isCrit ? '#ff6a3d' : '#ffffff');
+  addShake(state, isCrit ? SHAKE_ON_HIT * 1.6 : SHAKE_ON_HIT);
 }
 
 function performPlayerAttack(state) {
