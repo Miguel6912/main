@@ -113,6 +113,28 @@ function updateHUD() {
   document.getElementById('touch-forge').classList.toggle('hidden', !showForgePrompt);
 }
 
+const PORTRAIT_PATHS = {
+  doran: 'assets/npcs/doran_portrait.png',
+};
+
+function updateDialogue() {
+  const box = document.getElementById('dialogue-box');
+  const d = state.activeDialogue;
+  box.classList.toggle('hidden', !d);
+  if (!d) return;
+
+  const portraitEl = document.getElementById('dialogue-portrait');
+  const portraitSrc = d.portrait && PORTRAIT_PATHS[d.portrait];
+  portraitEl.classList.toggle('hidden', !portraitSrc);
+  if (portraitSrc) portraitEl.src = portraitSrc;
+
+  const speakerEl = document.getElementById('dialogue-speaker');
+  speakerEl.classList.toggle('hidden', !d.speaker);
+  speakerEl.textContent = d.speaker || '';
+
+  document.getElementById('dialogue-text').textContent = d.lines[d.lineIndex];
+}
+
 function updateMessages() {
   const list = document.getElementById('message-log');
   const recent = state.messages.slice(-4);
@@ -181,6 +203,7 @@ function loop(now) {
   renderGame(document.getElementById('game-canvas'), state, now / 1000);
   updateHUD();
   updateMessages();
+  updateDialogue();
   renderForgeUI();
 
   if (state.gameOver) {

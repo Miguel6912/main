@@ -115,6 +115,72 @@ button.secondary {
   display: none;
 }
 
+/* Dialogue box: sits near the top of the stage so it never competes with
+   the bottom-anchored touch controls or the forge prompt (bottom: 14%).
+   Uses assets/ui/dialogue_panel.png as a 9-slice border-image -- the slice
+   percentages below come from measuring the actual frame thickness in that
+   900x675 source (left/right ~90px = 10% of width, top ~37px = ~5.5% of
+   height, bottom ~74px = ~11% of height), so the ornate corners stay crisp
+   at any box size instead of being squashed by a uniform stretch. */
+#dialogue-box {
+  position: absolute;
+  left: 50%;
+  top: 5%;
+  transform: translateX(-50%);
+  width: min(680px, 88%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 34px 32px 34px;
+  border-style: solid;
+  border-width: 26px 30px 34px 30px;
+  border-image-source: url("assets/ui/dialogue_panel.png");
+  border-image-slice: 6% 10% 11% 10% fill;
+  border-image-width: 26px 30px 34px 30px;
+  border-image-repeat: stretch;
+  z-index: 4;
+}
+
+#dialogue-box.hidden {
+  display: none;
+}
+
+#dialogue-portrait {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4a3420;
+  flex-shrink: 0;
+}
+
+#dialogue-portrait.hidden {
+  display: none;
+}
+
+.dialogue-body {
+  flex: 1;
+  min-width: 0;
+}
+
+#dialogue-speaker {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7a5522;
+  margin-bottom: 4px;
+}
+
+#dialogue-speaker.hidden {
+  display: none;
+}
+
+#dialogue-text {
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: #2a1e10;
+}
+
 /* Touch controls: hidden by default, shown only on coarse-pointer (touch)
    devices via the media query below, so desktop/mouse users never see them. */
 #touch-controls {
@@ -283,6 +349,23 @@ button.secondary {
     height: min(68vh, 720px);
     height: min(68dvh, 720px);
     max-width: 100%;
+  }
+
+  #dialogue-box {
+    width: min(520px, 92%);
+    padding: 14px 20px 22px 20px;
+    border-width: 18px 20px 24px 20px;
+    border-image-width: 18px 20px 24px 20px;
+    gap: 10px;
+  }
+
+  #dialogue-portrait {
+    width: 48px;
+    height: 48px;
+  }
+
+  #dialogue-text {
+    font-size: 0.8rem;
   }
 }
 

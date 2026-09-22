@@ -41,7 +41,11 @@ function buildGround(rng, levelWidth) {
   let x = firstWidth;
 
   while (x < levelWidth - 500) {
-    const gap = chance(rng, 0.55) ? randInt(rng, 60, 110) : 0;
+    // Was 0.55 -- a gap before more than half of all ground segments made
+    // the ground read as constantly chopped up rather than a level with
+    // occasional pits to mind. Brought down to roughly the same odds as
+    // the final segment's gap below, for a steadier baseline.
+    const gap = chance(rng, 0.4) ? randInt(rng, 60, 110) : 0;
     const x0 = x + gap;
     const x1 = Math.min(levelWidth, x0 + randInt(rng, 180, 420));
     segments.push({ x0, x1 });
@@ -54,12 +58,33 @@ function buildGround(rng, levelWidth) {
   return segments;
 }
 
+// Kept clear between any two platforms regardless of their heights -- with
+// no check at all (the original version), platforms could land with
+// overlapping or near-touching x-ranges, which read as one platform
+// visually doubled up, and turned their combined collision rects into a
+// confusing shape you could sometimes stand on past where either
+// platform's own art actually reached (reported as "walking on mid air").
+const PLATFORM_MIN_GAP = 40;
+
 function buildPlatforms(rng, levelWidth) {
   const count = Math.round(levelWidth / 550);
   const platforms = [];
   for (let i = 0; i < count; i++) {
     const width = randInt(rng, 80, 160);
-    const x0 = randInt(rng, 380, Math.max(400, levelWidth - 300 - width));
+    let x0 = null;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const candidate = randInt(rng, 380, Math.max(400, levelWidth - 300 - width));
+      const overlaps = platforms.some(
+        (p) => candidate < p.x1 + PLATFORM_MIN_GAP && candidate + width > p.x0 - PLATFORM_MIN_GAP,
+      );
+      if (!overlaps) {
+        x0 = candidate;
+        break;
+      }
+    }
+    // No clear spot found after several tries -- skip this one rather than
+    // force an overlap; a slightly sparser level beats a doubled platform.
+    if (x0 === null) continue;
     // Capped comfortably under the ~213px double-jump ceiling (two ~107px
     // arcs at JUMP_VELOCITY/GRAVITY from game.js) so every platform is
     // reachable even without frame-perfect double-jump timing.

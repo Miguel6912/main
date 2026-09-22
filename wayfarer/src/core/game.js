@@ -98,7 +98,10 @@ function loadLevel(state, levelIndex) {
   player.lastSafeY = player.y;
   addMessage(state, `Entered the ${level.biome} — tier ${level.tier}.`);
   const firstEntryLine = BIOME_FIRST_ENTRY_LINES[level.biome];
-  if (firstEntryLine && level.tier === 1) addMessage(state, firstEntryLine);
+  // No portrait -- these read as an ambient aside, not a specific person
+  // talking at you (Elara isn't literally there watching you cross a
+  // frostmarch).
+  if (firstEntryLine && level.tier === 1) startDialogue(state, null, null, [firstEntryLine]);
 }
 
 export function createGame(seed) {
@@ -117,9 +120,46 @@ export function createGame(seed) {
     totalDistance: 0,
     floatingTexts: [],
     shake: 0,
+    activeDialogue: null,
   };
   loadLevel(state, 0);
   return state;
+}
+
+// How long each line of an on-screen dialogue box sits before advancing to
+// the next (or clearing, on the last one) -- long enough to read a couple
+// of sentences without feeling like it's rushing off. Lines also still go
+// through addMessage below, same as before, so the scrolling log keeps a
+// full history even after the box itself has moved on.
+const DIALOGUE_LINE_DURATION = 4.5;
+
+// onComplete (optional) fires once, after the last line clears -- used to
+// hold off opening the forge modal until Doran's intro finishes, so the two
+// never show on screen stacked on top of each other.
+function startDialogue(state, speaker, portrait, lines, onComplete) {
+  for (const line of lines) addMessage(state, line);
+  if (lines.length === 0) {
+    if (onComplete) onComplete(state);
+    return;
+  }
+  state.activeDialogue = { speaker, portrait, lines, lineIndex: 0, timer: DIALOGUE_LINE_DURATION, onComplete };
+}
+
+// Ticked unconditionally (see update() below) even while game-over has
+// otherwise paused everything else, so a line in progress keeps advancing
+// (and can still clear to onComplete) rather than freezing mid-sentence.
+function tickDialogue(state, dt) {
+  const d = state.activeDialogue;
+  d.timer -= dt;
+  if (d.timer <= 0) {
+    d.lineIndex += 1;
+    if (d.lineIndex >= d.lines.length) {
+      state.activeDialogue = null;
+      if (d.onComplete) d.onComplete(state);
+    } else {
+      d.timer = DIALOGUE_LINE_DURATION;
+    }
+  }
 }
 
 function hurtPlayer(state, amount) {
@@ -417,6 +457,21 @@ export function isNearForge(state) {
 }
 
 export function update(state, input, dt) {
+  if (state.activeDialogue) {
+    const wasActive = state.activeDialogue;
+    tickDialogue(state, dt);
+    // Pressing interact again while a line is still up skips straight to
+    // its completion (e.g. opening the forge once Doran's intro finishes)
+    // rather than silently eating the press -- but only if tickDialogue
+    // didn't already clear it this same frame, or its onComplete would fire
+    // twice. input.interactPressed is intentionally left set afterward: the
+    // forge-open check further down is a harmless no-op if this already
+    // opened it.
+    if (input.interactPressed && state.activeDialogue === wasActive) {
+      state.activeDialogue = null;
+      if (wasActive.onComplete) wasActive.onComplete(state);
+    }
+  }
   if (state.gameOver) return state;
 
   if (state.forgeOpen) {
@@ -459,13 +514,19 @@ export function update(state, input, dt) {
   updatePickups(state);
 
   if (input.interactPressed && isNearForge(state)) {
-    state.forgeOpen = true;
     // Doran gets one round of dialogue the first time you reach his forge
     // in a given biome per run -- not every single forge, since there's one
-    // in every level and he'd never stop talking otherwise.
+    // in every level and he'd never stop talking otherwise. The forge modal
+    // itself waits until his lines finish (see onComplete below) instead of
+    // opening underneath them -- the two were overlapping on screen when
+    // both showed at once.
     if (!state.seenForgeBiomes.has(state.level.biome)) {
       state.seenForgeBiomes.add(state.level.biome);
-      for (const line of FORGE_INTRO_LINES[state.level.biome] || []) addMessage(state, line);
+      const lines = FORGE_INTRO_LINES[state.level.biome] || [];
+      if (lines.length === 0) state.forgeOpen = true;
+      else startDialogue(state, 'Doran Emberfist', 'doran', lines, (s) => { s.forgeOpen = true; });
+    } else {
+      state.forgeOpen = true;
     }
   }
 
