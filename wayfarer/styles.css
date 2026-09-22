@@ -148,7 +148,11 @@ button.secondary {
 #touch-move {
   position: absolute;
   left: 4%;
-  bottom: 8%;
+  /* The extra env() term keeps the buttons clear of an iOS home-indicator
+     bar sitting right at the bottom edge in landscape -- reports 0px (a
+     no-op) everywhere else, including iOS itself without the
+     viewport-fit=cover meta tag this depends on. */
+  bottom: calc(8% + env(safe-area-inset-bottom, 0px));
   display: flex;
   gap: 14px;
 }
@@ -161,7 +165,7 @@ button.secondary {
 #touch-actions {
   position: absolute;
   right: 4%;
-  bottom: 8%;
+  bottom: calc(8% + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: flex-end;
   gap: 14px;
@@ -178,7 +182,7 @@ button.secondary {
      without ever overlapping it at any screen size. */
   position: absolute;
   right: calc(4% + 46px);
-  bottom: calc(8% + 78px);
+  bottom: calc(8% + 78px + env(safe-area-inset-bottom, 0px));
   width: 50px;
   height: 50px;
   background: rgba(20, 20, 30, 0.55);
@@ -233,8 +237,15 @@ button.secondary {
 /* Phone landscape: a full-width 16:9 canvas plus header would run taller
    than the viewport and push the touch controls below the fold. Cap the
    canvas to the available height instead so the whole play surface (and
-   its overlaid buttons) stays on screen without scrolling. */
-@media (pointer: coarse) and (max-height: 520px) {
+   its overlaid buttons) stays on screen without scrolling.
+   Was max-height: 520px -- too narrow a net: plenty of phones report a
+   landscape viewport taller than that (browser chrome varies), so this
+   rule just didn't fire for them and they got the full-width layout
+   instead, which runs taller than the visible screen and pushes the
+   touch buttons off the bottom. Widened well clear of any phone while
+   still safely under a landscape tablet's height (iPads land north of
+   700px here), so it only ever excludes screens with real room to spare. */
+@media (pointer: coarse) and (max-height: 620px) {
   #app {
     padding: 8px;
   }
@@ -259,7 +270,18 @@ button.secondary {
 
   #game-canvas {
     width: auto;
-    height: min(76vh, 720px);
+    /* iOS Safari's vh is computed against the viewport with its address
+       bar hidden, not the one you're actually looking at -- so 76vh comes
+       out taller than 76% of the real visible height whenever that bar is
+       showing (the common case), and everything below the canvas
+       (specifically: the touch buttons, positioned by percentage within
+       it) ends up pushed below the fold. dvh tracks the actual visible
+       viewport instead; kept as a second declaration (not a replacement)
+       so browsers without dvh support keep the vh fallback. Also dropped
+       to 68% (from 76%) for a bit more headroom given the wider net above
+       now catches shorter screens than before. */
+    height: min(68vh, 720px);
+    height: min(68dvh, 720px);
     max-width: 100%;
   }
 }
@@ -511,6 +533,17 @@ kbd {
   }
 
   #stage {
+    /* #stage's base rule is `flex: 0 1 1280px` -- in a row layout that
+       1280px flex-basis sets its WIDTH, but #layout just switched to
+       flex-direction: column here, where the main axis (and so the
+       flex-basis) is HEIGHT instead. Left unset, #stage was rendering
+       1280px tall on every phone (virtually all of them are under this
+       900px breakpoint), pushing the touch controls -- positioned by
+       percentage within it -- far below the visible canvas. Reset the
+       basis to auto (height from content) and drive width with the
+       plain `width` property instead, same as before.
+       (See: real-world report of unreachable touch buttons on iOS.) */
+    flex: 0 1 auto;
     width: 100%;
   }
 }
