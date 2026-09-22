@@ -126,17 +126,13 @@ const PLAYER_HURT_DURATION = 0.25;
 const PLAYER_JUMP_DURATION = 0.5;
 const PLAYER_DEATH_DURATION = 0.6;
 // Mirrors core/game.js's DODGE_DURATION -- same "keep in sync" convention
-// as the constants above.
-const PLAYER_DODGE_DURATION = 0.22;
-// Deliberately its own rate, NOT clip.count/PLAYER_DODGE_DURATION like the
-// other one-shot clips above -- that math (4 frames over the dash's ~0.22s)
-// works out to ~18fps, fast enough to cycle through all 4 of the sheet's
-// alternating crouch/lunge poses within the dash and read as a blur/spin
-// rather than a dodge (reported: "the character just spins real quick").
-// At this slower fixed rate the dash only gets partway through the
-// sequence -- crouch, then lunge, holding there as the dash ends -- which
-// reads as a clean two-beat "coil and burst" instead.
-const PLAYER_DODGE_FPS = 7;
+// as the constants above. Was 0.22 (paired with a fixed 7fps override on
+// the clip below, since 4 frames over 0.22s at the normal count/duration
+// formula was fast enough to blur into a spin) -- now that the dash itself
+// runs longer (see DODGE_DURATION in game.js), the plain count/duration
+// formula every other clip uses works fine again: 4 frames over 0.4s is a
+// readable 10fps, so the fixed-rate override is gone too.
+const PLAYER_DODGE_DURATION = 0.4;
 // World px of travel per full 8-frame run cycle -- tuned so the stride
 // looks natural at the player's actual move speed, not by wall-clock time
 // (so it freezes cleanly the instant you stop, exactly like the old bob
@@ -172,7 +168,7 @@ function playerClipFrame(clipName, clip, player, time, deathElapsed) {
   }
   if (clipName === 'dodge') {
     return frameForElapsed(
-      { count: clip.count, fps: PLAYER_DODGE_FPS, loop: false },
+      { count: clip.count, fps: clip.count / PLAYER_DODGE_DURATION, loop: false },
       PLAYER_DODGE_DURATION - player.dodgeTimer,
     );
   }

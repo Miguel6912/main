@@ -18,16 +18,23 @@ export const GRAVITY = 1800;
 export const JUMP_VELOCITY = -620;
 export const MOVE_SPEED = 220;
 export const MAX_JUMPS = 2;
-// Dodge/roll (ROADMAP.md Phase 1.1). DODGE_SPEED is well above MOVE_SPEED so
-// the dash reads as a distinct burst, not just a speed boost; DODGE_DURATION
+// Dodge/roll (ROADMAP.md Phase 1.1). DODGE_SPEED is above MOVE_SPEED so the
+// dash still reads as a distinct burst, not just a speed boost; DODGE_DURATION
 // is how long that burst (and its invulnerability) lasts; DODGE_COOLDOWN is
 // separate and always counting down, so spamming the button doesn't chain
 // dashes back to back. Ground-only for this first pass -- double jump
 // already covers air mobility, and keeping dodge off the ground avoids
 // stacking it with mid-air physics for now.
-const DODGE_SPEED = 480;
-const DODGE_DURATION = 0.22;
-const DODGE_COOLDOWN = 0.6;
+// Was 480/0.22 (~106px covered) -- fast enough that the whole dash read as
+// an instant teleport/slide rather than a roll you could actually see
+// happen, even after slowing the animation down on its own (reported: "it
+// happens fast, the character slides on the ground"). Traded speed for
+// duration instead of just adding more of both: ~120px covered is close to
+// before, but stretched over nearly double the time so there's room to
+// actually perceive the motion.
+const DODGE_SPEED = 300;
+const DODGE_DURATION = 0.4;
+const DODGE_COOLDOWN = 0.75;
 // Kept short so falling into a gap reads as a quick, punchy mistake rather
 // than a long empty drop before the recovery kicks in.
 export const PIT_Y = GROUND_Y + 130;
