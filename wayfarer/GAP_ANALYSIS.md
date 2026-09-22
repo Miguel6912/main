@@ -26,7 +26,7 @@ The encouraging part: a meaningful amount of the *art* for later phases is alrea
 | Hit feedback | ✅ Done | Hit-flash, floating damage numbers, screen shake, knockback both directions |
 | Enemy animation | ⚠️ Partial | Only the castle guard has a real walk/attack sheet wired up (just built); every other enemy type (wolf, bandit, skeleton, zombie, gargoyle, and both frostmarch/swamp types) still uses a static pose + a fake vertical bob |
 | Dodge / roll | ❌ Missing | No input binding exists at all (`main.js` KEY_MAP has left/right/jump/attack/interact only). A `dodge` animation *clip* already exists unused in `render.js` (`PLAYER_CLIPS.dodge`, `moods.png` frames 8–11) — the art's ready, there's just no mechanic driving it |
-| Weapon identity | ❌ Missing | All 5 weapons (dagger/sword/axe/greatsword/bow) run through the exact same combo code and differ only in damage/range/cooldown numbers (`items.js` `WEAPON_CATALOG`). No staff/magic weapon exists at all, despite **14 unused spell-effect sheets** already delivered (arcane bolt, chain lightning, meteor, frost nova, etc.) |
+| Weapon identity | ✅ Done | All 5 weapons now have a real mechanical hook (dagger: post-dodge crit window; sword: riposte vs. mid-windup enemies; axe: armor-break + execute; greatsword: heavier knockback/hitstun + stronger finisher wave; bow: hold-to-charge). See `ROADMAP.md` 1.3/1.4. No staff/magic weapon exists yet, despite **14 unused spell-effect sheets** already delivered (arcane bolt, chain lightning, meteor, frost nova, etc.) -- a natural Phase 7 candidate once a spell-casting system exists to hang it on |
 | Enemy armor / crit hits | ❌ Missing | Enemies only have `hp` + `damage`, no defense stat, so "axe breaks armor" has nothing to break. `resolveDamage()` is flat `damage - defense + variance` — no crit chance/multiplier anywhere |
 | Stagger | ❌ Missing | Enemies have a hitstun window (brief, on every hit) but no distinct stagger *state* or threshold |
 | Status effects | ❌ Missing | No poison/burn/curse/any status system |
@@ -83,11 +83,9 @@ This is the real blocker for Phase 3/4 content: adding a rumour or a persistent 
 
 ## Recommended next step
 
-DESIGN.md §32 already prescribes the order, and Phase 1 is the closest to done — finishing it is the smallest remaining lift and unblocks nothing to skip it. Concretely, in roughly priority order:
+DESIGN.md §32 already prescribes the order, and Phase 1 is nearly done now. Shipped: dodge/roll, enemy defense + player crit, and full weapon identity for all five weapons (see `ROADMAP.md` 1.1-1.4). Remaining:
 
-1. **Dodge/roll input** + brief invulnerability window (art already exists, unused)
-2. **Weapon identity** — give each weapon family at least one mechanical hook (not just numbers), starting with the ones already in `WEAPON_CATALOG`
-3. **Enemy defense + a crit system** on the player side
-4. **A minimal boss framework** — even just "an enemy with phases and a death hook" — and wire up *one* of the 8 already-painted boss sheets to prove it out end to end
+1. **A minimal boss framework** — even just "an enemy with phases and a death hook" — and wire up *one* of the 8 already-painted boss sheets to prove it out end to end. The Hollow Hare's art is identified (`clover_move_attack.png`/`clover_death_reaction.png`) and it already has an encounter line written in `story.js`, making it the natural first one.
+2. **Stagger state** (`ROADMAP.md` 1.5) — a distinct meter/threshold separate from the existing brief hitstun, reusable by boss phases.
 
 Only after that does Phase 2 (world state / rumour / event framework) become the honest next step, since it's what everything from Phase 3 onward is actually built on top of.

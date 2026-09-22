@@ -196,6 +196,7 @@ function loop(now) {
       right: held.has('right'),
       jumpPressed: justPressed.has('jump'),
       attackPressed: justPressed.has('attack'),
+      attackHeld: held.has('attack'),
       dodgePressed: justPressed.has('dodge'),
       interactPressed: justPressed.has('interact'),
     };

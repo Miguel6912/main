@@ -1,11 +1,54 @@
 import { randInt, choice } from './rng.js';
 
+// `ability` (ROADMAP.md Phase 1.3/1.4) is each weapon's mechanical identity
+// -- not just different damage/range/cooldown numbers, but something that
+// changes how you actually fight with it. Kept as data consulted generically
+// by applyDamageToEnemy/performPlayerAttack in game.js (keyed by field
+// presence, e.g. `ability.riposteWindupBonus`), not "if weapon.id === ..."
+// branches -- a new weapon just needs new ability fields, not new code
+// paths. Fields absent from a given weapon's ability object simply don't
+// apply (read as falsy), so weapons only pay for what they use.
 export const WEAPON_CATALOG = [
-  { id: 'dagger', name: 'Rusty Dagger', damage: 4, range: 60, cooldown: 0.32, type: 'melee' },
-  { id: 'sword', name: 'Iron Sword', damage: 7, range: 70, cooldown: 0.42, type: 'melee' },
-  { id: 'axe', name: 'War Axe', damage: 10, range: 66, cooldown: 0.58, type: 'melee' },
-  { id: 'greatsword', name: 'Greatsword', damage: 15, range: 84, cooldown: 0.75, type: 'melee' },
-  { id: 'bow', name: "Hunter's Bow", damage: 6, range: 640, cooldown: 0.5, type: 'ranged', projectileSpeed: 560 },
+  {
+    id: 'dagger', name: 'Rusty Dagger', damage: 4, range: 60, cooldown: 0.32, type: 'melee',
+    // Predator's window: a hit landed shortly after a dodge ends gets a big
+    // bonus crit chance on top of the flat baseline (see POST_DODGE_WINDOW
+    // in game.js) -- rewards the fast in-and-out playstyle a dagger is
+    // built for, and gives the dodge itself an offensive payoff, not just
+    // a defensive one.
+    ability: { postDodgeCritBonus: 0.4 },
+  },
+  {
+    id: 'sword', name: 'Iron Sword', damage: 7, range: 70, cooldown: 0.42, type: 'melee',
+    // Riposte: hitting an enemy while it's still mid-windup (about to
+    // swing) deals bonus damage and grants a brief invulnerability --
+    // landing a hit already pauses that windup via hitstun (see
+    // applyDamageToEnemy/updateEnemies), this rewards doing it with a
+    // sword specifically, punishing a telegraph rather than just trading.
+    ability: { riposteWindupBonus: 1.5, riposteInvuln: 0.3 },
+  },
+  {
+    id: 'axe', name: 'War Axe', damage: 10, range: 66, cooldown: 0.58, type: 'melee',
+    // Armour-breaking: ignores a chunk of the target's defense outright.
+    // Execute: a big bonus against anything already below a quarter
+    // health -- a finishing blow should feel like one.
+    ability: { defenseIgnore: 0.6, executeThreshold: 0.25, executeBonus: 1.8 },
+  },
+  {
+    id: 'greatsword', name: 'Greatsword', damage: 15, range: 84, cooldown: 0.75, type: 'melee',
+    // Impact: noticeably harder knockback and a longer hitstun window per
+    // hit, and its own combo finisher wave hits harder on top of the
+    // baseline WAVE_DAMAGE_MULT every weapon already gets.
+    ability: { knockbackMult: 1.8, hitstunMult: 1.6, waveDamageMult: 1.3 },
+  },
+  {
+    id: 'bow', name: "Hunter's Bow", damage: 6, range: 640, cooldown: 0.5, type: 'ranged', projectileSpeed: 560,
+    // Charge: hold the attack input (instead of tapping it) to charge a
+    // shot over maxChargeTime seconds, up to +100% damage at full draw. A
+    // quick tap still fires near base damage rather than doing nothing, so
+    // charging is an upside, never a new requirement to land a hit at all.
+    ability: { chargeable: true, maxChargeTime: 0.9, maxChargeBonus: 1.0 },
+  },
 ];
 
 export const ARMOR_CATALOG = [

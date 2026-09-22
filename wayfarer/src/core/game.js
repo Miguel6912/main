@@ -83,6 +83,11 @@ const SHAKE_ON_KILL = 0.32;
 // right after a dodge) rather than this file growing per-weapon branches.
 const PLAYER_CRIT_CHANCE = 0.12;
 const PLAYER_CRIT_MULT = 1.75;
+// How long the dagger's postDodgeCritBonus (items.js) stays available after
+// a dodge ends. A tuning constant, not weapon data -- it's "how generous is
+// the window," which is the same question regardless of which weapon (if
+// any) someday cares about it.
+const POST_DODGE_WINDOW = 0.5;
 const SHAKE_ON_HURT = 0.28;
 const FLOATING_TEXT_LIFE = 0.7;
 
@@ -233,25 +238,65 @@ function killEnemy(state, enemy) {
   if (chance(state.rng, 0.05)) player.hp = Math.min(player.maxHp, player.hp + 15);
 }
 
+// The single funnel every point of damage to an enemy passes through --
+// a melee swing, the combo-finisher wave, or an arrow -- so a weapon's
+// ability (items.js) applies consistently no matter which of those actually
+// delivered the hit, keyed off whatever's currently equipped rather than
+// whatever fired the projectile (see the comment on WEAPON_CATALOG for why
+// that's a deliberate simplification, not an oversight).
 function applyDamageToEnemy(state, enemy, rawDamage, knockbackDir) {
-  const isCrit = chance(state.rng, PLAYER_CRIT_CHANCE);
-  const attackDamage = isCrit ? Math.round(rawDamage * PLAYER_CRIT_MULT) : rawDamage;
-  const dmg = resolveDamage(attackDamage, enemy.defense, state.rng);
+  const player = state.player;
+  const ability = player.weapon.ability || {};
+  let attackDamage = rawDamage;
+
+  // Sword: riposte. Landing a hit while the enemy is still mid-windup
+  // already pauses that windup via hitstun below (it isn't ticked down
+  // while stunned, see updateEnemies) -- this adds a real payoff on top for
+  // doing it with a sword specifically, punishing a telegraph rather than
+  // just trading blows.
+  const isRiposte = Boolean(ability.riposteWindupBonus && enemy.windup > 0);
+  if (isRiposte) attackDamage = Math.round(attackDamage * ability.riposteWindupBonus);
+
+  // Axe: armour-breaking (ignores a fraction of the target's defense) and
+  // execute (bonus damage finishing off something already below a quarter
+  // health).
+  let effectiveDefense = enemy.defense;
+  if (ability.defenseIgnore) effectiveDefense = Math.round(effectiveDefense * (1 - ability.defenseIgnore));
+  const isExecute = Boolean(ability.executeThreshold && enemy.maxHp > 0 && enemy.hp / enemy.maxHp <= ability.executeThreshold);
+  if (isExecute) attackDamage = Math.round(attackDamage * (ability.executeBonus || 1));
+
+  // Dagger: bonus crit chance for a short window after a dodge (see
+  // POST_DODGE_WINDOW). Crit is rolled last and multiplies whatever the
+  // riposte/execute bonuses above already produced, so a well-timed axe
+  // execute or sword riposte can still crit on top -- the big, memorable
+  // numbers this game wants (DESIGN.md's "addictive" mandate) should be
+  // able to stack, not fight each other for which one "wins."
+  const critChance = PLAYER_CRIT_CHANCE + (player.postDodgeWindow > 0 ? (ability.postDodgeCritBonus || 0) : 0);
+  const isCrit = chance(state.rng, critChance);
+  if (isCrit) attackDamage = Math.round(attackDamage * PLAYER_CRIT_MULT);
+
+  const dmg = resolveDamage(attackDamage, effectiveDefense, state.rng);
   enemy.hp -= dmg;
   enemy.hitFlash = 0.2;
-  // Hitstun pauses an in-progress windup (it isn't ticked down while
-  // stunned, further down in updateEnemies) rather than cancelling the
-  // attack outright -- landing hits buys you time and space, it doesn't
-  // let you spam an enemy's swing away for free.
-  enemy.hitstun = ENEMY_HITSTUN;
-  const pushed = enemy.x + knockbackDir * ENEMY_KNOCKBACK;
+  enemy.hitstun = ENEMY_HITSTUN * (ability.hitstunMult || 1);
+
+  if (isRiposte && ability.riposteInvuln) player.invuln = Math.max(player.invuln, ability.riposteInvuln);
+
+  const knockback = ENEMY_KNOCKBACK * (ability.knockbackMult || 1);
+  const pushed = enemy.x + knockbackDir * knockback;
   enemy.x = Math.max(enemy.patrolMin - 60, Math.min(enemy.patrolMax - enemy.w + 60, pushed));
+
   const label = isCrit ? `${dmg}!` : `${dmg}`;
-  spawnFloatingText(state, enemy.x + enemy.w / 2, enemy.y, label, isCrit ? '#ff6a3d' : '#ffffff');
-  addShake(state, isCrit ? SHAKE_ON_HIT * 1.6 : SHAKE_ON_HIT);
+  const color = isCrit ? '#ff6a3d' : (isExecute ? '#ff3d3d' : '#ffffff');
+  spawnFloatingText(state, enemy.x + enemy.w / 2, enemy.y, label, color);
+  addShake(state, isCrit || isExecute ? SHAKE_ON_HIT * 1.6 : SHAKE_ON_HIT);
 }
 
-function performPlayerAttack(state) {
+// chargeTime (seconds held, ignored by anything without ability.chargeable
+// -- currently only the bow) drives how much bonus the shot gets. A quick
+// tap passes ~0 and still fires near base damage, so charging is purely an
+// upside on top of always being able to just shoot.
+function performPlayerAttack(state, chargeTime = 0) {
   const { player } = state;
   const weapon = player.weapon;
   if (weapon.type === 'ranged') {
@@ -260,14 +305,21 @@ function performPlayerAttack(state) {
     // than continuing wherever a bow volley left off. -1, not 0: see
     // entities.js createPlayer for why.
     player.comboStep = -1;
+    const ability = weapon.ability || {};
+    const chargeFraction = ability.chargeable ? Math.min(1, chargeTime / (ability.maxChargeTime || 1)) : 0;
+    const dmg = Math.round(weapon.damage * (1 + chargeFraction * (ability.maxChargeBonus || 0)));
     state.projectiles.push({
       x: player.facing > 0 ? player.x + player.w : player.x,
       y: player.y + player.h / 2,
       vx: weapon.projectileSpeed * player.facing,
-      damage: weapon.damage,
+      damage: dmg,
       traveled: 0,
       maxRange: weapon.range,
       kind: 'arrow',
+      // Near-enough-to-full-draw gets its own bigger/brighter sprite in
+      // render.js -- a charged shot should visibly read as one, not just
+      // hit harder.
+      charged: chargeFraction > 0.85,
     });
     return;
   }
@@ -281,11 +333,12 @@ function performPlayerAttack(state) {
     if (rectsOverlap(hitbox, enemy)) applyDamageToEnemy(state, enemy, weapon.damage, player.facing);
   }
   if (player.comboStep === 3) {
+    const waveMult = WAVE_DAMAGE_MULT * (weapon.ability?.waveDamageMult || 1);
     state.projectiles.push({
       x: player.facing > 0 ? player.x + player.w : player.x,
       y: player.y + player.h / 2,
       vx: WAVE_SPEED * player.facing,
-      damage: Math.round(weapon.damage * WAVE_DAMAGE_MULT),
+      damage: Math.round(weapon.damage * waveMult),
       traveled: 0,
       maxRange: WAVE_RANGE,
       kind: 'wave',
@@ -522,9 +575,13 @@ export function update(state, input, dt) {
   player.comboTimer = Math.max(0, player.comboTimer - dt);
   if (player.comboTimer <= 0) player.comboStep = -1;
   player.dodgeCooldown = Math.max(0, player.dodgeCooldown - dt);
+  player.postDodgeWindow = Math.max(0, player.postDodgeWindow - dt);
   if (player.dodging) {
     player.dodgeTimer -= dt;
-    if (player.dodgeTimer <= 0) player.dodging = false;
+    if (player.dodgeTimer <= 0) {
+      player.dodging = false;
+      player.postDodgeWindow = POST_DODGE_WINDOW;
+    }
   }
   state.shake = Math.max(0, state.shake - SHAKE_DECAY * dt);
   updateFloatingTexts(state, dt);
@@ -561,8 +618,31 @@ export function update(state, input, dt) {
     player.jumpsUsed += 1;
   }
 
-  if (input.attackPressed && player.attackCooldown <= 0) {
-    performPlayerAttack(state);
+  // Chargeable weapons (currently just the bow) read attackHeld instead of
+  // the one-shot attackPressed: holding builds chargeTime, and releasing is
+  // what actually fires. Everything else keeps the plain tap-to-attack path
+  // unchanged.
+  const chargeable = player.weapon.type === 'ranged' && player.weapon.ability?.chargeable;
+  if (chargeable) {
+    if (input.attackHeld && player.attackCooldown <= 0) {
+      const maxCharge = player.weapon.ability.maxChargeTime || 1;
+      player.chargeTime = Math.min(maxCharge, player.chargeTime + dt);
+    } else if ((player.chargeTime > 0 || input.attackPressed) && player.attackCooldown <= 0) {
+      // Fires on release after however long attackHeld was true (the normal
+      // case), but also covers a press-and-release that both landed inside
+      // one frame and so never registered as "held" at all -- attackPressed
+      // alone still catches that and fires a near-zero-charge shot instead
+      // of silently swallowing the tap. Caught by testing headlessly with a
+      // single simulated frame, which reproduces exactly that gap.
+      performPlayerAttack(state, player.chargeTime);
+      player.attackCooldown = player.weapon.cooldown;
+      player.swingFlash = SWING_VISUAL;
+      player.chargeTime = 0;
+    } else {
+      player.chargeTime = 0;
+    }
+  } else if (input.attackPressed && player.attackCooldown <= 0) {
+    performPlayerAttack(state, 0);
     player.attackCooldown = player.weapon.cooldown;
     player.swingFlash = SWING_VISUAL;
   }

@@ -51,6 +51,14 @@ export function createPlayer(x, y) {
     dodgeTimer: 0,
     dodgeCooldown: 0,
     dodgeDir: 1,
+    // Weapon identity (ROADMAP.md Phase 1.3/1.4). postDodgeWindow counts
+    // down after a dodge ends -- only the dagger's ability currently reads
+    // it, but it's tracked generically (not dagger-specific state) in case
+    // something else wants to know "did the player just dodge" later.
+    // chargeTime is the bow's hold-to-charge progress; unused by any melee
+    // weapon.
+    postDodgeWindow: 0,
+    chargeTime: 0,
   };
 }
 

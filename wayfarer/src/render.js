@@ -142,7 +142,15 @@ const PLAYER_RUN_STRIDE = 60;
 
 function pickPlayerClipName(player, gameOver) {
   if (gameOver) return 'death';
-  if (player.swingFlash > 0) return `swing${player.comboStep}`;
+  // comboStep is only ever 0-3 for melee combo hits -- ranged weapons set
+  // swingFlash too (for the same brief attack-feedback flash) but leave
+  // comboStep at -1 (they don't combo; see performPlayerAttack), and there's
+  // no delivered "firing a bow" pose to show anyway. Guard against looking
+  // up a nonexistent 'swing-1' clip (this crashed the whole render loop the
+  // first time it was actually exercised -- the headless smoke test never
+  // calls renderGame at all, so nothing had caught it before now) and just
+  // fall through to idle/run/jump instead.
+  if (player.swingFlash > 0 && player.comboStep >= 0 && player.comboStep <= 3) return `swing${player.comboStep}`;
   if (player.dodging) return 'dodge';
   if (player.hitFlash > 0) return 'hurt';
   if (!player.onGround) return 'jump';
@@ -360,6 +368,24 @@ function drawWindupTelegraph(ctx, sx, enemy, walkPhase) {
   ctx.restore();
 }
 
+// Bow charge telegraph (ROADMAP.md Phase 1.4) -- same ring-and-pulse visual
+// language as drawWindupTelegraph above, but gold rather than red (a
+// build-up the player is doing, not a danger to react to) and no "!" text.
+// Grows and brightens with charge fraction so a near-full draw reads as
+// visibly different from just having tapped the button.
+function drawChargeTelegraph(ctx, sx, player, fraction, time) {
+  const cx = sx + player.w / 2;
+  const cy = player.y + player.h * 0.4;
+  const pulse = 0.5 + 0.5 * Math.sin(time * 18);
+  ctx.save();
+  ctx.strokeStyle = `rgba(255, 215, 106, ${0.25 + 0.45 * fraction})`;
+  ctx.lineWidth = 2 + 2 * fraction;
+  ctx.beginPath();
+  ctx.arc(cx, cy, player.w * (0.5 + 0.35 * fraction) + pulse * 3, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function computeCamera(state) {
   const target = state.player.x + state.player.w / 2 - SCREEN_W / 2;
   return Math.max(0, Math.min(Math.max(0, state.level.width - SCREEN_W), target));
@@ -533,7 +559,20 @@ export function renderGame(canvas, state, time) {
       drawSliceWave(ctx, facing);
       ctx.restore();
     } else if (arrowImg) {
-      drawAnchoredImage(ctx, arrowImg, sx, proj.y + PROJECTILE_TARGET_H / 2, PROJECTILE_TARGET_H, facing < 0);
+      // A charged shot (bow ability, ROADMAP.md Phase 1.4) should visibly
+      // read as one, not just hit harder -- bigger sprite plus a soft glow
+      // behind it. Only on the real-art path; the vector fallback below is
+      // already a stand-in, not worth the same treatment.
+      if (proj.charged) {
+        ctx.save();
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = '#ffd76a';
+        ctx.beginPath();
+        ctx.arc(sx, proj.y, PROJECTILE_TARGET_H * 0.9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      drawAnchoredImage(ctx, arrowImg, sx, proj.y + PROJECTILE_TARGET_H / 2, PROJECTILE_TARGET_H * (proj.charged ? 1.6 : 1), facing < 0);
     } else {
       ctx.save();
       ctx.translate(sx, proj.y);
@@ -632,6 +671,11 @@ export function renderGame(canvas, state, time) {
     ctx.translate(-camera, 0);
     drawPlayer(ctx, player, time);
     ctx.restore();
+  }
+
+  if (player.chargeTime > 0 && player.weapon.ability?.chargeable) {
+    const fraction = Math.min(1, player.chargeTime / (player.weapon.ability.maxChargeTime || 1));
+    drawChargeTelegraph(ctx, playerSx, player, fraction, time);
   }
 
   ctx.font = 'bold 15px "Courier New", monospace';
