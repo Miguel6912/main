@@ -19,8 +19,18 @@ export const ASSET_PATHS = {
   'enemy.bandit': 'assets/enemies/bandit.png',
   'enemy.skeleton': 'assets/enemies/skeleton.png',
   'enemy.zombie': 'assets/enemies/zombie.png',
+  // Single static pose -- kept as the fallback for the sheet keys below,
+  // in case either sheet is ever missing (see pickEnemyClipName's use of
+  // getImage in render.js).
   'enemy.guard': 'assets/enemies/guard.png',
   'enemy.gargoyle': 'assets/enemies/gargoyle.png',
+  // 4x4 animation sheets, same convention as the player's (src/animator.js):
+  // idle_attack is 8 frames idle + 8 frames attack, walk_death is 8 frames
+  // walk + 8 frames death. The guard is the first enemy to get real
+  // animation instead of the static-pose-plus-bob hack every other enemy
+  // still uses -- see ENEMY_CLIPS in render.js.
+  'enemy.guard.sheet.idleAttack': 'assets/enemies/guard_idle_attack.png',
+  'enemy.guard.sheet.walkDeath': 'assets/enemies/guard_walk_death.png',
   // Not delivered yet -- frostmarch/swamp render on their vector fallback
   // (sprites.js drawEnemy) until real art lands at these paths, exactly
   // like every other sprite here before its art existed.

@@ -266,6 +266,57 @@ function drawStretchImage(ctx, img, x0, x1, top, h) {
   ctx.drawImage(img, x0, top, x1 - x0, h);
 }
 
+// ------------------------------------------------------------ enemy anims --
+// Same 4x4-sheet-and-clip idea as the player (see PLAYER_CLIPS above), but
+// per enemy type -- only 'guard' has real sheets delivered so far, so it's
+// the only key here. Every other type keeps rendering on the old
+// single-pose-image-plus-bob path (see the enemy loop in renderGame) until
+// its own sheets land, exactly like the vector fallback did before any
+// enemy art existed at all.
+const ENEMY_CLIPS = {
+  guard: {
+    idle: { key: 'enemy.guard.sheet.idleAttack', start: 0, count: 8 },
+    attack: { key: 'enemy.guard.sheet.idleAttack', start: 8, count: 8 },
+    walk: { key: 'enemy.guard.sheet.walkDeath', start: 0, count: 8 },
+    // walk_death's frames 8-15 are a death animation, but killEnemy in
+    // game.js removes a dead enemy from state.enemies the instant its hp
+    // hits 0 -- there's no lingering dead-but-still-rendered frame for a
+    // death clip to ever actually play against. Left unmapped rather than
+    // wired to something that can never be seen; giving enemies a death
+    // hang-time to make use of it is a bigger change than this pass.
+  },
+};
+// World px of travel per full 8-frame walk cycle -- same idea as
+// PLAYER_RUN_STRIDE (position-driven, not wall-clock, so it freezes cleanly
+// the instant an enemy stops rather than continuing to "walk" in place).
+// Tuned separately from the player's since the guard's stride/on-screen
+// speed differ from the player's own.
+const ENEMY_WALK_STRIDE = 70;
+
+function pickEnemyClipName(enemy) {
+  if (enemy.windup > 0) return 'attack';
+  if (enemy.state === 'chase' || enemy.state === 'patrol') return 'walk';
+  return 'idle';
+}
+
+function enemyClipFrame(clipName, clip, enemy, time) {
+  if (clipName === 'walk') {
+    return frameForPhase(clip, (enemy.x / ENEMY_WALK_STRIDE) * clip.count);
+  }
+  if (clipName === 'attack') {
+    // Counts up across the windup instead of down (windup itself ticks down
+    // to 0), so frame 0 shows right as the tell starts and the last frame
+    // lands the swing right as windup expires -- matches ENEMY_WINDUP_REFERENCE
+    // below, which the telegraph ring already uses for the same window.
+    return frameForElapsed(
+      { count: clip.count, fps: clip.count / ENEMY_WINDUP_REFERENCE, loop: false },
+      ENEMY_WINDUP_REFERENCE - enemy.windup,
+    );
+  }
+  // idle -- ambient loop on wall-clock time, same as the player's.
+  return frameForElapsed({ count: clip.count, fps: 3, loop: true }, time);
+}
+
 // The attack telegraph (pulsing ring + "!") was only ever drawn inside the
 // vector drawEnemy() path in sprites.js -- with a real enemy image active
 // it silently never showed at all, quietly undoing the earlier fairness
@@ -475,32 +526,57 @@ export function renderGame(canvas, state, time) {
   for (const enemy of state.enemies) {
     const sx = enemy.x - camera;
     if (sx < -60 || sx > SCREEN_W + 60) continue;
-    const img = getImage(`enemy.${enemy.type}`);
-    // A static pose translated in a straight line reads as sliding, not
-    // walking. Bob phase is driven by the enemy's own x, not wall-clock
-    // time, so the "step" rate naturally matches how fast it's actually
-    // moving and freezes cleanly the instant it stops (windup/hitstun).
-    const moving = (enemy.state === 'chase' || enemy.state === 'patrol') && enemy.windup <= 0 && enemy.hitstun <= 0;
-    const bob = moving ? -Math.abs(Math.sin(enemy.x * 0.05)) * 3 : 0;
-    if (img) {
+
+    const clips = ENEMY_CLIPS[enemy.type];
+    const clipName = clips ? pickEnemyClipName(enemy) : null;
+    const clip = clipName ? clips[clipName] : null;
+    const sheetImg = clip ? getImage(clip.key) : null;
+
+    if (sheetImg) {
+      const localFrame = enemyClipFrame(clipName, clip, enemy, time);
       ctx.save();
       if (enemy.hitFlash > 0) ctx.globalAlpha = 0.55;
-      // Every painted enemy faces left by default (the source art), the
-      // opposite of the old vector sprites it replaced -- flipping on
-      // dir < 0 (the vector convention) mirrored it backwards: facing left
-      // while moving right and vice versa, i.e. walking backwards. Flip on
-      // dir > 0 instead so it only mirrors when actually moving right.
-      drawBoxImage(ctx, img, sx + enemy.w / 2, enemy.y + enemy.h + bob, enemy.w, enemy.h, enemy.dir > 0, ENEMY_VISUAL_SCALE[enemy.type] || 1);
+      // Every painted enemy faces left by default (the source art) -- flip
+      // on dir > 0, not dir < 0, so it only mirrors when actually moving
+      // right (see the single-pose path below for why dir < 0 is wrong).
+      drawSheetBox(
+        ctx, sheetImg, clip.start + localFrame,
+        sx + enemy.w / 2, enemy.y + enemy.h,
+        enemy.w, enemy.h, enemy.dir > 0, ENEMY_VISUAL_SCALE[enemy.type] || 1,
+      );
       ctx.restore();
-      // The vector path (drawEnemy in sprites.js) draws its own windup
-      // ring internally -- only add it here for the image path, so it's
-      // never drawn twice.
       if (enemy.windup > 0) drawWindupTelegraph(ctx, sx, enemy, time);
     } else {
-      ctx.save();
-      ctx.translate(-camera, 0);
-      drawEnemy(ctx, enemy, time);
-      ctx.restore();
+      const img = getImage(`enemy.${enemy.type}`);
+      // A static pose translated in a straight line reads as sliding, not
+      // walking. Bob phase is driven by the enemy's own x, not wall-clock
+      // time, so the "step" rate naturally matches how fast it's actually
+      // moving and freezes cleanly the instant it stops (windup/hitstun).
+      // Only reached for enemy types with no sheet in ENEMY_CLIPS (or
+      // whose sheet image hasn't loaded yet) -- guard normally takes the
+      // branch above instead.
+      const moving = (enemy.state === 'chase' || enemy.state === 'patrol') && enemy.windup <= 0 && enemy.hitstun <= 0;
+      const bob = moving ? -Math.abs(Math.sin(enemy.x * 0.05)) * 3 : 0;
+      if (img) {
+        ctx.save();
+        if (enemy.hitFlash > 0) ctx.globalAlpha = 0.55;
+        // Every painted enemy faces left by default (the source art), the
+        // opposite of the old vector sprites it replaced -- flipping on
+        // dir < 0 (the vector convention) mirrored it backwards: facing left
+        // while moving right and vice versa, i.e. walking backwards. Flip on
+        // dir > 0 instead so it only mirrors when actually moving right.
+        drawBoxImage(ctx, img, sx + enemy.w / 2, enemy.y + enemy.h + bob, enemy.w, enemy.h, enemy.dir > 0, ENEMY_VISUAL_SCALE[enemy.type] || 1);
+        ctx.restore();
+        // The vector path (drawEnemy in sprites.js) draws its own windup
+        // ring internally -- only add it here for the image path, so it's
+        // never drawn twice.
+        if (enemy.windup > 0) drawWindupTelegraph(ctx, sx, enemy, time);
+      } else {
+        ctx.save();
+        ctx.translate(-camera, 0);
+        drawEnemy(ctx, enemy, time);
+        ctx.restore();
+      }
     }
 
     const barY = enemy.y - 10;
