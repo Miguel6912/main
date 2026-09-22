@@ -30,7 +30,7 @@ The encouraging part: a meaningful amount of the *art* for later phases is alrea
 | Enemy armor / crit hits | ❌ Missing | Enemies only have `hp` + `damage`, no defense stat, so "axe breaks armor" has nothing to break. `resolveDamage()` is flat `damage - defense + variance` — no crit chance/multiplier anywhere |
 | Stagger | ❌ Missing | Enemies have a hitstun window (brief, on every hit) but no distinct stagger *state* or threshold |
 | Status effects | ❌ Missing | No poison/burn/curse/any status system |
-| Boss framework | ❌ Missing | Zero boss-encounter code exists. `BOSS_ROSTER` and `MICRO_BOSSES` in `story.js` are dialogue-only, with an explicit comment in the file admitting there's no system for them to hook into yet. **8 fully-painted boss sprite sheets already exist unprocessed** in the asset intake (move_attack + special_death pairs, same 4×4 convention as the player/guard sheets) — none are wired up |
+| Boss framework | ❌ Missing | Zero boss-encounter code exists. `BOSS_ROSTER` and `MICRO_BOSSES` in `story.js` are dialogue-only, with an explicit comment in the file admitting there's no system for them to hook into yet. **8 fully-painted boss sprite sheets already exist unprocessed** in the asset intake (move_attack + special_death pairs, same 4×4 convention as the player/guard sheets) — none are wired up. One is identified: **`clover_move_attack.png` / `clover_death_reaction.png` is the Hollow Hare** (confirmed by inspection — harmless white rabbit, face splits into the radial-toothed maw on the attack sheet, a sweet sparkle-particle death animation on the reaction sheet) |
 
 ### Phase 2 — World State Foundation: 0%
 
@@ -50,7 +50,7 @@ Exactly one NPC exists: Doran, at the forge. Worth knowing — his portrait art 
 
 Depends entirely on Phases 2 and 3 existing first. There is no swamp dragon, no Mirewyrm, and no crafting-from-materials system of any kind — the forge only does flat tier-upgrades paid in gold + scrap (`items.js` `forgeCost`/`canAffordUpgrade`), never boss materials.
 
-The Hollow Hare specifically: named, and its "small harmless rabbit → reveals a horrifying mouth" reveal line is already written (`story.js` `MICRO_BOSSES`) — but it isn't an enemy type in `entities.js`, has no AI, and `levelgen.js` never spawns it. It's a name and two lines of dialogue, nothing more, today.
+The Hollow Hare specifically: named, its "small harmless rabbit → reveals a horrifying mouth" reveal line is already written (`story.js` `MICRO_BOSSES`), and its art is identified (`clover_move_attack.png`/`clover_death_reaction.png` — see Phase 1 above) — but it isn't an enemy type in `entities.js`, has no AI, and `levelgen.js` never spawns it. Everything it needs exists except the system to run it.
 
 ### Phase 5 — Buildcraft: 0%
 
