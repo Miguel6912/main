@@ -248,6 +248,19 @@ button.secondary {
   height: 64px;
 }
 
+/* Smaller than attack/jump -- a frequent but secondary action, not a
+   primary one. Sits to their left in the same flex row (index.html), so it
+   bottom-aligns with them (#touch-actions already uses align-items:
+   flex-end) without needing its own positioning.
+   Selector needs the .touch-btn class too, not just the id -- `#touch-actions
+   .touch-btn` above is an ID+class compound, which out-specifies a bare
+   `#touch-dodge` id selector and would silently win over it otherwise. */
+#touch-dodge.touch-btn {
+  width: 50px;
+  height: 50px;
+  font-size: 1.2rem;
+}
+
 .touch-forge {
   /* Sits just above the action-button cluster (not clear across the
      screen) with a fixed pixel gap, so it reads as part of that group

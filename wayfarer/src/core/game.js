@@ -18,6 +18,16 @@ export const GRAVITY = 1800;
 export const JUMP_VELOCITY = -620;
 export const MOVE_SPEED = 220;
 export const MAX_JUMPS = 2;
+// Dodge/roll (ROADMAP.md Phase 1.1). DODGE_SPEED is well above MOVE_SPEED so
+// the dash reads as a distinct burst, not just a speed boost; DODGE_DURATION
+// is how long that burst (and its invulnerability) lasts; DODGE_COOLDOWN is
+// separate and always counting down, so spamming the button doesn't chain
+// dashes back to back. Ground-only for this first pass -- double jump
+// already covers air mobility, and keeping dodge off the ground avoids
+// stacking it with mid-air physics for now.
+const DODGE_SPEED = 480;
+const DODGE_DURATION = 0.22;
+const DODGE_COOLDOWN = 0.6;
 // Kept short so falling into a gap reads as a quick, punchy mistake rather
 // than a long empty drop before the recovery kicks in.
 export const PIT_Y = GROUND_Y + 130;
@@ -493,14 +503,39 @@ export function update(state, input, dt) {
   player.hitFlash = Math.max(0, player.hitFlash - dt);
   player.comboTimer = Math.max(0, player.comboTimer - dt);
   if (player.comboTimer <= 0) player.comboStep = -1;
+  player.dodgeCooldown = Math.max(0, player.dodgeCooldown - dt);
+  if (player.dodging) {
+    player.dodgeTimer -= dt;
+    if (player.dodgeTimer <= 0) player.dodging = false;
+  }
   state.shake = Math.max(0, state.shake - SHAKE_DECAY * dt);
   updateFloatingTexts(state, dt);
 
   let dir = 0;
   if (input.left) dir -= 1;
   if (input.right) dir += 1;
-  player.vx = dir * MOVE_SPEED;
-  if (dir !== 0) player.facing = dir;
+
+  if (input.dodgePressed && !player.dodging && player.dodgeCooldown <= 0 && player.onGround) {
+    player.dodging = true;
+    player.dodgeTimer = DODGE_DURATION;
+    player.dodgeCooldown = DODGE_COOLDOWN;
+    // Dashes toward whatever direction is currently held, defaulting to
+    // facing -- lets you dodge backward away from a telegraph without first
+    // having to turn around, same as most action games.
+    player.dodgeDir = dir !== 0 ? dir : player.facing;
+    // Reuses the same invuln field hurtPlayer checks -- a fresh hit landing
+    // right as a dash ends simply overwrites it with its own (longer,
+    // post-hit) window, which is exactly the behavior wanted either way.
+    player.invuln = DODGE_DURATION;
+  }
+
+  if (player.dodging) {
+    player.vx = player.dodgeDir * DODGE_SPEED;
+    player.facing = player.dodgeDir;
+  } else {
+    player.vx = dir * MOVE_SPEED;
+    if (dir !== 0) player.facing = dir;
+  }
 
   if (input.jumpPressed && player.jumpsUsed < MAX_JUMPS) {
     player.vy = JUMP_VELOCITY;

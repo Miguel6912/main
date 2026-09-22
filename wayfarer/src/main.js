@@ -36,6 +36,7 @@ const KEY_MAP = {
   ArrowUp: 'jump', w: 'jump', W: 'jump', ' ': 'jump',
   j: 'attack', J: 'attack', f: 'attack', F: 'attack',
   e: 'interact', E: 'interact',
+  k: 'dodge', K: 'dodge', Shift: 'dodge',
 };
 
 window.addEventListener('keydown', (e) => {
@@ -84,6 +85,7 @@ function bindTouchButton(id, action) {
   ['touch-right', 'right'],
   ['touch-jump', 'jump'],
   ['touch-attack', 'attack'],
+  ['touch-dodge', 'dodge'],
   ['touch-forge', 'interact'],
 ].forEach(([id, action]) => bindTouchButton(id, action));
 
@@ -194,6 +196,7 @@ function loop(now) {
       right: held.has('right'),
       jumpPressed: justPressed.has('jump'),
       attackPressed: justPressed.has('attack'),
+      dodgePressed: justPressed.has('dodge'),
       interactPressed: justPressed.has('interact'),
     };
     justPressed.clear();

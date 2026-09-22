@@ -40,6 +40,17 @@ export function createPlayer(x, y) {
     comboStep: -1,
     comboTimer: 0,
     airTime: 0,
+    // Dodge/roll (ROADMAP.md Phase 1.1): dodging is true only while the dash
+    // itself is playing out; dodgeTimer counts that window down and drives
+    // the dodge animation's frame in render.js. dodgeCooldown is separate
+    // and always ticking, so it keeps counting down even between dashes.
+    // dodgeDir is locked in at the moment the dash starts (not re-read from
+    // held input each frame), so releasing/changing direction mid-dash can't
+    // redirect it.
+    dodging: false,
+    dodgeTimer: 0,
+    dodgeCooldown: 0,
+    dodgeDir: 1,
   };
 }
 

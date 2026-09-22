@@ -99,10 +99,10 @@ const ENEMY_VISUAL_SCALE = {
 // ----------------------------------------------------------- player anims --
 // Every player sheet is a 4x4 grid (src/animator.js); a clip is a named
 // slice of its 16 frames. Several clips can share one sheet (moods.png
-// alone covers idle/hurt/dodge/victory). dodge and victory are defined but
-// not currently selected by pickPlayerClip below -- there's no dodge-roll
-// or level-complete-pause mechanic yet for them to represent, so they sit
-// ready rather than being force-fit onto something that doesn't fit.
+// alone covers idle/hurt/dodge/victory). victory is defined but not
+// currently selected by pickPlayerClip below -- there's no level-complete
+// pause mechanic yet for it to represent, so it sits ready rather than
+// being force-fit onto something that doesn't fit.
 const PLAYER_CLIPS = {
   idle: { key: 'player.sheet.moods', start: 0, count: 4 },
   hurt: { key: 'player.sheet.moods', start: 4, count: 4 },
@@ -125,6 +125,9 @@ const PLAYER_SWING_DURATION = 0.28;
 const PLAYER_HURT_DURATION = 0.25;
 const PLAYER_JUMP_DURATION = 0.5;
 const PLAYER_DEATH_DURATION = 0.6;
+// Mirrors core/game.js's DODGE_DURATION -- same "keep in sync" convention
+// as the constants above.
+const PLAYER_DODGE_DURATION = 0.22;
 // World px of travel per full 8-frame run cycle -- tuned so the stride
 // looks natural at the player's actual move speed, not by wall-clock time
 // (so it freezes cleanly the instant you stop, exactly like the old bob
@@ -135,6 +138,7 @@ const PLAYER_RUN_STRIDE = 60;
 function pickPlayerClipName(player, gameOver) {
   if (gameOver) return 'death';
   if (player.swingFlash > 0) return `swing${player.comboStep}`;
+  if (player.dodging) return 'dodge';
   if (player.hitFlash > 0) return 'hurt';
   if (!player.onGround) return 'jump';
   if (Math.abs(player.vx) > 5) return 'run';
@@ -155,6 +159,12 @@ function playerClipFrame(clipName, clip, player, time, deathElapsed) {
     return frameForElapsed(
       { count: clip.count, fps: clip.count / PLAYER_HURT_DURATION, loop: false },
       PLAYER_HURT_DURATION - player.hitFlash,
+    );
+  }
+  if (clipName === 'dodge') {
+    return frameForElapsed(
+      { count: clip.count, fps: clip.count / PLAYER_DODGE_DURATION, loop: false },
+      PLAYER_DODGE_DURATION - player.dodgeTimer,
     );
   }
   if (clipName.startsWith('swing')) {
