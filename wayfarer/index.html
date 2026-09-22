@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Wayfarer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="header">
+      <h1>Wayfarer</h1>
+      <div class="header-stats">
+        <span>Best distance: <strong id="header-best">0</strong>m</span>
+        <button id="new-run-btn">New Run</button>
+      </div>
+    </header>
+
+    <main id="layout">
+      <div id="stage">
+        <canvas id="game-canvas"></canvas>
+        <div id="prompt-forge" class="hidden">Press <kbd>E</kbd> to forge</div>
+
+        <div id="dialogue-box" class="hidden">
+          <img id="dialogue-portrait" class="hidden" alt="" />
+          <div class="dialogue-body">
+            <div id="dialogue-speaker" class="hidden"></div>
+            <div id="dialogue-text"></div>
+          </div>
+        </div>
+
+        <div id="forge-modal" class="hidden">
+          <div class="forge-card">
+            <h2>Forge</h2>
+            <div class="forge-row">
+              <div>
+                <div class="forge-item-name" id="forge-weapon-name">Weapon</div>
+                <div class="forge-item-stats" id="forge-weapon-stats"></div>
+              </div>
+              <button id="forge-weapon-btn"></button>
+            </div>
+            <div class="forge-row">
+              <div>
+                <div class="forge-item-name" id="forge-armor-name">Armor</div>
+                <div class="forge-item-stats" id="forge-armor-stats"></div>
+              </div>
+              <button id="forge-armor-btn"></button>
+            </div>
+            <p class="hint" id="forge-currency"></p>
+            <button id="forge-close-btn" class="secondary">Close (E)</button>
+          </div>
+        </div>
+
+        <div id="touch-controls">
+          <div id="touch-move">
+            <button id="touch-left" class="touch-btn" aria-label="Move left">◀</button>
+            <button id="touch-right" class="touch-btn" aria-label="Move right">▶</button>
+          </div>
+          <button id="touch-forge" class="touch-btn touch-forge hidden" aria-label="Forge">⚒</button>
+          <div id="touch-actions">
+            <button id="touch-dodge" class="touch-btn touch-dodge" aria-label="Dodge">↺</button>
+            <button id="touch-attack" class="touch-btn touch-attack" aria-label="Attack">⚔</button>
+            <button id="touch-jump" class="touch-btn touch-jump" aria-label="Jump">⤒</button>
+          </div>
+        </div>
+
+        <div id="rotate-hint">Rotate your device for a wider view</div>
+      </div>
+
+      <aside id="sidebar">
+        <section id="stats">
+          <div class="stat-row">
+            <span class="stat-label">HP</span>
+            <div class="hp-bar"><div id="hp-fill" class="hp-fill"></div></div>
+            <span id="hp-text" class="stat-value">40/40</span>
+          </div>
+          <div class="stat-row"><span class="stat-label">Realm</span><span id="stat-biome" class="stat-value">Forest</span></div>
+          <div class="stat-row"><span class="stat-label">Distance</span><span id="stat-distance" class="stat-value">0</span></div>
+          <div class="stat-row"><span class="stat-label">Weapon</span><span id="stat-weapon" class="stat-value">Rusty Dagger T1</span></div>
+          <div class="stat-row"><span class="stat-label">Armor</span><span id="stat-armor" class="stat-value">Traveler's Garb T1</span></div>
+          <div class="stat-row"><span class="stat-label">Gold</span><span id="stat-gold" class="stat-value">0</span></div>
+          <div class="stat-row"><span class="stat-label">Scrap</span><span id="stat-scrap" class="stat-value">0</span></div>
+        </section>
+
+        <section id="help">
+          <h2>Controls</h2>
+          <ul>
+            <li class="kbd-only"><kbd>A</kbd>/<kbd>D</kbd> or arrows — move</li>
+            <li class="kbd-only"><kbd>W</kbd> / <kbd>Space</kbd> — jump (tap again in the air to double jump)</li>
+            <li class="kbd-only"><kbd>J</kbd> / <kbd>F</kbd> — attack</li>
+            <li class="kbd-only"><kbd>K</kbd> / <kbd>Shift</kbd> — dodge (ground only, brief invulnerability)</li>
+            <li class="kbd-only"><kbd>E</kbd> — forge / interact</li>
+            <li class="touch-only">◀ ▶ on-screen — move</li>
+            <li class="touch-only">⤒ — jump (tap again in the air to double jump)</li>
+            <li class="touch-only">⚔ — attack</li>
+            <li class="touch-only">↺ — dodge (ground only, brief invulnerability)</li>
+            <li class="touch-only">⚒ appears near a forge — tap to open</li>
+          </ul>
+          <p class="hint">Fight through forest, graveyard, castle, frostmarch, and swamp in turn. Better gear drops as you go, or forge upgrades with scrap and gold. Falling into a pit costs a little health and drops you back on solid ground — mind your step.</p>
+        </section>
+
+        <section id="log-section">
+          <h2>Log</h2>
+          <ul id="message-log"></ul>
+        </section>
+      </aside>
+    </main>
+
+    <div id="game-over" class="hidden">
+      <div class="game-over-card">
+        <h2>Your journey ends</h2>
+        <p>Distance travelled: <strong id="final-distance">0</strong>m</p>
+        <p>Realm: <strong id="final-biome">forest</strong></p>
+        <p>Weapon: <strong id="final-weapon">-</strong></p>
+        <p>Armor: <strong id="final-armor">-</strong></p>
+        <p>Best distance ever: <strong id="best-distance">0</strong>m</p>
+        <button id="restart-btn">Try Again</button>
+        <p class="hint">or press <kbd>R</kbd></p>
+      </div>
+    </div>
+
+    <div id="story-intro">
+      <div class="story-card">
+        <h2>Princess Elara</h2>
+        <div id="story-lines"></div>
+        <button id="begin-btn">Begin the journey</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
