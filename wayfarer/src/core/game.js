@@ -464,13 +464,20 @@ export function update(state, input, dt) {
     // its completion (e.g. opening the forge once Doran's intro finishes)
     // rather than silently eating the press -- but only if tickDialogue
     // didn't already clear it this same frame, or its onComplete would fire
-    // twice. input.interactPressed is intentionally left set afterward: the
-    // forge-open check further down is a harmless no-op if this already
-    // opened it.
+    // twice.
     if (input.interactPressed && state.activeDialogue === wasActive) {
       state.activeDialogue = null;
       if (wasActive.onComplete) wasActive.onComplete(state);
     }
+    // Stand still and pause the world for as long as a line is up -- no
+    // enemy movement/attacks, no player movement or attack input either, so
+    // you can neither get hit nor swing mid-conversation. Also covers the
+    // frame a line clears on (whether by timer or the skip above): returning
+    // here instead of falling through means this frame's already-spent
+    // interactPressed can't ALSO trigger the forgeOpen check below and
+    // instantly close whatever onComplete (e.g. opening the forge) just
+    // opened -- that takes effect starting next frame's fresh input instead.
+    return state;
   }
   if (state.gameOver) return state;
 

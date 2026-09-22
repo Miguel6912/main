@@ -16,17 +16,21 @@ export const VIEW_WIDTH = 1280;
 export const VIEW_HEIGHT = 720;
 const BG_PARALLAX = 0.4;
 
-// Camera zoom: the canvas is drawn into a slightly smaller world-space
-// window that gets scaled up to fill it, so the world (and everyone in it)
-// reads bigger without changing anything's size relative to anything else.
-// SCREEN_W/SCREEN_H are that window's size in world px; SCREEN_TOP/
-// SCREEN_BOTTOM are its world-y extents. There's no vertical scroll (the
-// ground never moves), so the window is pinned to the ground line rather
-// than following the player. At 1.3x here on a 1280-wide canvas, the
-// visible world window (~985px) comes out close to the old un-zoomed
-// 960px view -- the size boost comes from the bigger canvas, not from
-// shrinking how much of the level you can see.
-const ZOOM = 1.3;
+// Camera zoom: the canvas is drawn into a smaller world-space window that
+// gets scaled up to fill it, so the world (and everyone in it) reads bigger
+// without changing anything's size relative to anything else. SCREEN_W/
+// SCREEN_H are that window's size in world px; SCREEN_TOP/SCREEN_BOTTOM are
+// its world-y extents. There's no vertical scroll (the ground never moves),
+// so the window is pinned to the ground line rather than following the
+// player.
+// Was 1.3 -- reported as still feeling small/distant on a phone (a touch
+// finger fully covering the character), asking for more immersion. Bumped
+// to 1.6: the visible world window narrows from ~985px to ~800px, but
+// everything on screen -- world art, player, enemies, HUD-relative sizing --
+// reads about 23% bigger as a direct result, with no other constant needing
+// to change (PLAYER_VISUAL_SCALE etc. all scale through this same camera
+// transform).
+const ZOOM = 1.6;
 const SCREEN_W = VIEW_WIDTH / ZOOM;
 const SCREEN_H = VIEW_HEIGHT / ZOOM;
 // How much ground/pit stays visible below the ground line -- the rest of
